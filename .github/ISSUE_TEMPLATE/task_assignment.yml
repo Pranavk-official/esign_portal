@@ -1,0 +1,66 @@
+name: 📋 Task Assignment
+description: Assign a specific development task to a contributor
+title: "[Task]: "
+labels: ["task", "todo"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Internal Task Assignment**
+        Use this template to assign specific work items to team members.
+  
+  - type: input
+    id: task-id
+    attributes:
+      label: Task ID
+      description: Reference ID from tasks.md (e.g., 1.2, 9.1)
+      placeholder: 1.2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - 🔴 Critical (Blocker)
+        - 🟡 High (Next Release)
+        - 🟢 Medium (Standard)
+        - 🔵 Low (Backlog)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: What exactly needs to be done?
+      placeholder: Implement the login form validation logic...
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-details
+    attributes:
+      label: Technical Details
+      description: Implementation guidance, file paths, or API endpoints.
+      value: |
+        - **Files:** `src/app/...`
+        - **API:** `POST /api/...`
+        - **Components:** `shadcn/ui` components to use...
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Definition of Done
+      description: Checklist for completion.
+      value: |
+        - [ ] Code implemented & linted
+        - [ ] Types defined properly (No `any`)
+        - [ ] Error handling included (Toast/Boundary)
+        - [ ] Verified against requirements
+    validations:
+      required: true
