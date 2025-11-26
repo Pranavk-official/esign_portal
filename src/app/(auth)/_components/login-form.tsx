@@ -1,0 +1,214 @@
+"use client"
+
+import * as React from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { Loader2 } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp"
+
+// Schemas
+import { 
+  otpRequestSchema, 
+  otpVerifySchema, 
+  type OTPRequestForm, 
+  type OTPVerifyForm 
+} from "@/lib/schemas/auth"
+
+import { authApi } from "@/lib/api/auth"
+import { useAuthStore } from "@/lib/stores/auth-store"
+import { AppError } from "@/lib/errors"
+
+type LoginStep = "EMAIL" | "OTP"
+
+export function LoginForm() {
+  const [step, setStep] = React.useState<LoginStep>("EMAIL")
+  const [email, setEmail] = React.useState<string>("")
+  const router = useRouter()
+  const { setUser } = useAuthStore()
+
+  // --- Form 1: Request OTP ---
+  const emailForm = useForm<OTPRequestForm>({
+    resolver: zodResolver(otpRequestSchema),
+    defaultValues: { email: "" },
+  })
+
+  // --- Form 2: Verify OTP ---
+  // Default values use 'otp' (not otp_code)
+  const otpForm = useForm<OTPVerifyForm>({
+    resolver: zodResolver(otpVerifySchema),
+    defaultValues: { email: "", otp: "" },
+  })
+
+  // --- Mutation 1: Request OTP ---
+  const requestOTPMutation = useMutation({
+    mutationFn: authApi.requestOTP,
+    onSuccess: () => {
+      setStep("OTP")
+      toast.success("OTP sent to your email")
+    },
+    // onError handled globally
+  })
+
+  function onEmailSubmit(data: OTPRequestForm) {
+    setEmail(data.email)
+    // Sync email to second form immediately
+    otpForm.setValue("email", data.email) 
+    requestOTPMutation.mutate({ ...data, scope: "LOGIN" })
+  }
+
+  // --- Mutation 2: Verify & Login Chain ---
+  const verifyOTPMutation = useMutation<
+    void,           // Returns nothing (we handle flow manually)
+    AppError,       // Error type
+    OTPVerifyForm   // Input variables
+  >({
+    mutationFn: async (variables) => {
+        // 1. Verify OTP
+        // Backend sets the HttpOnly cookie here. 
+        // We pass scope: 'LOGIN' to match the schema.
+        await authApi.verifyOTP({ ...variables, scope: 'LOGIN' } as any);
+        
+        // 2. Fetch User Profile
+        // Essential step: The verification response doesn't have the user role.
+        const userResponse = await authApi.getMe();
+        
+        // 3. Update Store
+        setUser(userResponse.data);
+    },
+    onSuccess: () => {
+      const user = useAuthStore.getState().user;
+      toast.success("Login successful");
+      
+      // 4. Role-based Redirect
+      if (user?.roles.some((r: any) => r.name === 'super_admin' || r === 'super_admin')) {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/portal/dashboard");
+      }
+    },
+    onError: (error) => {
+      console.error("Login Failed:", error);
+      otpForm.resetField("otp"); // Clear OTP on failure
+    },
+  })
+
+  function onOtpSubmit(data: OTPVerifyForm) {
+    // Use state email as fallback
+    const finalEmail = email || otpForm.getValues("email");
+    
+    if (!finalEmail) {
+        toast.error("Session lost. Please reload.");
+        return;
+    }
+
+    verifyOTPMutation.mutate({ 
+        email: finalEmail, 
+        otp: data.otp // Correct field name 'otp'
+    })
+  }
+
+  return (
+    <div className="grid gap-6">
+      {step === "EMAIL" ? (
+        <Form {...emailForm}>
+          <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
+            <FormField
+              control={emailForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email Address</FormLabel>
+                  <FormControl>
+                    <Input 
+                        placeholder="admin@example.com" 
+                        disabled={requestOTPMutation.isPending} 
+                        {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button className="w-full" type="submit" disabled={requestOTPMutation.isPending}>
+              {requestOTPMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Request OTP
+            </Button>
+          </form>
+        </Form>
+      ) : (
+        <Form {...otpForm}>
+          <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-4">
+            <div className="mb-4 text-center text-sm text-muted-foreground">
+              Sent to <span className="font-medium text-foreground">{email}</span>
+            </div>
+            
+            <FormField
+              control={otpForm.control}
+              name="otp"
+              render={({ field }) => (
+                <FormItem className="flex flex-col items-center justify-center">
+                  <FormLabel className="sr-only">One-Time Password</FormLabel>
+                  <FormControl>
+                    <InputOTP 
+                        maxLength={6} 
+                        disabled={verifyOTPMutation.isPending}
+                        {...field}
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                      </InputOTPGroup>
+                      <InputOTPGroup>
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button className="w-full" type="submit" disabled={verifyOTPMutation.isPending}>
+              {verifyOTPMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Verify Login
+            </Button>
+            <Button 
+                variant="link" 
+                className="w-full" 
+                size="sm"
+                type="button"
+                onClick={() => setStep("EMAIL")}
+                disabled={verifyOTPMutation.isPending}
+            >
+                Change Email
+            </Button>
+          </form>
+        </Form>
+      )}
+    </div>
+  )
+}
