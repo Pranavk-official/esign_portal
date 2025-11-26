@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Backend Repository
+    url: https://github.com/your-org/backend-repo
+    about: Please report API-specific issues here.
