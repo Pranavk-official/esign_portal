@@ -1,5 +1,1 @@
-blank_issues_enabled: true
-contact_links:
-  - name: Frontend Repository
-    url: https://github.com/Pranavk-official/esign_portal
-    about: Please report API-specific issues here.
+blank_issues_enabled: false
