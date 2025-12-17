@@ -44,3 +44,4 @@ next-env.d.ts
 # Custom
 .scripts/
 ref/
+!.env.example

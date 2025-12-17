@@ -99,9 +99,9 @@ export function LoginForm() {
       
       // 4. Role-based Redirect
       if (user?.roles.some((r: any) => r.name === 'super_admin' || r === 'super_admin')) {
-        router.push("/admin/dashboard");
+        router.push("/admin");
       } else {
-        router.push("/portal/dashboard");
+        router.push("/portal");
       }
     },
     onError: (error) => {
