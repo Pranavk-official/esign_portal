@@ -20,16 +20,21 @@ A modern, type-safe, multi-tenant frontend for the ASP eSign Gateway Service. Bu
 2.  **Environment Setup**
     Copy the example environment file and configure the backend API URL:
     ```bash
-    cp .env.example .env
+    cp .env.example .env.local
     ```
     
     **Configuration:**
     ```env
-    # .env
-    NEXT_PUBLIC_API_BASE_URL="http://localhost:8000"
+    # .env.local
+    NEXT_PUBLIC_API_BASE_URL="https://mdrr740x-8000.inc1.devtunnels.ms"
+    NEXT_PUBLIC_USE_COOKIES=true
     ```
     
-    > **Note:** The default configuration assumes the backend is running on `localhost:8000`. Update this if your API is hosted elsewhere.
+    > **Important:** 
+    > - Update `NEXT_PUBLIC_API_BASE_URL` when your dev tunnel URL changes
+    > - No trailing slash in the URL
+    > - Cookie-based authentication is enabled by default for cross-origin requests
+    > - See [COOKIE_AUTH_SETUP.md](./COOKIE_AUTH_SETUP.md) for detailed authentication configuration
 
 3.  **Run Development Server**
     ```bash
@@ -193,6 +198,51 @@ When any API request returns `401 Unauthorized`:
 2. Calls `POST /admin/auth/refresh` (sends `refresh_token` cookie)
 3. Backend validates & sets new `access_token` cookie
 4. Retries original request automatically
+5. If refresh fails, clears auth state and redirects to `/login`
+
+> **Note:** All of this is handled automatically by the API client. See [COOKIE_AUTH_SETUP.md](./COOKIE_AUTH_SETUP.md) for details.
+
+---
+
+## 🐛 Debugging Authentication
+
+In development mode, authentication debug utilities are automatically loaded. Open your browser console and use:
+
+```javascript
+// Check API configuration
+authDebug.checkConfig()
+
+// Test if cookies are being sent
+await authDebug.testCookies()
+
+// Check current authentication status
+await authDebug.checkAuth()
+
+// Test token refresh
+await authDebug.testRefresh()
+
+// Run full diagnostic
+await authDebug.diagnose()
+```
+
+### Common Issues
+
+**Cookies not being sent?**
+- Check if third-party cookies are blocked in browser settings
+- Verify backend URL is using HTTPS (required for `secure` cookies)
+- Confirm `withCredentials: true` is set (already configured)
+
+**401 errors after login?**
+- Check Network tab → Response Headers for `Set-Cookie`
+- Verify backend CORS includes your frontend URL
+- Run `authDebug.diagnose()` for detailed analysis
+
+**Token refresh failing?**
+- `refresh_token` cookie may be expired (7 days default)
+- Check backend logs for refresh endpoint errors
+- User may need to login again
+
+See [COOKIE_AUTH_SETUP.md](./COOKIE_AUTH_SETUP.md) for comprehensive troubleshooting guide.
 5. If refresh fails → Clear Zustand state → Redirect to login
 
 **Key Points:**

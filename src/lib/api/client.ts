@@ -1,3 +1,30 @@
+/**
+ * API Client Configuration
+ * 
+ * This module sets up the Axios client for cookie-based authentication with cross-origin support.
+ * 
+ * Key Features:
+ * - Automatic cookie handling with `withCredentials: true`
+ * - Automatic token refresh on 401 errors
+ * - Custom error translation
+ * - Network error handling
+ * 
+ * Authentication Flow:
+ * 1. Login sets HttpOnly cookies (access_token, refresh_token)
+ * 2. Browser automatically sends cookies with each request
+ * 3. On 401, automatically refreshes using refresh_token cookie
+ * 4. On refresh failure, clears auth state and redirects to login
+ * 
+ * Configuration:
+ * - Update NEXT_PUBLIC_API_BASE_URL in .env.local when dev tunnel URL changes
+ * - Backend must have CORS configured with allow_credentials=True
+ * - Backend must set cookies with secure=True, httponly=True, samesite=none
+ * 
+ * Debugging:
+ * - In browser console: `authDebug.diagnose()` for full diagnostic
+ * - See COOKIE_AUTH_SETUP.md for troubleshooting guide
+ */
+
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import {
@@ -16,12 +43,13 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+// Remove trailing slash if present
+const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
   timeout: 30000,
-  withCredentials: true, // <--- CRITICAL: Sends cookies with requests
+  withCredentials: true, // CRITICAL: Sends cookies with requests for cross-origin auth
   headers: {
     'Content-Type': 'application/json',
   },
@@ -50,16 +78,25 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // We just call the endpoint. The browser sends the HttpOnly 'refresh_token' cookie.
-        // The backend validates it and sets a new 'access_token' cookie in the response.
-        await axios.post(`${BASE_URL}/admin/auth/refresh`, {}, { withCredentials: true });
+        // Call refresh endpoint with withCredentials to send HttpOnly refresh_token cookie
+        // Backend validates it and sets a new access_token cookie in the response
+        await axios.post(`${BASE_URL}/admin/auth/refresh`, {}, { 
+          withCredentials: true,
+          timeout: 10000 // Shorter timeout for refresh attempts
+        });
         
-        // Retry original request (Browser will attach new access cookie)
+        // Retry original request - browser will automatically attach the new access_token cookie
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, clear client state
+        // Refresh failed - clear auth state and redirect to login
         useAuthStore.getState().clearAuth();
-        // Redirect is handled by the UI/Middleware
+        
+        // Only redirect on client side
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        
+        return Promise.reject(new UnauthorizedError('Session expired. Please login again.'));
       }
     }
 
