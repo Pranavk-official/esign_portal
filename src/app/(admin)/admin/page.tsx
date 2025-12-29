@@ -1,4 +1,8 @@
+"use client"
+
 export default function AdminDashboardPage() {
+  // DEV: Auth disabled
+
   return (
     <div className="p-4 border rounded-md border-dashed">
       <h2 className="font-bold mb-2">AdminDashboardPage</h2>

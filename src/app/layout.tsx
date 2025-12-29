@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ReactQueryProvider from "@/providers/query-provider";
 import { Toaster } from "sonner";
-import { DevTools } from "@/components/dev-tools";
 
 // Load debug utilities in development
 if (process.env.NODE_ENV === 'development') {
@@ -38,7 +37,6 @@ export default function RootLayout({
         <ReactQueryProvider>
           {children}
           <Toaster />
-          <DevTools />
         </ReactQueryProvider>
       </body>
     </html>

@@ -95,14 +95,36 @@ export function LoginForm() {
     },
     onSuccess: () => {
       const user = useAuthStore.getState().user;
+      console.log('[LOGIN] User logged in:', user);
       toast.success("Login successful");
       
       // 4. Role-based Redirect
-      if (user?.roles.some((r: any) => r.name === 'super_admin' || r === 'super_admin')) {
-        router.push("/admin");
-      } else {
-        router.push("/portal");
+      const roles = user?.roles || [];
+      console.log('[LOGIN] User roles:', roles);
+      
+      // Handle both string roles and object roles (if backend changes)
+      const hasRole = (roleName: string) => {
+        return roles.some((r: any) => {
+            const rName = typeof r === 'string' ? r : r.name;
+            return rName.toUpperCase() === roleName.toUpperCase();
+        });
+      };
+
+      let targetRoute = "/portal";
+      if (hasRole('SUPER_ADMIN')) {
+        targetRoute = "/admin";
+      } else if (hasRole('PORTAL_ADMIN')) {
+        targetRoute = "/portal";
       }
+      
+      console.log('[LOGIN] Redirecting to:', targetRoute);
+      console.log('[LOGIN] About to execute redirect...');
+      
+      // Small delay to ensure state is saved, then hard redirect
+      setTimeout(() => {
+        console.log('[LOGIN] Executing redirect NOW');
+        window.location.href = targetRoute;
+      }, 100);
     },
     onError: (error) => {
       console.error("Login Failed:", error);

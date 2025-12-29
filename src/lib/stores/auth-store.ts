@@ -12,16 +12,18 @@ export interface UserInfo {
 interface AuthState {
   user: UserInfo | null;
   isAuthenticated: boolean;
+  _hasHydrated: boolean;
   
   // Actions
   setUser: (user: UserInfo) => void;
   clearAuth: () => void;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      // DEV: Default to logged in for development
+      // DEV: Always authenticated with SUPER_ADMIN
       user: {
         id: 'dev-user',
         email: 'dev@example.com',
@@ -30,16 +32,22 @@ export const useAuthStore = create<AuthState>()(
         roles: ['SUPER_ADMIN']
       },
       isAuthenticated: true,
+      _hasHydrated: true,
 
       setUser: (user) => 
         set({ user, isAuthenticated: true }),
       
       clearAuth: () => 
         set({ user: null, isAuthenticated: false }),
+
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
     }),
     {
       name: 'auth-storage-dev', // Changed for dev to ignore previous auth state
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );
