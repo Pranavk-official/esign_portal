@@ -93,7 +93,9 @@ apiClient.interceptors.response.use(
         
         // Only redirect on client side
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          // DEV: Disabled redirect for development
+          console.log('Auth failed, but redirect disabled for dev');
+          // window.location.href = '/login';
         }
         
         return Promise.reject(new UnauthorizedError('Session expired. Please login again.'));

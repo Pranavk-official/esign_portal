@@ -21,8 +21,15 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: null,
-      isAuthenticated: false,
+      // DEV: Default to logged in for development
+      user: {
+        id: 'dev-user',
+        email: 'dev@example.com',
+        portal_id: 'dev-portal',
+        is_active: true,
+        roles: ['SUPER_ADMIN']
+      },
+      isAuthenticated: true,
 
       setUser: (user) => 
         set({ user, isAuthenticated: true }),
@@ -31,7 +38,7 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, isAuthenticated: false }),
     }),
     {
-      name: 'auth-storage', // Still persists user info to keep UI "logged in" across tabs
+      name: 'auth-storage-dev', // Changed for dev to ignore previous auth state
       storage: createJSONStorage(() => localStorage),
     }
   )
