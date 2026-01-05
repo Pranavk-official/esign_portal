@@ -1,0 +1,75 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { navLinks } from "@/app/(portal)/config/navlinks";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
+
+import { User2, ChevronUp } from "lucide-react";
+import { SidebarUserMenu } from "./user-menu";
+
+export function PortalSidebar() {
+  const pathname = usePathname();
+
+  // frontend-only username
+  const username = "John Doe";
+
+  // local dropdown toggle
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Sidebar collapsible="icon" className="py-2">
+      <SidebarHeader>
+        <div className="text-sm font-semibold text-center">My App</div>
+      </SidebarHeader>
+
+      <SidebarContent>
+        {navLinks.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const isActive =
+                    item.href === "/portal"
+                      ? pathname === "/portal" || pathname === "/portal/"
+                      : pathname === item.href || pathname.startsWith(item.href + "/");
+
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild isActive={isActive}>
+                        <Link href={item.href}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+
+      {/* ---------- USER DROPDOWN ---------- */}
+      <SidebarFooter>
+        <SidebarUserMenu name="John Doe" />
+      </SidebarFooter>
+    </Sidebar>
+  );
+}

@@ -1,16 +1,17 @@
-export default function PortalLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { PortalSidebar } from "./_components/portal-sidebar";
+import { PortalHeader } from "./_components/portal-header";
+
+export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="p-4 border-b mb-4">
-        <h1 className="font-bold">PortalLayout Header</h1>
-      </div>
-      <main className="p-4">
-        {children}
-      </main>
-    </div>
+    <body className="bg-background min-h-screen">
+      <SidebarProvider defaultOpen={false}>
+        <PortalSidebar />
+        <div className="flex min-h-screen w-full flex-col">
+          <PortalHeader />
+          <main className="m-4 mt-0 flex-1 rounded-md border p-4">{children}</main>
+        </div>
+      </SidebarProvider>
+    </body>
   );
 }
