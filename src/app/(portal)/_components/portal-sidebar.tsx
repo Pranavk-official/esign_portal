@@ -18,7 +18,6 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
-import { User2, ChevronUp } from "lucide-react";
 import { SidebarUserMenu } from "./user-menu";
 
 export function PortalSidebar() {
@@ -31,7 +30,7 @@ export function PortalSidebar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <Sidebar collapsible="icon" className="py-2">
+    <Sidebar collapsible="icon" variant="floating" className="py-2 group-data-[variant=floating]:border-zinc-300">
       <SidebarHeader>
         <div className="text-sm font-semibold text-center">My App</div>
       </SidebarHeader>

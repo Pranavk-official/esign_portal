@@ -9,7 +9,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         <PortalSidebar />
         <div className="flex min-h-screen w-full flex-col">
           <PortalHeader />
-          <main className="m-4 mt-0 flex-1 rounded-md border p-4">{children}</main>
+          <main className="m-2 mt-0 flex-1 rounded-md border border-zinc-300 p-4">{children}</main>
         </div>
       </SidebarProvider>
     </body>

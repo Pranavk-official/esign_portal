@@ -11,7 +11,7 @@ export function PortalHeader() {
 
   const items = navLinks.flatMap(group => group.items)
 
-  
+
   const currentItem = items.find(item =>
     item.href === "/portal"
       ? pathname === "/portal" || pathname === "/portal/"
@@ -21,7 +21,7 @@ export function PortalHeader() {
   const pageTitle = currentItem?.title ?? "Dashboard"
 
   return (
-    <header className="flex h-14 items-center gap-4 border bg-background m-2 mx-4 p-2 rounded-md">
+    <header className="flex h-14 items-center gap-4 border border-zinc-300 bg-background m-2 p-2 rounded-md">
       <SidebarTrigger />
 
       <div className="flex flex-1 items-center justify-between">
