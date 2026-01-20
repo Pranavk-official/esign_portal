@@ -9,7 +9,6 @@ export function AdminHeader() {
             navLinks={navLinks}
             baseHref="/admin"
             showUserEmail={true}
-            userEmail="super@example.com"
         />
     )
 }

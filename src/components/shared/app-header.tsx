@@ -49,12 +49,6 @@ export function AppHeader({
                     <span>›</span>
                     <span className="text-foreground font-semibold">{pageTitle}</span>
                 </div>
-
-                {showUserEmail && (
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">{userEmail}</span>
-                    </div>
-                )}
             </div>
         </header>
     )

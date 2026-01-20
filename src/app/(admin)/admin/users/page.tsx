@@ -3,10 +3,10 @@
 import { useState } from "react"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { UserTable } from "@/components/shared/user-table"
+import { UsersTable } from "@/components/tables/users-table"
 import type { UserListResponse } from "@/types/user"
 
-// Mock data - replace with actual API call
+// Mock data
 const mockUsers: UserListResponse[] = [
   {
     id: "1",
@@ -47,7 +47,7 @@ export default function GlobalUsersPage() {
   const [sortBy, setSortBy] = useState("created_at")
   const [sortOrder, setSortOrder] = useState("desc")
 
-  // Filter and sort logic
+  // Filter logic
   const filteredUsers = users.filter((user) => {
     if (searchQuery && !user.email.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false
@@ -63,41 +63,12 @@ export default function GlobalUsersPage() {
   const totalPages = Math.ceil(filteredUsers.length / pageSize)
   const paginatedUsers = filteredUsers.slice((page - 1) * pageSize, page * pageSize)
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage)
-  }
-
-  const handlePageSizeChange = (newPageSize: number) => {
-    setPageSize(newPageSize)
-    setPage(1)
-  }
-
-  const handleSearchChange = (search: string) => {
-    setSearchQuery(search)
-    setPage(1)
-  }
-
-  const handleRoleFilter = (role: string) => {
-    setRoleFilter(role)
-    setPage(1)
-  }
-
-  const handleStatusFilter = (status: string) => {
-    setStatusFilter(status)
-    setPage(1)
-  }
-
-  const handleSortChange = (field: string, order: string) => {
-    setSortBy(field)
-    setSortOrder(order)
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Global User Management</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mt-1">
             Manage users across all portals
           </p>
         </div>
@@ -107,18 +78,33 @@ export default function GlobalUsersPage() {
         </Button>
       </div>
 
-      <UserTable
+      <UsersTable
         users={paginatedUsers}
         total={filteredUsers.length}
         page={page}
         pageSize={pageSize}
         totalPages={totalPages}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        onSearchChange={handleSearchChange}
-        onRoleFilter={handleRoleFilter}
-        onStatusFilter={handleStatusFilter}
-        onSortChange={handleSortChange}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
+        onSearchChange={(search) => {
+          setSearchQuery(search)
+          setPage(1)
+        }}
+        onRoleFilter={(role) => {
+          setRoleFilter(role)
+          setPage(1)
+        }}
+        onStatusFilter={(status) => {
+          setStatusFilter(status)
+          setPage(1)
+        }}
+        onSortChange={(by, order) => {
+          setSortBy(by)
+          setSortOrder(order)
+        }}
       />
     </div>
   )

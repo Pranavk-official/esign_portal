@@ -1,60 +1,52 @@
-// Generated types from OpenAPI spec for User Management
+import type { PaginatedResponse, Nullable } from "./common"
 
-export type UserRole = {
+// User Role
+export interface UserRole {
     id: string
     name: string
-    description: string | null
+    description: Nullable<string>
 }
 
-export type UserListResponse = {
+// User List Response (for tables)
+export interface UserListResponse {
     id: string
     email: string
-    portal_id: string | null
+    portal_id: Nullable<string>
     is_active: boolean
     roles: UserRole[]
     created_at: string
     updated_at: string
 }
 
-export type UserListPaginatedResponse = {
-    items: UserListResponse[]
-    total: number
-    page: number
-    page_size: number
-    total_pages: number
+// User Detail Response (for detail views)
+export interface UserDetailResponse extends UserListResponse {
+    last_login_at: Nullable<string>
 }
 
-export type UserCreateRequest = {
+// Paginated Response
+export type UserListPaginatedResponse = PaginatedResponse<UserListResponse>
+
+// Request Types
+export interface UserCreateRequest {
     email: string
-    portal_id?: string | null
+    portal_id?: Nullable<string>
     role_names: string[]
 }
 
-export type UserUpdateRequest = {
+export interface UserUpdateRequest {
     email?: string
     role_names?: string[]
     is_active?: boolean
 }
 
-export type UserDetailResponse = {
-    id: string
-    email: string
-    portal_id: string | null
-    is_active: boolean
-    roles: UserRole[]
-    created_at: string
-    updated_at: string
-    last_login_at: string | null
-}
-
-// Request parameters for list users
-export type ListUsersParams = {
+// Query Parameters
+export interface ListUsersParams {
     page?: number
     page_size?: number
-    search?: string | null
-    portal_id?: string | null
-    role_name?: string | null
-    is_active?: boolean | null
+    search?: Nullable<string>
+    portal_id?: Nullable<string>
+    role_name?: Nullable<string>
+    is_active?: Nullable<boolean>
     sort_by?: string
-    sort_order?: string
+    sort_order?: "asc" | "desc"
 }

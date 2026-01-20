@@ -7,7 +7,7 @@ import { userMenuItems } from "@/app/(portal)/config/user-menu-items"
 export function PortalSidebar() {
   return (
     <AppSidebar
-      appName="My App"
+      appName="Portal"
       navLinks={navLinks}
       userMenuItems={userMenuItems}
       userName="John Doe"

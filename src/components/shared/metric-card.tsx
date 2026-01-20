@@ -1,12 +1,14 @@
 import { LucideIcon } from "lucide-react"
+import { IconType } from "react-icons"
 import { Card, CardContent } from "@/components/ui/card"
 
 type MetricCardProps = {
     title: string
     value: string | number
     subtitle?: string
-    icon: LucideIcon
+    icon: IconType | LucideIcon
     iconClassName?: string
+    iconBgColor?: string
     trend?: {
         value: string
         isPositive?: boolean
@@ -19,6 +21,7 @@ export function MetricCard({
     subtitle,
     icon: Icon,
     iconClassName = "text-blue-600",
+    iconBgColor = "bg-blue-100",
     trend,
 }: MetricCardProps) {
     return (
@@ -42,7 +45,7 @@ export function MetricCard({
                             <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
                         )}
                     </div>
-                    <div className={`rounded-full p-3 bg-opacity-10 ${iconClassName.replace("text-", "bg-")}`}>
+                    <div className={`rounded-full p-3 ${iconBgColor}`}>
                         <Icon className={`h-5 w-5 ${iconClassName}`} />
                     </div>
                 </div>
