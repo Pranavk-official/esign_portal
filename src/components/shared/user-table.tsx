@@ -185,9 +185,9 @@ export function UserTable({
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex gap-1">
-                                            {user.roles.map((role) => (
-                                                <Badge key={role.id} variant="secondary">
-                                                    {role.name.replace("_", " ")}
+                                            {user.role_names.map((role) => (
+                                                <Badge key={role} variant="secondary">
+                                                    {role.replace("_", " ")}
                                                 </Badge>
                                             ))}
                                         </div>

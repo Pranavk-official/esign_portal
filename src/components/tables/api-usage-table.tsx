@@ -78,7 +78,12 @@ export function ApiUsageTable({
         onSortChange(by, order)
     }
 
-    const columns: ColumnDef<ApiUsageRecord>[] = [
+    const tableData = records.map(record => ({
+        ...record,
+        id: record.gateway_txn_id
+    }))
+
+    const columns: ColumnDef<ApiUsageRecord & { id: string }>[] = [
         {
             header: "Gateway Txn ID",
             width: "150px",
@@ -91,15 +96,22 @@ export function ApiUsageTable({
         {
             header: "Portal",
             cell: (row) => (
-                <Badge variant="outline" className="text-xs">
-                    {row.portal_id}
-                </Badge>
+                <div className="flex flex-col">
+                    <Badge variant="outline" className="text-xs mb-1 w-fit">
+                        {row.portal_id}
+                    </Badge>
+                    {row.api_key_name && (
+                        <span className="text-xs text-muted-foreground" title="API Key Name">
+                            Key: {row.api_key_name}
+                        </span>
+                    )}
+                </div>
             ),
         },
         {
             header: "Status",
             cell: (row) => (
-                <Badge variant={getStatusVariant(row.status)} className="text-xs">
+                <Badge variant={getStatusVariant(row.status as TransactionStatus)} className="text-xs">
                     {row.status}
                 </Badge>
             ),
@@ -228,7 +240,7 @@ export function ApiUsageTable({
             {/* DataTable with filters */}
             <DataTable
                 columns={columns}
-                data={records}
+                data={tableData}
                 filters={filters}
                 pagination={{
                     page,

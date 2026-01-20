@@ -13,14 +13,18 @@ export interface UserListResponse {
     email: string
     portal_id: Nullable<string>
     is_active: boolean
-    roles: UserRole[]
     created_at: string
-    updated_at: string
+    role_names: string[] // Changed from roles: UserRole[]
 }
 
 // User Detail Response (for detail views)
-export interface UserDetailResponse extends UserListResponse {
-    last_login_at: Nullable<string>
+export interface UserDetailResponse {
+    id: string
+    email: string
+    portal_id: Nullable<string>
+    is_active: boolean
+    created_at: string
+    roles: UserRole[]
 }
 
 // Paginated Response
@@ -31,6 +35,7 @@ export interface UserCreateRequest {
     email: string
     portal_id?: Nullable<string>
     role_names: string[]
+    send_otp?: boolean // Added from verified UserCreateRequest schema
 }
 
 export interface UserUpdateRequest {
