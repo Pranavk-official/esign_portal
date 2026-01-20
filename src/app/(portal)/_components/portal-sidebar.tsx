@@ -1,74 +1,17 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { navLinks } from "@/app/(portal)/config/navlinks";
-
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarFooter,
-} from "@/components/ui/sidebar";
-
-import { SidebarUserMenu } from "./user-menu";
+import { AppSidebar } from "@/components/shared/app-sidebar"
+import { navLinks } from "@/app/(portal)/config/navlinks"
+import { userMenuItems } from "@/app/(portal)/config/user-menu-items"
 
 export function PortalSidebar() {
-  const pathname = usePathname();
-
-  // frontend-only username
-  const username = "John Doe";
-
-  // local dropdown toggle
-  const [open, setOpen] = useState(false);
-
   return (
-    <Sidebar collapsible="icon" variant="floating" className="py-2 group-data-[variant=floating]:border-zinc-300">
-      <SidebarHeader>
-        <div className="text-sm font-semibold text-center">My App</div>
-      </SidebarHeader>
-
-      <SidebarContent>
-        {navLinks.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => {
-                  const isActive =
-                    item.href === "/portal"
-                      ? pathname === "/portal" || pathname === "/portal/"
-                      : pathname === item.href || pathname.startsWith(item.href + "/");
-
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActive}>
-                        <Link href={item.href}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
-      </SidebarContent>
-
-      {/* ---------- USER DROPDOWN ---------- */}
-      <SidebarFooter>
-        <SidebarUserMenu name="John Doe" />
-      </SidebarFooter>
-    </Sidebar>
-  );
+    <AppSidebar
+      appName="My App"
+      navLinks={navLinks}
+      userMenuItems={userMenuItems}
+      userName="John Doe"
+      baseHref="/portal"
+    />
+  )
 }
