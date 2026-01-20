@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/sidebar"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ChevronUp, LogOut } from "lucide-react"
+import { ChevronUp, LogOut, Loader2 } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 type UserMenuItem = {
     title: string
@@ -41,12 +42,16 @@ type UserMenuProps = {
 export function UserMenu({ name, menuItems }: UserMenuProps) {
     const [isOpen, setIsOpen] = useState(false)
     const { state } = useSidebar()
+    const { logout, isLoggingOut } = useAuth()
 
     const initials = name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
+        ? name.split("@")[0].split(".").slice(0, 2).map(n => n[0]).join("").toUpperCase()
+        : "?"
+
+    const handleLogout = (e: React.MouseEvent) => {
+        e.preventDefault()
+        logout()
+    }
 
     // When sidebar is collapsed, show dropdown menu
     if (state === "collapsed") {
@@ -78,8 +83,12 @@ export function UserMenu({ name, menuItems }: UserMenuProps) {
                                     </a>
                                 </DropdownMenuItem>
                             ))}
-                            <DropdownMenuItem className="text-red-600">
-                                <LogOut className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem
+                                className="text-red-600 focus:text-red-700"
+                                onClick={handleLogout}
+                                disabled={isLoggingOut}
+                            >
+                                {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
                                 <span>Sign out</span>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -99,7 +108,7 @@ export function UserMenu({ name, menuItems }: UserMenuProps) {
                             <Avatar className="h-6 w-6">
                                 <AvatarFallback>{initials}</AvatarFallback>
                             </Avatar>
-                            <span>{name}</span>
+                            <span className="truncate">{name}</span>
                             <ChevronUp className={`ml-auto transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
                         </SidebarMenuButton>
                     </CollapsibleTrigger>
@@ -118,11 +127,15 @@ export function UserMenu({ name, menuItems }: UserMenuProps) {
                             ))}
 
                             <SidebarMenuSubItem>
-                                <SidebarMenuSubButton asChild className="text-red-600">
-                                    <a href="#">
-                                        <LogOut className="h-4 w-4" />
+                                <SidebarMenuSubButton asChild className="text-red-600 hover:text-red-700">
+                                    <button
+                                        onClick={handleLogout}
+                                        disabled={isLoggingOut}
+                                        className="w-full flex items-center"
+                                    >
+                                        {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <LogOut className="h-4 w-4 mr-2" />}
                                         <span>Sign out</span>
-                                    </a>
+                                    </button>
                                 </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                         </SidebarMenuSub>

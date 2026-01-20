@@ -27,10 +27,10 @@ export const authDebug = {
       }
       
       return response.data;
-    } catch (error: any) {
-      console.error('❌ Error:', error.message);
-      if (error.response) {
-        console.error('Response:', error.response.data);
+    } catch (error: unknown) {
+      console.error('❌ Error:', error instanceof Error ? error.message : String(error));
+      if (error && typeof error === 'object' && 'response' in error) {
+        console.error('Response:', (error as { response: { data: unknown } }).response.data);
       }
       throw error;
     } finally {
@@ -48,8 +48,8 @@ export const authDebug = {
       const response = await apiClient.get('/users/me');
       console.log('✅ Authenticated as:', response.data);
       return response.data;
-    } catch (error: any) {
-      console.error('❌ Not authenticated:', error.message);
+    } catch (error: unknown) {
+      console.error('❌ Not authenticated:', error instanceof Error ? error.message : String(error));
       throw error;
     } finally {
       console.groupEnd();
@@ -66,8 +66,8 @@ export const authDebug = {
       const response = await apiClient.post('/admin/auth/refresh');
       console.log('✅ Token refreshed successfully');
       return response.data;
-    } catch (error: any) {
-      console.error('❌ Refresh failed:', error.message);
+    } catch (error: unknown) {
+      console.error('❌ Refresh failed:', error instanceof Error ? error.message : String(error));
       throw error;
     } finally {
       console.groupEnd();

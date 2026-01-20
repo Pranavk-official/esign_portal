@@ -1,24 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { DataTable, type ColumnDef, type FilterConfig } from "@/components/shared/data-table"
+import { TanstackTable } from "@/components/shared/tanstack-table"
+import { useDataTable } from "@/hooks/use-data-table"
 import type { AuditLogRecord } from "@/types/audit-log"
 import { format } from "date-fns"
+import { ColumnDef } from "@tanstack/react-table"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 interface AuditLogsTableProps {
     logs: AuditLogRecord[]
     total: number
-    page: number
-    pageSize: number
-    totalPages: number
-    onPageChange: (page: number) => void
-    onPageSizeChange: (pageSize: number) => void
-    onSearchChange: (search: string) => void
-    onEventTypeFilter: (eventType: string) => void
-    onResourceFilter: (resource: string) => void
-    onSortChange: (sortBy: string, sortOrder: string) => void
+    isLoading?: boolean
+    params: any
+    onParamsChange: (params: any) => void
 }
 
 const formatDetails = (details: Record<string, any> | null): string => {
@@ -29,185 +32,127 @@ const formatDetails = (details: Record<string, any> | null): string => {
 export function AuditLogsTable({
     logs,
     total,
-    page,
-    pageSize,
-    totalPages,
-    onPageChange,
-    onPageSizeChange,
-    onSearchChange,
-    onEventTypeFilter,
-    onResourceFilter,
-    onSortChange,
+    isLoading,
+    params,
+    onParamsChange,
 }: AuditLogsTableProps) {
-    const [searchTerm, setSearchTerm] = useState("")
-    const [eventFilter, setEventFilter] = useState("all")
-    const [resourceFilter, setResourceFilter] = useState("all")
-    const [sortBy, setSortBy] = useState("timestamp")
-    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
-
-    const handleSearch = (value: string) => {
-        setSearchTerm(value)
-        onSearchChange(value)
-    }
-
-    const handleEventFilter = (event: string) => {
-        setEventFilter(event)
-        onEventTypeFilter(event)
-    }
-
-    const handleResourceFilter = (resource: string) => {
-        setResourceFilter(resource)
-        onResourceFilter(resource)
-    }
-
-    const handleSortChange = (by: string, order: "asc" | "desc") => {
-        setSortBy(by)
-        setSortOrder(order)
-        onSortChange(by, order)
-    }
-
-    const columns: ColumnDef<AuditLogRecord>[] = [
+    const columns = useMemo<ColumnDef<AuditLogRecord>[]>(() => [
         {
+            accessorKey: "user_email",
             header: "User",
-            width: "200px",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <span className="text-sm text-gray-700">
-                    {row.user_email || row.user_id || "-"}
+                    {row.original.user_email || row.original.user_id || "-"}
                 </span>
             ),
         },
         {
+            accessorKey: "event_type",
             header: "Action",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <Badge variant="outline" className="text-xs font-mono">
-                    {row.event_type}
+                    {row.original.event_type}
                 </Badge>
             ),
         },
         {
+            accessorKey: "resource_type",
             header: "Resource",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <div className="text-sm">
                     <div className="font-medium text-gray-700">
-                        {row.resource_type || "-"}
+                        {row.original.resource_type || "-"}
                     </div>
-                    {row.resource_id && (
+                    {row.original.resource_id && (
                         <div className="text-xs text-gray-500 font-mono">
-                            {row.resource_id.slice(0, 8)}...
+                            {row.original.resource_id.slice(0, 8)}...
                         </div>
                     )}
                 </div>
             ),
         },
         {
+            accessorKey: "details",
             header: "Details",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <div className="max-w-xs">
                     <code className="text-xs text-gray-600 whitespace-pre-wrap">
-                        {formatDetails(row.details)}
+                        {formatDetails(row.original.details)}
                     </code>
                 </div>
             ),
         },
         {
+            accessorKey: "timestamp",
             header: "Timestamp",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <span className="text-sm text-gray-600">
-                    {format(new Date(row.timestamp), "dd/MM/yyyy, HH:mm:ss")}
+                    {format(new Date(row.original.timestamp), "dd/MM/yyyy, HH:mm:ss")}
                 </span>
             ),
         },
-    ]
+    ], [])
 
-    const filters: FilterConfig[] = [
-        {
-            type: "select",
-            placeholder: "All Actions",
-            value: eventFilter,
-            options: [
-                { label: "All Actions", value: "all" },
-                { label: "Create Portal", value: "portal:create" },
-                { label: "Generate API Key", value: "apikey:generate" },
-                { label: "Deactivate User", value: "user:deactivate" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleEventFilter(value)
-                }
-            },
-        },
-        {
-            type: "select",
-            placeholder: "All Resources",
-            value: resourceFilter,
-            options: [
-                { label: "All Resources", value: "all" },
-                { label: "Portal", value: "PORTAL" },
-                { label: "User", value: "USER" },
-                { label: "API Key", value: "API_KEY" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleResourceFilter(value)
-                }
-            },
-        },
-        {
-            type: "select",
-            placeholder: "Newest First",
-            value: sortBy,
-            options: [
-                { label: "Newest First", value: "timestamp" },
-                { label: "Event Type", value: "event_type" },
-                { label: "User", value: "user_email" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleSortChange(value, sortOrder)
-                }
-            },
-        },
-        {
-            type: "select",
-            placeholder: "Descending",
-            value: sortOrder,
-            options: [
-                { label: "Ascending", value: "asc" },
-                { label: "Descending", value: "desc" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleSortChange(sortBy, value as "asc" | "desc")
-                }
-            },
-        },
-    ]
+    const { table } = useDataTable({
+        columns,
+        data: logs,
+        totalCount: total,
+        onParamsChange,
+        initialParams: params,
+    })
 
     return (
         <div className="space-y-4">
-            {/* Search Bar */}
-            <Input
-                placeholder="Search by user email or resource ID..."
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="max-w-md"
-            />
+            <div className="flex flex-wrap items-center gap-4 bg-gray-50/50 p-4 rounded-lg border border-gray-100">
+                <div className="flex-1 min-w-[300px]">
+                    <Input
+                        placeholder="Search by user email or resource ID..."
+                        value={params.search || ""}
+                        onChange={(e) => onParamsChange({ ...params, search: e.target.value, page: 1 })}
+                        className="max-w-md bg-white"
+                    />
+                </div>
 
-            {/* DataTable with filters */}
-            <DataTable
-                columns={columns}
-                data={logs}
-                filters={filters}
-                pagination={{
-                    page,
-                    pageSize,
-                    total,
-                    totalPages,
-                    onPageChange,
-                    onPageSizeChange,
-                }}
+                <div className="flex items-center gap-4">
+                    <Select
+                        value={params.event_type || "all"}
+                        onValueChange={(value) => onParamsChange({ ...params, event_type: value === "all" ? undefined : value, page: 1 })}
+                    >
+                        <SelectTrigger className="w-[180px] bg-white">
+                            <SelectValue placeholder="All Actions" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Actions</SelectItem>
+                            <SelectItem value="portal:create">Create Portal</SelectItem>
+                            <SelectItem value="apikey:generate">Generate API Key</SelectItem>
+                            <SelectItem value="user:deactivate">Deactivate User</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select
+                        value={params.resource_type || "all"}
+                        onValueChange={(value) => onParamsChange({ ...params, resource_type: value === "all" ? undefined : value, page: 1 })}
+                    >
+                        <SelectTrigger className="w-[180px] bg-white">
+                            <SelectValue placeholder="All Resources" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Resources</SelectItem>
+                            <SelectItem value="PORTAL">Portal</SelectItem>
+                            <SelectItem value="USER">User</SelectItem>
+                            <SelectItem value="API_KEY">API Key</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <TanstackTable
+                table={table}
+                totalCount={total}
+                isLoading={isLoading}
                 emptyMessage="No audit logs found"
             />
         </div>
     )
 }
+

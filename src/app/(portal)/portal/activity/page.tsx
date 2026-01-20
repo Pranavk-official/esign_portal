@@ -34,23 +34,30 @@ const mockActivities: UserActivityRecord[] = [
 
 export default function RecentActivityPage() {
     const [activities] = useState<UserActivityRecord[]>(mockActivities)
-    const [page, setPage] = useState(1)
-    const [pageSize, setPageSize] = useState(20)
-    const [eventFilter, setEventFilter] = useState("all")
+    const [params, setParams] = useState({
+        page: 1,
+        page_size: 20,
+        search: "",
+        event_type: "all" as string,
+    })
 
     // Filter logic
     const filteredActivities = activities.filter((activity) => {
-        if (eventFilter !== "all" && activity.event_type !== eventFilter) {
+        if (params.event_type !== "all" && activity.event_type !== params.event_type) {
             return false
         }
         return true
     })
 
-    const totalPages = Math.ceil(filteredActivities.length / pageSize)
+    const totalPages = Math.ceil(filteredActivities.length / params.page_size)
     const paginatedActivities = filteredActivities.slice(
-        (page - 1) * pageSize,
-        page * pageSize
+        (params.page - 1) * params.page_size,
+        params.page * params.page_size
     )
+
+    const handleParamsChange = (newParams: Record<string, number | string>) => {
+        setParams(prev => ({ ...prev, ...newParams }))
+    }
 
     return (
         <div className="space-y-6">
@@ -66,18 +73,8 @@ export default function RecentActivityPage() {
             <RecentActivityTable
                 activities={paginatedActivities}
                 total={filteredActivities.length}
-                page={page}
-                pageSize={pageSize}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                onPageSizeChange={(size) => {
-                    setPageSize(size)
-                    setPage(1)
-                }}
-                onEventFilter={(event) => {
-                    setEventFilter(event)
-                    setPage(1)
-                }}
+                params={params}
+                onParamsChange={handleParamsChange}
             />
         </div>
     )

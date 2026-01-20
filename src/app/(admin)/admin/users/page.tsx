@@ -1,67 +1,105 @@
 "use client"
 
 import { useState } from "react"
-import { Plus } from "lucide-react"
+import { Plus, Users, UserPlus, UserMinus, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { UsersTable } from "@/components/tables/users-table"
-import type { UserListResponse } from "@/types/user"
+import { useUsers } from "@/hooks/use-users"
+import { useUserMutations } from "@/hooks/use-user-mutations"
+import { UserFormDialog } from "@/components/shared/user-form-dialog"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
+import { BulkActionToolbar } from "@/components/shared/bulk-action-toolbar"
+import { BulkUserUpload } from "@/components/shared/bulk-user-upload"
+import type { UserDetailResponse, UserCreateRequest } from "@/types/user"
 
-// Mock data
-const mockUsers: UserListResponse[] = [
-  {
-    id: "1",
-    email: "john.doe@example.com",
-    portal_id: "HR Department",
-    is_active: true,
-    roles: [{ id: "1", name: "portal_admin", description: null }],
-    created_at: "2024-01-15T10:00:00Z",
-    updated_at: "2024-01-15T10:00:00Z",
-  },
-  {
-    id: "2",
-    email: "jane.smith@example.com",
-    portal_id: "Finance Department",
-    is_active: true,
-    roles: [{ id: "2", name: "portal_user", description: null }],
-    created_at: "2024-01-14T09:00:00Z",
-    updated_at: "2024-01-14T09:00:00Z",
-  },
-  {
-    id: "3",
-    email: "super@example.com",
-    portal_id: null,
-    is_active: true,
-    roles: [{ id: "3", name: "super_admin", description: null }],
-    created_at: "2024-01-10T08:00:00Z",
-    updated_at: "2024-01-10T08:00:00Z",
-  },
+// Mock available roles - in production, fetch from API
+const AVAILABLE_ROLES = [
+  { id: "1", name: "super_admin", description: "Super Administrator" },
+  { id: "2", name: "portal_admin", description: "Portal Administrator" },
+  { id: "3", name: "portal_user", description: "Portal User" },
 ]
 
 export default function GlobalUsersPage() {
-  const [users] = useState<UserListResponse[]>(mockUsers)
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [roleFilter, setRoleFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [sortBy, setSortBy] = useState("created_at")
-  const [sortOrder, setSortOrder] = useState("desc")
-
-  // Filter logic
-  const filteredUsers = users.filter((user) => {
-    if (searchQuery && !user.email.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false
-    }
-    if (roleFilter !== "all" && !user.roles.some((r) => r.name === roleFilter)) {
-      return false
-    }
-    if (statusFilter === "active" && !user.is_active) return false
-    if (statusFilter === "inactive" && user.is_active) return false
-    return true
+  const [params, setParams] = useState({
+    page: 1,
+    page_size: 20,
+    sort_by: "created_at",
+    sort_order: "desc" as const,
+    search: "",
+    role_name: undefined as string | undefined,
+    is_active: undefined as boolean | undefined,
   })
 
-  const totalPages = Math.ceil(filteredUsers.length / pageSize)
-  const paginatedUsers = filteredUsers.slice((page - 1) * pageSize, page * pageSize)
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<UserDetailResponse | null>(null)
+  const [confirmAction, setConfirmAction] = useState<{
+    type: 'activate' | 'deactivate' | 'bulk-deactivate'
+    userId?: string
+  } | null>(null)
+
+  const { data, isLoading } = useUsers(params)
+  const { 
+    createUser, 
+    updateUser, 
+    activateUser, 
+    deactivateUser,
+    bulkCreate,
+    bulkDeactivate 
+  } = useUserMutations()
+
+  const handleCreateUser = async (formData: UserCreateRequest) => {
+    await createUser.mutateAsync(formData)
+    setIsCreateDialogOpen(false)
+  }
+
+  const handleUpdateUser = async (formData: any) => {
+    if (!editingUser) return
+    await updateUser.mutateAsync({
+      userId: editingUser.id,
+      data: {
+        role_names: formData.role_names,
+      },
+    })
+    setEditingUser(null)
+  }
+
+  const handleBulkUpload = async (users: UserCreateRequest[]) => {
+    await bulkCreate.mutateAsync(users)
+    setIsBulkUploadOpen(false)
+  }
+
+  const handleConfirmAction = async () => {
+    if (!confirmAction) return
+
+    switch (confirmAction.type) {
+      case 'activate':
+        if (confirmAction.userId) {
+          await activateUser.mutateAsync(confirmAction.userId)
+        }
+        break
+      case 'deactivate':
+        if (confirmAction.userId) {
+          await deactivateUser.mutateAsync(confirmAction.userId)
+        }
+        break
+      case 'bulk-deactivate':
+        await bulkDeactivate.mutateAsync(selectedUsers)
+        setSelectedUsers([])
+        break
+    }
+    setConfirmAction(null)
+  }
+
+  const bulkActions = [
+    {
+      label: `Deactivate (${selectedUsers.length})`,
+      icon: UserMinus,
+      onClick: () => setConfirmAction({ type: 'bulk-deactivate' }),
+      variant: "destructive" as const,
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -72,39 +110,95 @@ export default function GlobalUsersPage() {
             Manage users across all portals
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Create User
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsBulkUploadOpen(true)}>
+            <Upload className="mr-2 h-4 w-4" />
+            Bulk Upload
+          </Button>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create User
+          </Button>
+        </div>
       </div>
 
+      <BulkActionToolbar
+        selectedCount={selectedUsers.length}
+        totalCount={data?.total || 0}
+        onClear={() => setSelectedUsers([])}
+        actions={bulkActions}
+      />
+
       <UsersTable
-        users={paginatedUsers}
-        total={filteredUsers.length}
-        page={page}
-        pageSize={pageSize}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        onPageSizeChange={(size) => {
-          setPageSize(size)
-          setPage(1)
+        users={data?.items || []}
+        total={data?.total || 0}
+        isLoading={isLoading}
+        params={params}
+        onParamsChange={setParams}
+        selectedUsers={selectedUsers}
+        onSelectedUsersChange={setSelectedUsers}
+        onEdit={(user) => setEditingUser(user)}
+        onToggleStatus={(user) => {
+          setConfirmAction({
+            type: user.is_active ? 'deactivate' : 'activate',
+            userId: user.id,
+          })
         }}
-        onSearchChange={(search) => {
-          setSearchQuery(search)
-          setPage(1)
-        }}
-        onRoleFilter={(role) => {
-          setRoleFilter(role)
-          setPage(1)
-        }}
-        onStatusFilter={(status) => {
-          setStatusFilter(status)
-          setPage(1)
-        }}
-        onSortChange={(by, order) => {
-          setSortBy(by)
-          setSortOrder(order)
-        }}
+      />
+
+      <UserFormDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        mode="create"
+        onSubmit={handleCreateUser}
+        isLoading={createUser.isPending}
+        availableRoles={AVAILABLE_ROLES}
+        showPortalField={true}
+      />
+
+      <UserFormDialog
+        open={!!editingUser}
+        onOpenChange={(open) => !open && setEditingUser(null)}
+        mode="edit"
+        user={editingUser}
+        onSubmit={handleUpdateUser}
+        isLoading={updateUser.isPending}
+        availableRoles={AVAILABLE_ROLES}
+        showPortalField={false}
+      />
+
+      <ConfirmDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title={
+          confirmAction?.type === 'bulk-deactivate'
+            ? `Deactivate ${selectedUsers.length} Users?`
+            : confirmAction?.type === 'activate'
+            ? 'Activate User?'
+            : 'Deactivate User?'
+        }
+        description={
+          confirmAction?.type === 'bulk-deactivate'
+            ? `This will deactivate ${selectedUsers.length} selected users. They will not be able to log in.`
+            : confirmAction?.type === 'activate'
+            ? 'This user will be able to log in again.'
+            : 'This user will not be able to log in.'
+        }
+        confirmText={confirmAction?.type === 'activate' ? 'Activate' : 'Deactivate'}
+        variant={confirmAction?.type === 'activate' ? 'default' : 'destructive'}
+        onConfirm={handleConfirmAction}
+        isLoading={
+          activateUser.isPending ||
+          deactivateUser.isPending ||
+          bulkDeactivate.isPending
+        }
+      />
+
+      <BulkUserUpload
+        open={isBulkUploadOpen}
+        onOpenChange={setIsBulkUploadOpen}
+        onUpload={handleBulkUpload}
+        isLoading={bulkCreate.isPending}
       />
     </div>
   )

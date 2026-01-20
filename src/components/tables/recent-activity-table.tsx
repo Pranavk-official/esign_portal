@@ -1,20 +1,26 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
-import { DataTable, type ColumnDef, type FilterConfig } from "@/components/shared/data-table"
+import { TanstackTable } from "@/components/shared/tanstack-table"
+import { useDataTable } from "@/hooks/use-data-table"
 import type { UserActivityRecord } from "@/types/user-activity"
 import { format } from "date-fns"
+import { ColumnDef } from "@tanstack/react-table"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 interface RecentActivityTableProps {
     activities: UserActivityRecord[]
     total: number
-    page: number
-    pageSize: number
-    totalPages: number
-    onPageChange: (page: number) => void
-    onPageSizeChange: (pageSize: number) => void
-    onEventFilter: (eventType: string) => void
+    isLoading?: boolean
+    params: any
+    onParamsChange: (params: any) => void
 }
 
 const formatDetails = (details: Record<string, any> | null): string => {
@@ -40,84 +46,76 @@ const getEventBadgeVariant = (eventType: string): "default" | "secondary" | "out
 export function RecentActivityTable({
     activities,
     total,
-    page,
-    pageSize,
-    totalPages,
-    onPageChange,
-    onPageSizeChange,
-    onEventFilter,
+    isLoading,
+    params,
+    onParamsChange,
 }: RecentActivityTableProps) {
-    const [eventFilter, setEventFilter] = useState<string>("all")
-
-    const handleEventFilter = (event: string) => {
-        setEventFilter(event)
-        onEventFilter(event)
-    }
-
-    const columns: ColumnDef<UserActivityRecord>[] = [
+    const columns = useMemo<ColumnDef<UserActivityRecord>[]>(() => [
         {
+            accessorKey: "event_type",
             header: "Event Type",
-            width: "200px",
-            cell: (row) => (
-                <Badge variant={getEventBadgeVariant(row.event_type)} className="text-xs font-mono">
-                    {row.event_type}
+            cell: ({ row }) => (
+                <Badge variant={getEventBadgeVariant(row.original.event_type)} className="text-xs font-mono">
+                    {row.original.event_type}
                 </Badge>
             ),
         },
         {
+            accessorKey: "details",
             header: "Details",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <div className="max-w-md">
                     <code className="text-xs text-gray-600 whitespace-pre-wrap">
-                        {formatDetails(row.details)}
+                        {formatDetails(row.original.details)}
                     </code>
                 </div>
             ),
         },
         {
+            accessorKey: "timestamp",
             header: "Timestamp",
-            width: "200px",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <span className="text-sm text-gray-600">
-                    {format(new Date(row.timestamp), "dd/MM/yyyy, HH:mm:ss")}
+                    {format(new Date(row.original.timestamp), "dd/MM/yyyy, HH:mm:ss")}
                 </span>
             ),
         },
-    ]
+    ], [])
 
-    const filters: FilterConfig[] = [
-        {
-            type: "select",
-            placeholder: "All Events",
-            value: eventFilter,
-            options: [
-                { label: "All Events", value: "all" },
-                { label: "Profile Updates", value: "profile:update" },
-                { label: "Login Events", value: "user:login" },
-                { label: "Logout Events", value: "user:logout" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleEventFilter(value)
-                }
-            },
-        },
-    ]
+    const { table } = useDataTable({
+        columns,
+        data: activities,
+        totalCount: total,
+        onParamsChange,
+        initialParams: params,
+    })
 
     return (
-        <DataTable
-            columns={columns}
-            data={activities}
-            filters={filters}
-            pagination={{
-                page,
-                pageSize,
-                total,
-                totalPages,
-                onPageChange,
-                onPageSizeChange,
-            }}
-            emptyMessage="No recent activity found"
-        />
+        <div className="space-y-4">
+            <div className="flex items-center gap-4">
+                <Select
+                    value={params.event_type || "all"}
+                    onValueChange={(value) => onParamsChange({ ...params, event_type: value === "all" ? undefined : value, page: 1 })}
+                >
+                    <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="All Events" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Events</SelectItem>
+                        <SelectItem value="profile:update">Profile Updates</SelectItem>
+                        <SelectItem value="user:login">Login Events</SelectItem>
+                        <SelectItem value="user:logout">Logout Events</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <TanstackTable
+                table={table}
+                totalCount={total}
+                isLoading={isLoading}
+                emptyMessage="No recent activity found"
+            />
+        </div>
     )
 }
+

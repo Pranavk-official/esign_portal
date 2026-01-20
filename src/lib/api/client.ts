@@ -68,8 +68,16 @@ apiClient.interceptors.response.use(
     }
 
     const status = error.response.status;
-    const data = error.response.data as any;
-    const message = data?.detail || data?.message || "An unexpected error occurred";
+    const data = error.response.data as unknown;
+    const message = 
+      (typeof data === 'object' && data !== null && 'detail' in data 
+        ? (data as Record<string, unknown>).detail 
+        : null) || 
+      (typeof data === 'object' && data !== null && 'message' in data 
+        ? (data as Record<string, unknown>).message 
+        : null) || 
+      "An unexpected error occurred";
+    const messageStr = typeof message === 'string' ? message : String(message);
 
     // B. Handle 401 Token Refresh Logic (Cookie Based)
     const originalRequest = error.config as CustomAxiosRequestConfig;
@@ -93,9 +101,7 @@ apiClient.interceptors.response.use(
         
         // Only redirect on client side
         if (typeof window !== 'undefined') {
-          // DEV: Disabled redirect for development
-          console.log('Auth failed, but redirect disabled for dev');
-          // window.location.href = '/login';
+          window.location.href = '/login';
         }
         
         return Promise.reject(new UnauthorizedError('Session expired. Please login again.'));
@@ -106,13 +112,13 @@ apiClient.interceptors.response.use(
     let customError: AppError;
 
     switch (status) {
-      case 400: customError = new BadRequestError(message); break;
-      case 401: customError = new UnauthorizedError(message); break;
-      case 403: customError = new ForbiddenError(message); break;
-      case 404: customError = new NotFoundError(message); break;
-      case 409: customError = new ConflictError(message); break;
-      case 429: customError = new TooManyRequestsError(message); break;
-      case 500: default: customError = new InternalServerError(message); break;
+      case 400: customError = new BadRequestError(messageStr); break;
+      case 401: customError = new UnauthorizedError(messageStr); break;
+      case 403: customError = new ForbiddenError(messageStr); break;
+      case 404: customError = new NotFoundError(messageStr); break;
+      case 409: customError = new ConflictError(messageStr); break;
+      case 429: customError = new TooManyRequestsError(messageStr); break;
+      case 500: default: customError = new InternalServerError(messageStr); break;
     }
 
     return Promise.reject(customError);

@@ -1,84 +1,33 @@
 "use client"
 
 import { useState } from "react"
-import { Download } from "lucide-react"
+import { Download, Activity, TrendingUp, AlertCircle, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ApiUsageTable } from "@/components/tables/api-usage-table"
-import type { ApiUsageRecord } from "@/types/api-usage"
-
-// Mock data
-const mockRecords: ApiUsageRecord[] = [
-    {
-        id: "1",
-        gateway_txn_id: "txn-892-dcc",
-        portal_id: "HR Department",
-        portal_doc_id: null,
-        api_key_id: "key-123",
-        status: "COMPLETED",
-        file_hash: "abc123...",
-        final_signed_hash: "def456...",
-        cdac_response_code: "200",
-        cdac_esp_id: "esp-001",
-        auth_mode: "AADHAAR",
-        created_at: "2024-01-10T20:00:00Z",
-        updated_at: "2024-01-10T20:05:00Z",
-    },
-    {
-        id: "2",
-        gateway_txn_id: "txn-830-4e7",
-        portal_id: "Finance Department",
-        portal_doc_id: null,
-        api_key_id: "key-124",
-        status: "FAILED",
-        file_hash: "xyz789...",
-        final_signed_hash: null,
-        cdac_response_code: "500",
-        cdac_esp_id: null,
-        auth_mode: "OTP",
-        created_at: "2024-01-10T19:58:15Z",
-        updated_at: "2024-01-10T19:58:20Z",
-    },
-    {
-        id: "3",
-        gateway_txn_id: "txn-893-gh1",
-        portal_id: "HR Department",
-        portal_doc_id: null,
-        api_key_id: "key-123",
-        status: "PENDING",
-        file_hash: "mno456...",
-        final_signed_hash: null,
-        cdac_response_code: null,
-        cdac_esp_id: null,
-        auth_mode: "AADHAAR",
-        created_at: "2024-01-10T19:55:00Z",
-        updated_at: "2024-01-10T19:55:00Z",
-    },
-]
+import { DataExportButton } from "@/components/shared/data-export-button"
+import { useUsage, useUsageSummary } from "@/hooks/use-usage"
+import { MetricCard } from "@/components/shared/metric-card"
 
 export default function ApiUsagePage() {
-    const [records] = useState<ApiUsageRecord[]>(mockRecords)
-    const [page, setPage] = useState(1)
-    const [pageSize, setPageSize] = useState(20)
-    const [searchQuery, setSearchQuery] = useState("")
-    const [statusFilter, setStatusFilter] = useState("all")
-    const [fromDate, setFromDate] = useState("")
-    const [toDate, setToDate] = useState("")
-    const [sortBy, setSortBy] = useState("created_at")
-    const [sortOrder, setSortOrder] = useState("desc")
-
-    // Filter logic
-    const filteredRecords = records.filter((record) => {
-        if (searchQuery && !record.gateway_txn_id.toLowerCase().includes(searchQuery.toLowerCase())) {
-            return false
-        }
-        if (statusFilter !== "all" && record.status !== statusFilter) {
-            return false
-        }
-        return true
+    const [params, setParams] = useState({
+        page: 1,
+        page_size: 20,
+        sort_by: "created_at",
+        sort_order: "desc" as const,
+        search: "",
+        status: undefined as string | undefined,
+        portal_id: undefined as string | undefined,
+        start_date: undefined as string | undefined,
+        end_date: undefined as string | undefined,
     })
 
-    const totalPages = Math.ceil(filteredRecords.length / pageSize)
-    const paginatedRecords = filteredRecords.slice((page - 1) * pageSize, page * pageSize)
+    const { data, isLoading } = useUsage(params)
+    const { data: summary, isLoading: summaryLoading } = useUsageSummary({
+        start_date: params.start_date,
+        end_date: params.end_date,
+        portal_id: params.portal_id,
+    })
 
     return (
         <div className="space-y-6">
@@ -86,43 +35,54 @@ export default function ApiUsagePage() {
                 <div>
                     <h1 className="text-2xl font-bold">Global API Usage</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        View API usage across all portals
+                        Monitor API usage across all portals
                     </p>
                 </div>
-                <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                </Button>
+                <DataExportButton
+                    data={data?.items || []}
+                    filename={`api-usage-${new Date().toISOString().split('T')[0]}`}
+                    formats={["csv", "json"]}
+                    disabled={!data || data.items.length === 0}
+                    isLoading={isLoading}
+                />
+            </div>
+
+            {/* Summary Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <MetricCard
+                    title="Total Transactions"
+                    value={summary?.total_transactions || 0}
+                    icon={Activity}
+                    isLoading={summaryLoading}
+                />
+                <MetricCard
+                    title="Completed"
+                    value={summary?.completed || 0}
+                    icon={CheckCircle}
+                    trend={{ value: `${summary?.completed || 0}`, isPositive: true }}
+                    isLoading={summaryLoading}
+                />
+                <MetricCard
+                    title="Failed"
+                    value={summary?.failed || 0}
+                    icon={AlertCircle}
+                    trend={{ value: `${summary?.failed || 0}`, isPositive: false }}
+                    isLoading={summaryLoading}
+                />
+                <MetricCard
+                    title="Pending"
+                    value={summary?.pending || 0}
+                    icon={TrendingUp}
+                    isLoading={summaryLoading}
+                />
             </div>
 
             <ApiUsageTable
-                records={paginatedRecords}
-                total={filteredRecords.length}
-                page={page}
-                pageSize={pageSize}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                onPageSizeChange={(size) => {
-                    setPageSize(size)
-                    setPage(1)
-                }}
-                onSearchChange={(search) => {
-                    setSearchQuery(search)
-                    setPage(1)
-                }}
-                onStatusFilter={(status) => {
-                    setStatusFilter(status)
-                    setPage(1)
-                }}
-                onDateFilter={(from, to) => {
-                    setFromDate(from)
-                    setToDate(to)
-                    setPage(1)
-                }}
-                onSortChange={(by, order) => {
-                    setSortBy(by)
-                    setSortOrder(order)
-                }}
+                records={data?.items || []}
+                total={data?.total || 0}
+                isLoading={isLoading}
+                params={params}
+                onParamsChange={setParams}
             />
         </div>
     )

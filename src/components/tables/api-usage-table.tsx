@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,25 +11,28 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { DataTable, type ColumnDef, type FilterConfig } from "@/components/shared/data-table"
-import type { ApiUsageRecord, TransactionStatus } from "@/types/api-usage"
 import { format } from "date-fns"
+import { ColumnDef } from "@tanstack/react-table"
+import { TanstackTable } from "@/components/shared/tanstack-table"
+import { useDataTable } from "@/hooks/use-data-table"
+import { ApiUsageRecord } from "@/lib/api/usage"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 interface ApiUsageTableProps {
     records: ApiUsageRecord[]
     total: number
-    page: number
-    pageSize: number
-    totalPages: number
-    onPageChange: (page: number) => void
-    onPageSizeChange: (pageSize: number) => void
-    onSearchChange: (search: string) => void
-    onStatusFilter: (status: string) => void
-    onDateFilter: (from: string, to: string) => void
-    onSortChange: (sortBy: string, sortOrder: string) => void
+    isLoading?: boolean
+    params: any
+    onParamsChange: (params: any) => void
 }
 
-const getStatusVariant = (status: TransactionStatus): "default" | "destructive" | "secondary" | "outline" => {
+const getStatusVariant = (status: string): "default" | "destructive" | "secondary" | "outline" => {
     switch (status) {
         case "COMPLETED":
             return "default"
@@ -45,94 +48,65 @@ const getStatusVariant = (status: TransactionStatus): "default" | "destructive" 
 export function ApiUsageTable({
     records,
     total,
-    page,
-    pageSize,
-    totalPages,
-    onPageChange,
-    onPageSizeChange,
-    onSearchChange,
-    onStatusFilter,
-    onDateFilter,
-    onSortChange,
+    isLoading,
+    params,
+    onParamsChange,
 }: ApiUsageTableProps) {
-    const [searchTerm, setSearchTerm] = useState("")
-    const [statusFilter, setStatusFilterValue] = useState("all")
-    const [fromDate, setFromDate] = useState("")
-    const [toDate, setToDate] = useState("")
-    const [sortBy, setSortBy] = useState("created_at")
-    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
-
-    const handleSearch = (value: string) => {
-        setSearchTerm(value)
-        onSearchChange(value)
-    }
-
-    const handleStatusFilter = (status: string) => {
-        setStatusFilterValue(status)
-        onStatusFilter(status)
-    }
-
-    const handleSortChange = (by: string, order: "asc" | "desc") => {
-        setSortBy(by)
-        setSortOrder(order)
-        onSortChange(by, order)
-    }
-
-    const tableData = records.map(record => ({
-        ...record,
-        id: record.gateway_txn_id
-    }))
-
-    const columns: ColumnDef<ApiUsageRecord & { id: string }>[] = [
+    const columns = useMemo<ColumnDef<ApiUsageRecord>[]>(() => [
         {
+            accessorKey: "gateway_txn_id",
             header: "Gateway Txn ID",
-            width: "150px",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <span className="text-sm font-mono text-gray-700">
-                    {row.gateway_txn_id}
+                    {row.original.gateway_txn_id}
                 </span>
             ),
         },
         {
-            header: "Portal",
-            cell: (row) => (
+            accessorKey: "portal_id",
+            header: "Portal / Key",
+            cell: ({ row }) => (
                 <div className="flex flex-col">
                     <Badge variant="outline" className="text-xs mb-1 w-fit">
-                        {row.portal_id}
+                        {row.original.portal_id}
                     </Badge>
-                    {row.api_key_name && (
+                    {row.original.api_key_name && (
                         <span className="text-xs text-muted-foreground" title="API Key Name">
-                            Key: {row.api_key_name}
+                            Key: {row.original.api_key_name}
                         </span>
                     )}
                 </div>
             ),
         },
         {
+            accessorKey: "status",
             header: "Status",
-            cell: (row) => (
-                <Badge variant={getStatusVariant(row.status as TransactionStatus)} className="text-xs">
-                    {row.status}
+            cell: ({ row }) => (
+                <Badge variant={getStatusVariant(row.original.status)} className="text-xs">
+                    {row.original.status}
                 </Badge>
             ),
         },
         {
+            accessorKey: "auth_mode",
             header: "Auth Mode",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <span className="text-sm text-gray-600">
-                    {row.auth_mode || "-"}
+                    {row.original.auth_mode || "-"}
                 </span>
             ),
         },
         {
+            accessorKey: "created_at",
             header: "Created At",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <span className="text-sm text-gray-600">
-                    {format(new Date(row.created_at), "dd/MM/yyyy, HH:mm:ss")}
+                    {row.original.created_at ? format(new Date(row.original.created_at), "dd/MM/yyyy, HH:mm:ss") : "-"}
                 </span>
             ),
         },
         {
+            id: "actions",
             header: "Actions",
             cell: () => (
                 <DropdownMenu>
@@ -148,110 +122,74 @@ export function ApiUsageTable({
                 </DropdownMenu>
             ),
         },
-    ]
+    ], [])
 
-    const filters: FilterConfig[] = [
-        {
-            type: "select",
-            placeholder: "All Status",
-            value: statusFilter,
-            options: [
-                { label: "All Status", value: "all" },
-                { label: "Completed", value: "COMPLETED" },
-                { label: "Failed", value: "FAILED" },
-                { label: "Pending", value: "PENDING" },
-                { label: "Cancelled", value: "USER_CANCELLED" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleStatusFilter(value)
-                }
-            },
-        },
-        {
-            type: "select",
-            placeholder: "Created Date",
-            value: sortBy,
-            options: [
-                { label: "Created Date", value: "created_at" },
-                { label: "Updated Date", value: "updated_at" },
-                { label: "Status", value: "status" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleSortChange(value, sortOrder)
-                }
-            },
-        },
-        {
-            type: "select",
-            placeholder: "Descending",
-            value: sortOrder,
-            options: [
-                { label: "Ascending", value: "asc" },
-                { label: "Descending", value: "desc" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleSortChange(sortBy, value as "asc" | "desc")
-                }
-            },
-        },
-    ]
+    const { table } = useDataTable({
+        columns,
+        data: records,
+        totalCount: total,
+        onParamsChange,
+        initialParams: params,
+    })
 
     return (
         <div className="space-y-4">
-            {/* Search and Date Filters */}
-            <div className="flex items-center gap-4">
-                <Input
-                    placeholder="Search by txn ID, doc ID, or file hash..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="max-w-md"
-                />
-
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">From:</span>
+            <div className="flex flex-wrap items-center gap-4 bg-gray-50/50 p-4 rounded-lg border border-gray-100">
+                <div className="flex-1 min-w-[300px]">
                     <Input
-                        type="date"
-                        value={fromDate}
-                        onChange={(e) => {
-                            setFromDate(e.target.value)
-                            if (toDate) onDateFilter(e.target.value, toDate)
-                        }}
-                        className="w-[150px]"
+                        placeholder="Search by txn ID, doc ID, or file hash..."
+                        value={params.search || ""}
+                        onChange={(e) => onParamsChange({ ...params, search: e.target.value, page: 1 })}
+                        className="max-w-md bg-white"
                     />
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">To:</span>
-                    <Input
-                        type="date"
-                        value={toDate}
-                        onChange={(e) => {
-                            setToDate(e.target.value)
-                            if (fromDate) onDateFilter(fromDate, e.target.value)
-                        }}
-                        className="w-[150px]"
-                    />
+                <div className="flex items-center gap-4">
+                    <Select
+                        value={params.status || "all"}
+                        onValueChange={(value) => onParamsChange({ ...params, status: value === "all" ? undefined : value, page: 1 })}
+                    >
+                        <SelectTrigger className="w-[150px] bg-white">
+                            <SelectValue placeholder="All Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="COMPLETED">Completed</SelectItem>
+                            <SelectItem value="FAILED">Failed</SelectItem>
+                            <SelectItem value="PENDING">Pending</SelectItem>
+                            <SelectItem value="USER_CANCELLED">Cancelled</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">From:</span>
+                        <Input
+                            type="date"
+                            value={params.start_date || ""}
+                            onChange={(e) => onParamsChange({ ...params, start_date: e.target.value, page: 1 })}
+                            className="w-[150px] bg-white"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">To:</span>
+                        <Input
+                            type="date"
+                            value={params.end_date || ""}
+                            onChange={(e) => onParamsChange({ ...params, end_date: e.target.value, page: 1 })}
+                            className="w-[150px] bg-white"
+                        />
+                    </div>
                 </div>
             </div>
 
-            {/* DataTable with filters */}
-            <DataTable
-                columns={columns}
-                data={tableData}
-                filters={filters}
-                pagination={{
-                    page,
-                    pageSize,
-                    total,
-                    totalPages,
-                    onPageChange,
-                    onPageSizeChange,
-                }}
+            <TanstackTable
+                table={table}
+                totalCount={total}
+                isLoading={isLoading}
                 emptyMessage="No API usage records found"
             />
         </div>
     )
 }
+

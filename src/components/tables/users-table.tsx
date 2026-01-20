@@ -1,38 +1,49 @@
 "use client"
 
-import { useState } from "react"
-import { MoreHorizontal } from "lucide-react"
+import { useMemo } from "react"
+import { MoreHorizontal, Edit, Power, PowerOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { DataTable, type ColumnDef, type FilterConfig } from "@/components/shared/data-table"
-import type { UserListResponse } from "@/types/user"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ColumnDef } from "@tanstack/react-table"
+import { TanstackTable } from "@/components/shared/tanstack-table"
+import { useDataTable } from "@/hooks/use-data-table"
+import { StatusBadge } from "@/components/shared/status-badge"
+import type { UserListResponse } from "@/lib/api/types"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 interface UsersTableProps {
     users: UserListResponse[]
     total: number
-    page: number
-    pageSize: number
-    totalPages: number
-    onPageChange: (page: number) => void
-    onPageSizeChange: (pageSize: number) => void
-    onSearchChange: (search: string) => void
-    onRoleFilter: (role: string) => void
-    onStatusFilter: (status: string) => void
-    onSortChange: (sortBy: string, sortOrder: string) => void
+    isLoading?: boolean
+    params: any
+    onParamsChange: (params: any) => void
+    selectedUsers?: string[]
+    onSelectedUsersChange?: (users: string[]) => void
+    onEdit?: (user: UserListResponse) => void
+    onToggleStatus?: (user: UserListResponse) => void
 }
 
 const getInitials = (email: string): string => {
+    if (!email) return "?"
     const parts = email.split("@")[0].split(".")
     return parts
         .slice(0, 2)
-        .map((p) => p[0])
+        .map((p) => (p && p[0]) || "")
         .join("")
         .toUpperCase()
 }
@@ -40,87 +51,98 @@ const getInitials = (email: string): string => {
 export function UsersTable({
     users,
     total,
-    page,
-    pageSize,
-    totalPages,
-    onPageChange,
-    onPageSizeChange,
-    onSearchChange,
-    onRoleFilter,
-    onStatusFilter,
-    onSortChange,
+    isLoading,
+    params,
+    onParamsChange,
+    selectedUsers = [],
+    onSelectedUsersChange,
+    onEdit,
+    onToggleStatus,
 }: UsersTableProps) {
-    const [searchTerm, setSearchTerm] = useState("")
-    const [roleFilter, setRoleFilterValue] = useState("all")
-    const [statusFilter, setStatusFilterValue] = useState("all")
-    const [sortBy, setSortBy] = useState("created_at")
-    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
-
-    const handleSearch = (value: string) => {
-        setSearchTerm(value)
-        onSearchChange(value)
-    }
-
-    const handleRoleFilterChange = (role: string) => {
-        setRoleFilterValue(role)
-        onRoleFilter(role)
-    }
-
-    const handleStatusFilterChange = (status: string) => {
-        setStatusFilterValue(status)
-        onStatusFilter(status)
-    }
-
-    const handleSortChange = (by: string, order: "asc" | "desc") => {
-        setSortBy(by)
-        setSortOrder(order)
-        onSortChange(by, order)
-    }
-
-    const columns: ColumnDef<UserListResponse>[] = [
+    const columns = useMemo<ColumnDef<UserListResponse>[]>(() => [
+        ...(onSelectedUsersChange
+            ? [
+                {
+                    id: "select",
+                    header: ({ table }: any) => (
+                        <Checkbox
+                            checked={table.getIsAllPageRowsSelected()}
+                            onCheckedChange={(value) => {
+                                table.toggleAllPageRowsSelected(!!value)
+                                if (value) {
+                                    onSelectedUsersChange(users.map((u) => u.id))
+                                } else {
+                                    onSelectedUsersChange([])
+                                }
+                            }}
+                            aria-label="Select all"
+                        />
+                    ),
+                    cell: ({ row }: any) => (
+                        <Checkbox
+                            checked={selectedUsers.includes(row.original.id)}
+                            onCheckedChange={(value) => {
+                                if (value) {
+                                    onSelectedUsersChange([...selectedUsers, row.original.id])
+                                } else {
+                                    onSelectedUsersChange(
+                                        selectedUsers.filter((id) => id !== row.original.id)
+                                    )
+                                }
+                            }}
+                            aria-label="Select row"
+                        />
+                    ),
+                    enableSorting: false,
+                    enableHiding: false,
+                } as ColumnDef<UserListResponse>,
+            ]
+            : []),
         {
+            accessorKey: "email",
             header: "User",
-            width: "300px",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                        {getInitials(row.email)}
+                        {getInitials(row.original.email)}
                     </div>
-                    <span className="text-sm">{row.email}</span>
+                    <span className="text-sm">{row.original.email}</span>
                 </div>
             ),
         },
         {
+            accessorKey: "portal_id",
             header: "Portal",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <Badge variant="outline" className="text-xs">
-                    {row.portal_id || "Global"}
+                    {row.original.portal_id || "Global"}
                 </Badge>
             ),
         },
         {
+            id: "roles",
             header: "Roles",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <div className="flex gap-1 flex-wrap">
-                    {row.roles.map((role) => (
+                    {row.original.roles?.map((role: any) => (
                         <Badge key={role.id} variant="secondary" className="text-xs">
-                            {role.name.replace("_", " ")}
+                            {role.name.replace(/_/g, " ")}
                         </Badge>
                     ))}
                 </div>
             ),
         },
         {
+            accessorKey: "is_active",
             header: "Status",
-            cell: (row) => (
-                <Badge variant={row.is_active ? "default" : "secondary"} className="text-xs">
-                    {row.is_active ? "Active" : "Inactive"}
-                </Badge>
+            cell: ({ row }) => (
+                <StatusBadge status={row.original.is_active} showIcon={true} />
             ),
         },
         {
+            id: "actions",
             header: "Actions",
-            cell: (row) => (
+            cell: ({ row }) => (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
@@ -128,105 +150,106 @@ export function UsersTable({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>
-                            {row.is_active ? "Deactivate" : "Activate"}
-                        </DropdownMenuItem>
+                        {onEdit && (
+                            <DropdownMenuItem onClick={() => onEdit(row.original)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Roles
+                            </DropdownMenuItem>
+                        )}
+                        {onToggleStatus && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    onClick={() => onToggleStatus(row.original)}
+                                    className={
+                                        row.original.is_active
+                                            ? "text-destructive"
+                                            : "text-green-600"
+                                    }
+                                >
+                                    {row.original.is_active ? (
+                                        <>
+                                            <PowerOff className="mr-2 h-4 w-4" />
+                                            Deactivate
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Power className="mr-2 h-4 w-4" />
+                                            Activate
+                                        </>
+                                    )}
+                                </DropdownMenuItem>
+                            </>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             ),
         },
-    ]
+    ], [users, selectedUsers, onSelectedUsersChange, onEdit, onToggleStatus])
 
-    const filters: FilterConfig[] = [
-        {
-            type: "select",
-            placeholder: "All Roles",
-            value: roleFilter,
-            options: [
-                { label: "All Roles", value: "all" },
-                { label: "Super Admin", value: "super_admin" },
-                { label: "Portal Admin", value: "portal_admin" },
-                { label: "Portal User", value: "portal_user" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleRoleFilterChange(value)
-                }
-            },
-        },
-        {
-            type: "select",
-            placeholder: "All Status",
-            value: statusFilter,
-            options: [
-                { label: "All Status", value: "all" },
-                { label: "Active", value: "active" },
-                { label: "Inactive", value: "inactive" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleStatusFilterChange(value)
-                }
-            },
-        },
-        {
-            type: "select",
-            placeholder: "Created Date",
-            value: sortBy,
-            options: [
-                { label: "Created Date", value: "created_at" },
-                { label: "Email", value: "email" },
-                { label: "Status", value: "is_active" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleSortChange(value, sortOrder)
-                }
-            },
-        },
-        {
-            type: "select",
-            placeholder: "Descending",
-            value: sortOrder,
-            options: [
-                { label: "Ascending", value: "asc" },
-                { label: "Descending", value: "desc" },
-            ],
-            onChange: (value) => {
-                if (typeof value === "string") {
-                    handleSortChange(sortBy, value as "asc" | "desc")
-                }
-            },
-        },
-    ]
+    const { table } = useDataTable({
+        columns,
+        data: users,
+        totalCount: total,
+        onParamsChange,
+        initialParams: params,
+    })
 
     return (
         <div className="space-y-4">
-            {/* Search Bar */}
-            <Input
-                placeholder="Search by e-mail or user ID..."
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="max-w-md"
-            />
+            <div className="flex flex-wrap items-center gap-4 bg-gray-50/50 p-4 rounded-lg border border-gray-100">
+                <div className="flex-1 min-w-[300px]">
+                    <Input
+                        placeholder="Search by email..."
+                        value={params.search || ""}
+                        onChange={(e) => onParamsChange({ ...params, search: e.target.value, page: 1 })}
+                        className="max-w-md bg-white"
+                    />
+                </div>
 
-            {/* DataTable with filters */}
-            <DataTable
-                columns={columns}
-                data={users}
-                filters={filters}
-                pagination={{
-                    page,
-                    pageSize,
-                    total,
-                    totalPages,
-                    onPageChange,
-                    onPageSizeChange,
-                }}
+                <div className="flex items-center gap-4">
+                    <Select
+                        value={params.role_name || "all"}
+                        onValueChange={(value) => onParamsChange({ ...params, role_name: value === "all" ? undefined : value, page: 1 })}
+                    >
+                        <SelectTrigger className="w-[150px] bg-white">
+                            <SelectValue placeholder="All Roles" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Roles</SelectItem>
+                            <SelectItem value="super_admin">Super Admin</SelectItem>
+                            <SelectItem value="portal_admin">Portal Admin</SelectItem>
+                            <SelectItem value="portal_user">Portal User</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select
+                        value={params.is_active === undefined ? "all" : params.is_active ? "active" : "inactive"}
+                        onValueChange={(value) => onParamsChange({
+                            ...params,
+                            is_active: value === "all" ? undefined : value === "active",
+                            page: 1
+                        })}
+                    >
+                        <SelectTrigger className="w-[150px] bg-white">
+                            <SelectValue placeholder="All Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="inactive">Inactive</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <TanstackTable
+                table={table}
+                totalCount={total}
+                isLoading={isLoading}
                 emptyMessage="No users found"
             />
         </div>
     )
 }
+

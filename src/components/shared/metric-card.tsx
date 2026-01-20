@@ -1,10 +1,12 @@
 import { LucideIcon } from "lucide-react"
 import { IconType } from "react-icons"
 import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ReactNode } from "react"
 
 type MetricCardProps = {
     title: string
-    value: string | number
+    value: ReactNode
     subtitle?: string
     icon: IconType | LucideIcon
     iconClassName?: string
@@ -13,6 +15,7 @@ type MetricCardProps = {
         value: string
         isPositive?: boolean
     }
+    isLoading?: boolean
 }
 
 export function MetricCard({
@@ -23,7 +26,24 @@ export function MetricCard({
     iconClassName = "text-blue-600",
     iconBgColor = "bg-blue-100",
     trend,
+    isLoading = false,
 }: MetricCardProps) {
+    if (isLoading) {
+        return (
+            <Card className="border-zinc-300">
+                <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1 space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-8 w-32" />
+                        </div>
+                        <Skeleton className="h-11 w-11 rounded-full" />
+                    </div>
+                </CardContent>
+            </Card>
+        )
+    }
+
     return (
         <Card className="border-zinc-300">
             <CardContent className="p-6">

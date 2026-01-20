@@ -3,9 +3,7 @@
 import * as React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation } from "@tanstack/react-query"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
+import { z } from "zod"
 import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -24,127 +22,51 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp"
 
-// Schemas
-import { 
-  otpRequestSchema, 
-  otpVerifySchema, 
-  type OTPRequestForm, 
-  type OTPVerifyForm 
+// Schemas & Hooks
+import {
+  otpRequestSchema,
+  otpVerifySchema,
+  type OTPRequestForm,
+  type OTPVerifyForm
 } from "@/lib/schemas/auth"
 
-import { authApi } from "@/lib/api/auth"
-import { useAuthStore } from "@/lib/stores/auth-store"
-import { AppError } from "@/lib/errors"
+import { useAuth } from "@/hooks/use-auth"
+import { toast } from "sonner"
 
 type LoginStep = "EMAIL" | "OTP"
 
 export function LoginForm() {
   const [step, setStep] = React.useState<LoginStep>("EMAIL")
   const [email, setEmail] = React.useState<string>("")
-  const router = useRouter()
-  const { setUser } = useAuthStore()
+  const { requestOTP, isRequestingOTP, verifyOTP, isVerifyingOTP } = useAuth()
 
   // --- Form 1: Request OTP ---
-  const emailForm = useForm<OTPRequestForm>({
+  const emailForm = useForm<z.input<typeof otpRequestSchema>>({
     resolver: zodResolver(otpRequestSchema),
-    defaultValues: { email: "" },
+    defaultValues: { email: "", scope: "LOGIN" },
   })
 
   // --- Form 2: Verify OTP ---
-  // Default values use 'otp' (not otp_code)
-  const otpForm = useForm<OTPVerifyForm>({
+  const otpForm = useForm<z.input<typeof otpVerifySchema>>({
     resolver: zodResolver(otpVerifySchema),
-    defaultValues: { email: "", otp: "" },
+    defaultValues: { email: "", otp: "", scope: "LOGIN" },
   })
 
-  // --- Mutation 1: Request OTP ---
-  const requestOTPMutation = useMutation({
-    mutationFn: authApi.requestOTP,
-    onSuccess: () => {
-      setStep("OTP")
-      toast.success("OTP sent to your email")
-    },
-    // onError handled globally
-  })
-
-  function onEmailSubmit(data: OTPRequestForm) {
+  const onEmailSubmit = (data: z.output<typeof otpRequestSchema>) => {
     setEmail(data.email)
-    // Sync email to second form immediately
-    otpForm.setValue("email", data.email) 
-    requestOTPMutation.mutate({ ...data, scope: "LOGIN" })
+    otpForm.setValue("email", data.email)
+    requestOTP(data, {
+      onSuccess: () => setStep("OTP")
+    })
   }
 
-  // --- Mutation 2: Verify & Login Chain ---
-  const verifyOTPMutation = useMutation<
-    void,           // Returns nothing (we handle flow manually)
-    AppError,       // Error type
-    OTPVerifyForm   // Input variables
-  >({
-    mutationFn: async (variables) => {
-        // 1. Verify OTP
-        // Backend sets the HttpOnly cookie here. 
-        // We pass scope: 'LOGIN' to match the schema.
-        await authApi.verifyOTP({ ...variables, scope: 'LOGIN' } as any);
-        
-        // 2. Fetch User Profile
-        // Essential step: The verification response doesn't have the user role.
-        const userResponse = await authApi.getMe();
-        
-        // 3. Update Store
-        setUser(userResponse.data);
-    },
-    onSuccess: () => {
-      const user = useAuthStore.getState().user;
-      console.log('[LOGIN] User logged in:', user);
-      toast.success("Login successful");
-      
-      // 4. Role-based Redirect
-      const roles = user?.roles || [];
-      console.log('[LOGIN] User roles:', roles);
-      
-      // Handle both string roles and object roles (if backend changes)
-      const hasRole = (roleName: string) => {
-        return roles.some((r: any) => {
-            const rName = typeof r === 'string' ? r : r.name;
-            return rName.toUpperCase() === roleName.toUpperCase();
-        });
-      };
-
-      let targetRoute = "/portal";
-      if (hasRole('SUPER_ADMIN')) {
-        targetRoute = "/admin";
-      } else if (hasRole('PORTAL_ADMIN')) {
-        targetRoute = "/portal";
-      }
-      
-      console.log('[LOGIN] Redirecting to:', targetRoute);
-      console.log('[LOGIN] About to execute redirect...');
-      
-      // Small delay to ensure state is saved, then hard redirect
-      setTimeout(() => {
-        console.log('[LOGIN] Executing redirect NOW');
-        window.location.href = targetRoute;
-      }, 100);
-    },
-    onError: (error) => {
-      console.error("Login Failed:", error);
-      otpForm.resetField("otp"); // Clear OTP on failure
-    },
-  })
-
-  function onOtpSubmit(data: OTPVerifyForm) {
-    // Use state email as fallback
-    const finalEmail = email || otpForm.getValues("email");
-    
+  const onOtpSubmit = (data: any) => {
+    const finalEmail = email || otpForm.getValues("email")
     if (!finalEmail) {
-        toast.error("Session lost. Please reload.");
-        return;
+      toast.error("Session lost. Please reload.")
+      return
     }
-
-    verifyOTPMutation.mutate({ 
-        email: finalEmail, 
-        otp: data.otp // Correct field name 'otp'
-    })
+    verifyOTP({ ...data, email: finalEmail } as OTPVerifyForm)
   }
 
   return (
@@ -159,18 +81,18 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
-                    <Input 
-                        placeholder="admin@example.com" 
-                        disabled={requestOTPMutation.isPending} 
-                        {...field} 
+                    <Input
+                      placeholder="admin@example.com"
+                      disabled={isRequestingOTP}
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button className="w-full" type="submit" disabled={requestOTPMutation.isPending}>
-              {requestOTPMutation.isPending && (
+            <Button className="w-full" type="submit" disabled={isRequestingOTP}>
+              {isRequestingOTP && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               Request OTP
@@ -183,7 +105,7 @@ export function LoginForm() {
             <div className="mb-4 text-center text-sm text-muted-foreground">
               Sent to <span className="font-medium text-foreground">{email}</span>
             </div>
-            
+
             <FormField
               control={otpForm.control}
               name="otp"
@@ -191,10 +113,10 @@ export function LoginForm() {
                 <FormItem className="flex flex-col items-center justify-center">
                   <FormLabel className="sr-only">One-Time Password</FormLabel>
                   <FormControl>
-                    <InputOTP 
-                        maxLength={6} 
-                        disabled={verifyOTPMutation.isPending}
-                        {...field}
+                    <InputOTP
+                      maxLength={6}
+                      disabled={isVerifyingOTP}
+                      {...field}
                     >
                       <InputOTPGroup>
                         <InputOTPSlot index={0} />
@@ -212,21 +134,21 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-            <Button className="w-full" type="submit" disabled={verifyOTPMutation.isPending}>
-              {verifyOTPMutation.isPending && (
+            <Button className="w-full" type="submit" disabled={isVerifyingOTP}>
+              {isVerifyingOTP && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               Verify Login
             </Button>
-            <Button 
-                variant="link" 
-                className="w-full" 
-                size="sm"
-                type="button"
-                onClick={() => setStep("EMAIL")}
-                disabled={verifyOTPMutation.isPending}
+            <Button
+              variant="link"
+              className="w-full"
+              size="sm"
+              type="button"
+              onClick={() => setStep("EMAIL")}
+              disabled={isVerifyingOTP}
             >
-                Change Email
+              Change Email
             </Button>
           </form>
         </Form>

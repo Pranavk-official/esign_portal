@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
 import {
   Dialog,
   DialogContent,
@@ -24,11 +23,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import type { PortalOnboardingRequest } from "@/types/portal"
-
-const formSchema = z.object({
-  portal_name: z.string().min(2, "Portal name must be at least 2 characters"),
-  admin_email: z.string().email("Invalid email address"),
-})
+import { portalOnboardingSchema, type PortalOnboardingSchema } from "@/lib/schemas/portal"
+import { useOnboardPortal } from "@/hooks/use-portals"
+import { Loader2 } from "lucide-react"
 
 interface OnboardPortalDialogProps {
   children: React.ReactNode
@@ -38,24 +35,38 @@ interface OnboardPortalDialogProps {
 export function OnboardPortalDialog({ children, onSuccess }: OnboardPortalDialogProps) {
   const [open, setOpen] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  // Use the React Query mutation hook
+  const { mutate: onboardPortal, isPending } = useOnboardPortal();
+
+  const form = useForm<PortalOnboardingSchema>({
+    resolver: zodResolver(portalOnboardingSchema),
     defaultValues: {
       portal_name: "",
       admin_email: "",
     },
   })
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Here we would typically call the API
-    console.log(values)
-    onSuccess?.(values)
-    setOpen(false)
-    form.reset()
+  const onSubmit = (values: PortalOnboardingSchema) => {
+    onboardPortal(values, {
+      onSuccess: (data) => {
+        // Cast response to expected type if necessary, or update prop type
+        onSuccess?.(data as unknown as PortalOnboardingRequest);
+        setOpen(false);
+        form.reset();
+      }
+    });
+  }
+
+  // Reset form when dialog opens
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (newOpen) {
+      form.reset();
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
@@ -75,7 +86,7 @@ export function OnboardPortalDialog({ children, onSuccess }: OnboardPortalDialog
                 <FormItem>
                   <FormLabel>Portal Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. HR Department" {...field} />
+                    <Input placeholder="e.g. HR Department" {...field} disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -88,14 +99,23 @@ export function OnboardPortalDialog({ children, onSuccess }: OnboardPortalDialog
                 <FormItem>
                   <FormLabel>Admin Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="admin@example.com" {...field} />
+                    <Input placeholder="admin@example.com" {...field} disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter>
-              <Button type="submit">Onboard Portal</Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Onboarding...
+                  </>
+                ) : (
+                  "Onboard Portal"
+                )}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

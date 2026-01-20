@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import type { RecordWithId } from "@/types/common"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export interface ColumnDef<T> {
     header: string
@@ -55,6 +56,7 @@ interface DataTableProps<T extends RecordWithId> {
     pagination: PaginationConfig
     emptyMessage?: string
     headerActions?: ReactNode
+    isLoading?: boolean
 }
 
 export function DataTable<T extends RecordWithId>({
@@ -64,6 +66,7 @@ export function DataTable<T extends RecordWithId>({
     pagination,
     emptyMessage = "No data found",
     headerActions,
+    isLoading = false,
 }: DataTableProps<T>) {
     const { page, pageSize, total, totalPages, onPageChange, onPageSizeChange } = pagination
 
@@ -111,7 +114,17 @@ export function DataTable<T extends RecordWithId>({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {data.length === 0 ? (
+                        {isLoading ? (
+                            Array.from({ length: pageSize }).map((_, i) => (
+                                <TableRow key={i}>
+                                    {columns.map((_, j) => (
+                                        <TableCell key={j}>
+                                            <Skeleton className="h-4 w-full" />
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))
+                        ) : data.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="text-center py-8 text-muted-foreground">
                                     {emptyMessage}
@@ -164,7 +177,7 @@ export function DataTable<T extends RecordWithId>({
                             variant="outline"
                             size="icon"
                             onClick={() => onPageChange(1)}
-                            disabled={page === 1}
+                            disabled={page === 1 || isLoading}
                             aria-label="Go to first page"
                         >
                             «
@@ -173,7 +186,7 @@ export function DataTable<T extends RecordWithId>({
                             variant="outline"
                             size="icon"
                             onClick={() => onPageChange(page - 1)}
-                            disabled={page === 1}
+                            disabled={page === 1 || isLoading}
                             aria-label="Go to previous page"
                         >
                             ‹
@@ -185,7 +198,7 @@ export function DataTable<T extends RecordWithId>({
                             variant="outline"
                             size="icon"
                             onClick={() => onPageChange(page + 1)}
-                            disabled={page >= totalPages}
+                            disabled={page >= totalPages || isLoading}
                             aria-label="Go to next page"
                         >
                             ›
@@ -194,7 +207,7 @@ export function DataTable<T extends RecordWithId>({
                             variant="outline"
                             size="icon"
                             onClick={() => onPageChange(totalPages)}
-                            disabled={page >= totalPages}
+                            disabled={page >= totalPages || isLoading}
                             aria-label="Go to last page"
                         >
                             »

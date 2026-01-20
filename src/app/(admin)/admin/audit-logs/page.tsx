@@ -1,124 +1,147 @@
 "use client"
 
 import { useState } from "react"
-import { Download } from "lucide-react"
+import { Download, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { AuditLogsTable } from "@/components/tables/audit-logs-table"
-import type { AuditLogRecord } from "@/types/audit-log"
-
-// Mock data
-const mockLogs: AuditLogRecord[] = [
-    {
-        id: "1",
-        user_id: "user-123",
-        user_email: "super@example.com",
-        portal_id: "portal-hr-001",
-        event_type: "CREATE_PORTAL",
-        resource_type: "PORTAL",
-        resource_id: "portal-hr-001",
-        details: { "portal_name": "HR Department" },
-        ip_address: "192.168.1.1",
-        user_agent: "Mozilla/5.0",
-        timestamp: "2024-01-15T20:00:00Z",
-    },
-    {
-        id: "2",
-        user_id: "user-124",
-        user_email: "manager@example.com",
-        portal_id: "portal-fin-002",
-        event_type: "GENERATE_API_KEY",
-        resource_type: "API_KEY",
-        resource_id: "key-prod-002",
-        details: { "environment": "PRODUCTION" },
-        ip_address: "192.168.1.2",
-        user_agent: "Mozilla/5.0",
-        timestamp: "2024-01-15T19:38:15Z",
-    },
-    {
-        id: "3",
-        user_id: "user-123",
-        user_email: "super@example.com",
-        portal_id: null,
-        event_type: "DEACTIVATE_USER",
-        resource_type: "USER",
-        resource_id: "user-001",
-        details: { "email": "john.doe@example.com" },
-        ip_address: "192.168.1.1",
-        user_agent: "Mozilla/5.0",
-        timestamp: "2024-01-15T19:35:00Z",
-    },
-]
+import { DataExportButton } from "@/components/shared/data-export-button"
+import { useAuditLogs } from "@/hooks/use-audit-logs"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function AuditLogsPage() {
-    const [logs] = useState<AuditLogRecord[]>(mockLogs)
-    const [page, setPage] = useState(1)
-    const [pageSize, setPageSize] = useState(20)
-    const [searchQuery, setSearchQuery] = useState("")
-    const [eventFilter, setEventFilter] = useState("all")
-    const [resourceFilter, setResourceFilter] = useState("all")
-    const [sortBy, setSortBy] = useState("timestamp")
-    const [sortOrder, setSortOrder] = useState("desc")
+  const [params, setParams] = useState({
+    page: 1,
+    page_size: 20,
+    sort_by: "timestamp" as const,
+    sort_order: "desc" as const,
+    search: "",
+    event_type: undefined as string | undefined,
+    portal_id: undefined as string | undefined,
+    start_date: undefined as string | undefined,
+    end_date: undefined as string | undefined,
+  })
 
-    // Filter logic
-    const filteredLogs = logs.filter((log) => {
-        if (searchQuery && !(log.user_email?.toLowerCase().includes(searchQuery.toLowerCase()) || log.resource_id?.includes(searchQuery))) {
-            return false
-        }
-        if (eventFilter !== "all" && log.event_type !== eventFilter) {
-            return false
-        }
-        if (resourceFilter !== "all" && log.resource_type !== resourceFilter) {
-            return false
-        }
-        return true
-    })
+  const { data, isLoading } = useAuditLogs(params)
 
-    const totalPages = Math.ceil(filteredLogs.length / pageSize)
-    const paginatedLogs = filteredLogs.slice((page - 1) * pageSize, page * pageSize)
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Audit Logs</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Track all system activities and changes
+          </p>
+        </div>
+        <DataExportButton
+          data={data?.items || []}
+          filename={`audit-logs-${new Date().toISOString().split('T')[0]}`}
+          formats={["csv", "json"]}
+          disabled={!data || data.items.length === 0}
+        />
+      </div>
 
-    return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold">Audit Logs</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        View system activity and changes
-                    </p>
-                </div>
-                <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                </Button>
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Filters</CardTitle>
+          <CardDescription>Refine your audit log search</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Search</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search events or portal..."
+                  value={params.search || ""}
+                  onChange={(e) => setParams({ ...params, search: e.target.value, page: 1 })}
+                  className="pl-9"
+                />
+              </div>
             </div>
 
-            <AuditLogsTable
-                logs={paginatedLogs}
-                total={filteredLogs.length}
-                page={page}
-                pageSize={pageSize}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                onPageSizeChange={(size) => {
-                    setPageSize(size)
-                    setPage(1)
-                }}
-                onSearchChange={(search) => {
-                    setSearchQuery(search)
-                    setPage(1)
-                }}
-                onEventTypeFilter={(event) => {
-                    setEventFilter(event)
-                    setPage(1)
-                }}
-                onResourceFilter={(resource) => {
-                    setResourceFilter(resource)
-                    setPage(1)
-                }}
-                onSortChange={(by, order) => {
-                    setSortBy(by)
-                    setSortOrder(order)
-                }}
-            />
-        </div>
-    )
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Event Type</label>
+              <Select
+                value={params.event_type || "all"}
+                onValueChange={(value) =>
+                  setParams({ ...params, event_type: value === "all" ? undefined : value, page: 1 })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All Events" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Events</SelectItem>
+                  <SelectItem value="user:create">User Created</SelectItem>
+                  <SelectItem value="user:update">User Updated</SelectItem>
+                  <SelectItem value="user:deactivate">User Deactivated</SelectItem>
+                  <SelectItem value="portal:onboard">Portal Onboarded</SelectItem>
+                  <SelectItem value="portal:revoke">Portal Revoked</SelectItem>
+                  <SelectItem value="apikey:generate">API Key Generated</SelectItem>
+                  <SelectItem value="apikey:revoke">API Key Revoked</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Date Range</label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="date"
+                  value={params.start_date || ""}
+                  onChange={(e) => setParams({ ...params, start_date: e.target.value, page: 1 })}
+                  placeholder="Start date"
+                />
+                <Input
+                  type="date"
+                  value={params.end_date || ""}
+                  onChange={(e) => setParams({ ...params, end_date: e.target.value, page: 1 })}
+                  placeholder="End date"
+                />
+              </div>
+            </div>
+          </div>
+
+          {(params.search || params.event_type || params.start_date || params.end_date) && (
+            <div className="mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setParams({
+                    ...params,
+                    search: "",
+                    event_type: undefined,
+                    start_date: undefined,
+                    end_date: undefined,
+                    page: 1,
+                  })
+                }
+              >
+                Clear Filters
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <AuditLogsTable
+        logs={data?.items || []}
+        total={data?.total || 0}
+        isLoading={isLoading}
+        params={params}
+        onParamsChange={setParams}
+      />
+    </div>
+  )
 }

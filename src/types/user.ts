@@ -14,7 +14,8 @@ export interface UserListResponse {
     portal_id: Nullable<string>
     is_active: boolean
     created_at: string
-    role_names: string[] // Changed from roles: UserRole[]
+    roles: UserRole[]
+    updated_at: string
 }
 
 // User Detail Response (for detail views)

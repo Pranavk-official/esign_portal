@@ -1,0 +1,37 @@
+"use client"
+
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuthStore } from "@/lib/stores/auth-store"
+import { isPortalAdmin } from "@/lib/auth-utils"
+import { toast } from "sonner"
+import { Loader2 } from "lucide-react"
+
+/**
+ * Layout protection for Usage Reports page
+ * Only portal_admin can access this page
+ */
+export default function UsageReportsLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const { user, _hasHydrated } = useAuthStore()
+
+  useEffect(() => {
+    if (!_hasHydrated) return
+
+    if (user && !isPortalAdmin(user)) {
+      toast.error("Access denied. Portal Admin privileges required.")
+      router.replace("/portal")
+    }
+  }, [user, _hasHydrated, router])
+
+  // Show loading while checking permissions
+  if (!_hasHydrated || (user && !isPortalAdmin(user))) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  return <>{children}</>
+}

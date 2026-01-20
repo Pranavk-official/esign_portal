@@ -1,4 +1,4 @@
-import { User, Settings } from "lucide-react"
+import { User, Activity, Bell } from "lucide-react"
 
 export type UserMenuItem = {
     title: string
@@ -8,13 +8,18 @@ export type UserMenuItem = {
 
 export const userMenuItems: UserMenuItem[] = [
     {
-        title: "Account",
-        href: "/portal/account",
+        title: "Profile",
+        href: "/portal/profile",
         icon: User,
     },
     {
-        title: "Settings",
-        href: "/portal/settings",
-        icon: Settings,
+        title: "Activity",
+        href: "/portal/activity",
+        icon: Activity,
+    },
+    {
+        title: "Notifications",
+        href: "/portal/notifications",
+        icon: Bell,
     },
 ]

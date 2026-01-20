@@ -15,6 +15,10 @@ export interface PortalListResponse extends PortalResponse {
     active_key_count: number
     total_key_count: number
     user_count: number
+    max_keys?: Nullable<number>
+    environment?: Nullable<string>
+    description?: Nullable<string>
+    updated_at?: Nullable<string>
 }
 
 // Paginated Response
