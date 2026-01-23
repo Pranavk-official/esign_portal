@@ -47,6 +47,7 @@ export function GenerateKeyDialog({ children }: { children: React.ReactNode }) {
       key_name: "",
       environment: "TEST",
       callback_url: "",
+      max_txn_count: 1000,
     },
   });
 
@@ -56,6 +57,7 @@ export function GenerateKeyDialog({ children }: { children: React.ReactNode }) {
         key_name: values.key_name,
         environment: values.environment,
         callback_url: values.callback_url || "",
+        max_txn_count: values.max_txn_count,
       },
       {
         onSuccess: (data) => {
@@ -132,6 +134,25 @@ export function GenerateKeyDialog({ children }: { children: React.ReactNode }) {
                           <SelectItem value="LIVE">Live (Production)</SelectItem>
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="max_txn_count"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max Transaction Count</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 1000"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          disabled={isPending}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

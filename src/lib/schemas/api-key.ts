@@ -18,8 +18,19 @@ export const apiKeyGenerateSchema = z.object({
   callback_url: z
     .string()
     .trim()
-    .url("Callback URL must be a valid URL")
-    .regex(/^https?:\/\//, "Callback URL must start with http:// or https://"),
+    .refine(
+      (val) => !val || /^https?:\/\/.+/.test(val),
+      "Callback URL must be a valid URL starting with http:// or https://"
+    )
+    .default(""),
+
+  max_txn_count: z
+    .number()
+    .int("Transaction count must be an integer")
+    .positive("Transaction count must be greater than 0"),
+
+  expires_in_days: z.number().int().positive().optional().nullable(),
+  roll_key_id: z.string().uuid().optional().nullable(),
 });
 
 export const apiKeyRevokeSchema = z.object({

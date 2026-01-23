@@ -128,6 +128,9 @@ export interface ApiKeyGenerateRequest {
   key_name: string;
   environment: "LIVE" | "TEST";
   callback_url: string;
+  max_txn_count: number;
+  expires_in_days?: number | null;
+  roll_key_id?: string | null;
 }
 
 export interface ApiKeyGenerateResponse {
