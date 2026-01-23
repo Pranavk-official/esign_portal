@@ -1,9 +1,12 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { userCreateSchema, type UserCreateRequest } from "@/lib/schemas/user"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -20,30 +23,28 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Loader2, X } from "lucide-react"
-import type { UserDetailResponse, UserRole } from "@/types/user"
+} from "@/components/ui/select";
+import type { UserDetailResponse, UserRole } from "@/lib/schemas/user";
+import { type UserCreateRequest, userCreateSchema } from "@/lib/schemas/user";
 
 interface UserFormDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  user?: UserDetailResponse | null
-  mode: "create" | "edit"
-  onSubmit: (data: UserCreateRequest) => Promise<void>
-  isLoading?: boolean
-  availableRoles?: UserRole[]
-  portalOptions?: Array<{ id: string; name: string }>
-  showPortalField?: boolean
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  user?: UserDetailResponse | null;
+  mode: "create" | "edit";
+  onSubmit: (data: UserCreateRequest) => Promise<void>;
+  isLoading?: boolean;
+  availableRoles?: UserRole[];
+  portalOptions?: Array<{ id: string; name: string }>;
+  showPortalField?: boolean;
 }
 
 export function UserFormDialog({
@@ -57,7 +58,7 @@ export function UserFormDialog({
   portalOptions = [],
   showPortalField = true,
 }: UserFormDialogProps) {
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([])
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
   const form = useForm<UserCreateRequest>({
     resolver: zodResolver(userCreateSchema),
@@ -67,58 +68,57 @@ export function UserFormDialog({
       role_names: [],
       send_otp: true,
     },
-  })
+  });
 
   // Reset form when user changes or dialog opens
   useEffect(() => {
     if (open) {
       if (user && mode === "edit") {
+        const roleNames = user.role_names || [];
         form.reset({
           email: user.email,
           portal_id: user.portal_id,
-          role_names: user.roles.map((r) => r.name),
+          role_names: roleNames,
           send_otp: false,
-        })
-        setSelectedRoles(user.roles.map((r) => r.name))
+        });
+        setSelectedRoles(roleNames);
       } else {
         form.reset({
           email: "",
           portal_id: null,
           role_names: [],
           send_otp: true,
-        })
-        setSelectedRoles([])
+        });
+        setSelectedRoles([]);
       }
     }
-  }, [open, user, mode, form])
+  }, [open, user, mode, form]);
 
   const handleSubmit = async (data: UserCreateRequest) => {
-    await onSubmit(data)
-    form.reset()
-    setSelectedRoles([])
-  }
+    await onSubmit(data);
+    form.reset();
+    setSelectedRoles([]);
+  };
 
   const addRole = (roleName: string) => {
     if (!selectedRoles.includes(roleName)) {
-      const newRoles = [...selectedRoles, roleName]
-      setSelectedRoles(newRoles)
-      form.setValue("role_names", newRoles)
+      const newRoles = [...selectedRoles, roleName];
+      setSelectedRoles(newRoles);
+      form.setValue("role_names", newRoles);
     }
-  }
+  };
 
   const removeRole = (roleName: string) => {
-    const newRoles = selectedRoles.filter((r) => r !== roleName)
-    setSelectedRoles(newRoles)
-    form.setValue("role_names", newRoles)
-  }
+    const newRoles = selectedRoles.filter((r) => r !== roleName);
+    setSelectedRoles(newRoles);
+    form.setValue("role_names", newRoles);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "create" ? "Create New User" : "Edit User"}
-          </DialogTitle>
+          <DialogTitle>{mode === "create" ? "Create New User" : "Edit User"}</DialogTitle>
           <DialogDescription>
             {mode === "create"
               ? "Add a new user to the system. An OTP will be sent to their email."
@@ -134,11 +134,7 @@ export function UserFormDialog({
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="user@example.com"
-                      {...field}
-                      disabled={mode === "edit"}
-                    />
+                    <Input placeholder="user@example.com" {...field} disabled={mode === "edit"} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -152,10 +148,7 @@ export function UserFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Portal (Optional)</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || "none"}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value || "none"}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a portal" />
@@ -201,14 +194,14 @@ export function UserFormDialog({
                         ))}
                     </SelectContent>
                   </Select>
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="mt-2 flex flex-wrap gap-2">
                     {selectedRoles.map((roleName) => (
                       <Badge key={roleName} variant="secondary">
                         {roleName}
                         <button
                           type="button"
                           onClick={() => removeRole(roleName)}
-                          className="ml-1 hover:text-destructive"
+                          className="hover:text-destructive ml-1"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -258,5 +251,5 @@ export function UserFormDialog({
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

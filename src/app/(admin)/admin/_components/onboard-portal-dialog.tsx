@@ -1,8 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -19,43 +22,41 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import type { PortalOnboardingRequest } from "@/types/portal"
-import { portalOnboardingSchema, type PortalOnboardingSchema } from "@/lib/schemas/portal"
-import { useOnboardPortal } from "@/hooks/use-portals"
-import { Loader2 } from "lucide-react"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useOnboardPortal } from "@/hooks/use-portals";
+import type { PortalOnboardingRequest } from "@/lib/schemas/portal";
+import { portalOnboardingSchema } from "@/lib/schemas/portal";
 
 interface OnboardPortalDialogProps {
-  children: React.ReactNode
-  onSuccess?: (data: PortalOnboardingRequest) => void
+  children: React.ReactNode;
+  onSuccess?: (data: PortalOnboardingRequest) => void;
 }
 
 export function OnboardPortalDialog({ children, onSuccess }: OnboardPortalDialogProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   // Use the React Query mutation hook
   const { mutate: onboardPortal, isPending } = useOnboardPortal();
 
-  const form = useForm<PortalOnboardingSchema>({
+  const form = useForm<PortalOnboardingRequest>({
     resolver: zodResolver(portalOnboardingSchema),
     defaultValues: {
       portal_name: "",
       admin_email: "",
     },
-  })
+  });
 
-  const onSubmit = (values: PortalOnboardingSchema) => {
+  const onSubmit = (values: PortalOnboardingRequest) => {
     onboardPortal(values, {
       onSuccess: (data) => {
         // Cast response to expected type if necessary, or update prop type
         onSuccess?.(data as unknown as PortalOnboardingRequest);
         setOpen(false);
         form.reset();
-      }
+      },
     });
-  }
+  };
 
   // Reset form when dialog opens
   const handleOpenChange = (newOpen: boolean) => {
@@ -63,13 +64,11 @@ export function OnboardPortalDialog({ children, onSuccess }: OnboardPortalDialog
     if (newOpen) {
       form.reset();
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Onboard New Portal</DialogTitle>
@@ -121,5 +120,5 @@ export function OnboardPortalDialog({ children, onSuccess }: OnboardPortalDialog
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

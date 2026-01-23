@@ -31,7 +31,7 @@ export interface UserListResponse {
   portal_id: string | null;
   is_active: boolean;
   created_at: string;
-  roles: UserRole[];
+  role_names: string[];
 }
 
 export interface AuthResponse {
@@ -57,7 +57,7 @@ export interface TableQueryParams {
   page_size?: number;
   search?: string;
   sort_by?: string;
-  sort_order?: 'asc' | 'desc';
+  sort_order?: "asc" | "desc";
 }
 
 export interface PortalQueryParams extends TableQueryParams {
@@ -65,7 +65,7 @@ export interface PortalQueryParams extends TableQueryParams {
 }
 
 export interface ApiKeyQueryParams extends TableQueryParams {
-  environment?: 'LIVE' | 'TEST';
+  environment?: "LIVE" | "TEST";
   is_active?: boolean;
 }
 
@@ -126,7 +126,7 @@ export interface ApiKeyResponse {
 
 export interface ApiKeyGenerateRequest {
   key_name: string;
-  environment: 'LIVE' | 'TEST';
+  environment: "LIVE" | "TEST";
   callback_url: string;
 }
 
@@ -144,6 +144,47 @@ export interface ApiKeyMetric {
   successful: number;
   failed: number;
   pending: number;
+}
+
+// Detailed API Key Response for Portal Details
+export interface ApiKeyDetailResponse {
+  id: string;
+  portal_id: string;
+  key_name: string | null;
+  key_prefix: string;
+  environment: "LIVE" | "TEST";
+  callback_url: string;
+  is_active: boolean;
+  revoke_reason: string | null;
+  created_at: string;
+  expires_at: string | null;
+  last_used_at: string | null;
+  max_txn_count: number | null;
+  remaining_txn_count: number | null;
+  successful_txn_count: number;
+  max_txn_count_threshold: number | null;
+}
+
+// Per Portal Metrics with API Keys Details
+export interface PortalMetricsResponse {
+  total_transactions: number;
+  successful_transactions: number;
+  failed_transactions: number;
+  pending_transactions: number;
+  last_transaction_at: string | null;
+  api_keys_metrics: ApiKeyDetailResponse[];
+}
+
+// System Overview Metrics for Super Admin
+export interface SystemOverviewMetrics {
+  total_active_portals: number;
+  total_active_users: number;
+  total_active_api_keys: number;
+  total_transactions: number;
+  total_completed_transactions: number;
+  total_failed_transactions: number;
+  total_pending_transactions: number;
+  success_rate: number;
 }
 
 // Metrics
@@ -170,10 +211,10 @@ export interface ApiUsageRecord {
   portal_doc_id: string | null;
   api_key_id: string;
   api_key_name: string;
-  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'USER_CANCELLED';
+  status: "PENDING" | "COMPLETED" | "FAILED" | "USER_CANCELLED";
   file_hash: string;
   signed_file_hash: string | null;
-  auth_mode: 'AADHAAR' | 'OTP' | 'EKYC';
+  auth_mode: "AADHAAR" | "OTP" | "EKYC";
   created_at: string;
   updated_at: string;
 }

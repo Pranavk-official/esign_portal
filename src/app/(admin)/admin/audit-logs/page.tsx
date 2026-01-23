@@ -1,20 +1,22 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Download, Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { AuditLogsTable } from "@/components/tables/audit-logs-table"
-import { DataExportButton } from "@/components/shared/data-export-button"
-import { useAuditLogs } from "@/hooks/use-audit-logs"
+import { useQuery } from "@tanstack/react-query";
+import { Search } from "lucide-react";
+import { useState } from "react";
+
+import { DataExportButton } from "@/components/shared/data-export-button";
+import { AuditLogsTable } from "@/components/tables/audit-logs-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+} from "@/components/ui/select";
+import { auditLogsApi } from "@/lib/api/audit-logs";
 
 export default function AuditLogsPage() {
   const [params, setParams] = useState({
@@ -27,24 +29,27 @@ export default function AuditLogsPage() {
     portal_id: undefined as string | undefined,
     start_date: undefined as string | undefined,
     end_date: undefined as string | undefined,
-  })
+  });
 
-  const { data, isLoading } = useAuditLogs(params)
+  const { data, isLoading } = useQuery({
+    queryKey: ["audit-logs", params],
+    queryFn: () => auditLogsApi.list(params),
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Audit Logs</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm">
             Track all system activities and changes
           </p>
         </div>
         <DataExportButton
-          data={data?.items || []}
-          filename={`audit-logs-${new Date().toISOString().split('T')[0]}`}
+          data={data?.data || []}
+          filename={`audit-logs-${new Date().toISOString().split("T")[0]}`}
           formats={["csv", "json"]}
-          disabled={!data || data.items.length === 0}
+          disabled={!data?.data?.length}
         />
       </div>
 
@@ -59,7 +64,7 @@ export default function AuditLogsPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Search</label>
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
                 <Input
                   placeholder="Search events or portal..."
                   value={params.search || ""}
@@ -136,12 +141,12 @@ export default function AuditLogsPage() {
       </Card>
 
       <AuditLogsTable
-        logs={data?.items || []}
+        logs={data?.data || []}
         total={data?.total || 0}
         isLoading={isLoading}
         params={params}
         onParamsChange={setParams}
       />
     </div>
-  )
+  );
 }

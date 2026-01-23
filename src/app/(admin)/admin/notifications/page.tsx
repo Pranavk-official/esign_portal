@@ -1,8 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell, BellOff } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AdminNotificationsPage() {
   return (
@@ -24,12 +25,13 @@ export default function AdminNotificationsPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="rounded-full bg-muted p-4 mb-4">
-              <BellOff className="h-8 w-8 text-muted-foreground" />
+            <div className="bg-muted mb-4 rounded-full p-4">
+              <BellOff className="text-muted-foreground h-8 w-8" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No Notifications Yet</h3>
-            <p className="text-sm text-muted-foreground max-w-sm mb-4">
-              You don't have any notifications at the moment. We'll notify you when there are important updates or actions that require your attention.
+            <h3 className="mb-2 text-lg font-semibold">No Notifications Yet</h3>
+            <p className="text-muted-foreground mb-4 max-w-sm text-sm">
+              You don&apos;t have any notifications at the moment. We&apos;ll notify you when there are
+              important updates or actions that require your attention.
             </p>
             <Button variant="outline" disabled>
               Configure Preferences

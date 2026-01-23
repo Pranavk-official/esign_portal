@@ -1,15 +1,15 @@
 /**
  * Authentication & Authorization Utilities
- * 
+ *
  * This module provides helper functions for role-based access control (RBAC).
  */
 
-import { UserDetailResponse } from '@/lib/api/types';
+import { UserDetailResponse } from "@/lib/api/types";
 
 export enum UserRoleName {
-  SUPER_ADMIN = 'super_admin',
-  PORTAL_ADMIN = 'portal_admin',
-  PORTAL_USER = 'portal_user'
+  SUPER_ADMIN = "super_admin",
+  PORTAL_ADMIN = "portal_admin",
+  PORTAL_USER = "portal_user",
 }
 
 /**
@@ -17,19 +17,20 @@ export enum UserRoleName {
  */
 export function hasRole(user: UserDetailResponse | null, roleName: UserRoleName | string): boolean {
   if (!user || !user.roles) return false;
-  
-  return user.roles.some(role => 
-    typeof role === 'string' ? role === roleName : role.name === roleName
-  );
+
+  return user.roles.some((role) => role.name === roleName);
 }
 
 /**
  * Check if user has any of the specified roles
  */
-export function hasAnyRole(user: UserDetailResponse | null, roleNames: (UserRoleName | string)[]): boolean {
+export function hasAnyRole(
+  user: UserDetailResponse | null,
+  roleNames: (UserRoleName | string)[]
+): boolean {
   if (!user || !user.roles) return false;
-  
-  return roleNames.some(roleName => hasRole(user, roleName));
+
+  return roleNames.some((roleName) => hasRole(user, roleName));
 }
 
 /**
@@ -57,16 +58,16 @@ export function isUser(user: UserDetailResponse | null): boolean {
  * Get the appropriate redirect path based on user role
  */
 export function getRedirectPathForUser(user: UserDetailResponse | null): string {
-  if (!user) return '/login';
-  
+  if (!user) return "/login";
+
   if (isSuperAdmin(user)) {
-    return '/admin';
+    return "/admin";
   }
-  
+
   if (isPortalAdmin(user) || isUser(user)) {
-    return '/portal';
+    return "/portal";
   }
-  
+
   // Default fallback
-  return '/portal';
+  return "/portal";
 }

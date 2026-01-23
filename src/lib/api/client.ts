@@ -1,42 +1,43 @@
 /**
  * API Client Configuration
- * 
+ *
  * This module sets up the Axios client for cookie-based authentication with cross-origin support.
- * 
+ *
  * Key Features:
  * - Automatic cookie handling with `withCredentials: true`
  * - Automatic token refresh on 401 errors
  * - Custom error translation
  * - Network error handling
- * 
+ *
  * Authentication Flow:
  * 1. Login sets HttpOnly cookies (access_token, refresh_token)
  * 2. Browser automatically sends cookies with each request
  * 3. On 401, automatically refreshes using refresh_token cookie
  * 4. On refresh failure, clears auth state and redirects to login
- * 
+ *
  * Configuration:
  * - Update NEXT_PUBLIC_API_BASE_URL in .env.local when dev tunnel URL changes
  * - Backend must have CORS configured with allow_credentials=True
  * - Backend must set cookies with secure=True, httponly=True, samesite=none
- * 
+ *
  * Debugging:
  * - In browser console: `authDebug.diagnose()` for full diagnostic
  * - See COOKIE_AUTH_SETUP.md for troubleshooting guide
  */
 
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { useAuthStore } from '@/lib/stores/auth-store';
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+
 import {
+  AppError,
   BadRequestError,
-  UnauthorizedError,
-  ForbiddenError,
-  NotFoundError,
   ConflictError,
-  TooManyRequestsError,
+  ForbiddenError,
   InternalServerError,
-  AppError
-} from '@/lib/errors';
+  NotFoundError,
+  TooManyRequestsError,
+  UnauthorizedError,
+} from "@/lib/errors";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 // Extend Axios config for retry flag
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -44,14 +45,17 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
 }
 
 // Remove trailing slash if present
-const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000").replace(
+  /\/$/,
+  ""
+);
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
   timeout: 30000,
   withCredentials: true, // CRITICAL: Sends cookies with requests for cross-origin auth
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -69,42 +73,46 @@ apiClient.interceptors.response.use(
 
     const status = error.response.status;
     const data = error.response.data as unknown;
-    const message = 
-      (typeof data === 'object' && data !== null && 'detail' in data 
-        ? (data as Record<string, unknown>).detail 
-        : null) || 
-      (typeof data === 'object' && data !== null && 'message' in data 
-        ? (data as Record<string, unknown>).message 
-        : null) || 
+    const message =
+      (typeof data === "object" && data !== null && "detail" in data
+        ? (data as Record<string, unknown>).detail
+        : null) ||
+      (typeof data === "object" && data !== null && "message" in data
+        ? (data as Record<string, unknown>).message
+        : null) ||
       "An unexpected error occurred";
-    const messageStr = typeof message === 'string' ? message : String(message);
+    const messageStr = typeof message === "string" ? message : String(message);
 
     // B. Handle 401 Token Refresh Logic (Cookie Based)
     const originalRequest = error.config as CustomAxiosRequestConfig;
-    
+
     if (status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
         // Call refresh endpoint with withCredentials to send HttpOnly refresh_token cookie
         // Backend validates it and sets a new access_token cookie in the response
-        await axios.post(`${BASE_URL}/admin/auth/refresh`, {}, { 
-          withCredentials: true,
-          timeout: 10000 // Shorter timeout for refresh attempts
-        });
-        
+        await axios.post(
+          `${BASE_URL}/admin/auth/refresh`,
+          {},
+          {
+            withCredentials: true,
+            timeout: 10000, // Shorter timeout for refresh attempts
+          }
+        );
+
         // Retry original request - browser will automatically attach the new access_token cookie
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Refresh failed - clear auth state and redirect to login
         useAuthStore.getState().clearAuth();
-        
+
         // Only redirect on client side
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
         }
-        
-        return Promise.reject(new UnauthorizedError('Session expired. Please login again.'));
+
+        return Promise.reject(new UnauthorizedError("Session expired. Please login again."));
       }
     }
 
@@ -112,13 +120,28 @@ apiClient.interceptors.response.use(
     let customError: AppError;
 
     switch (status) {
-      case 400: customError = new BadRequestError(messageStr); break;
-      case 401: customError = new UnauthorizedError(messageStr); break;
-      case 403: customError = new ForbiddenError(messageStr); break;
-      case 404: customError = new NotFoundError(messageStr); break;
-      case 409: customError = new ConflictError(messageStr); break;
-      case 429: customError = new TooManyRequestsError(messageStr); break;
-      case 500: default: customError = new InternalServerError(messageStr); break;
+      case 400:
+        customError = new BadRequestError(messageStr);
+        break;
+      case 401:
+        customError = new UnauthorizedError(messageStr);
+        break;
+      case 403:
+        customError = new ForbiddenError(messageStr);
+        break;
+      case 404:
+        customError = new NotFoundError(messageStr);
+        break;
+      case 409:
+        customError = new ConflictError(messageStr);
+        break;
+      case 429:
+        customError = new TooManyRequestsError(messageStr);
+        break;
+      case 500:
+      default:
+        customError = new InternalServerError(messageStr);
+        break;
     }
 
     return Promise.reject(customError);

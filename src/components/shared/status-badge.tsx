@@ -1,17 +1,18 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { AlertCircle, CheckCircle2, Clock, XCircle } from "lucide-react";
 
-type StatusType = "active" | "inactive" | "pending" | "revoked" | "expired"
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+type StatusType = "active" | "inactive" | "pending" | "revoked" | "expired";
 
 interface StatusBadgeProps {
-  status: boolean | StatusType
-  activeLabel?: string
-  inactiveLabel?: string
-  showIcon?: boolean
-  className?: string
+  status: boolean | StatusType;
+  activeLabel?: string;
+  inactiveLabel?: string;
+  showIcon?: boolean;
+  className?: string;
 }
 
 export function StatusBadge({
@@ -22,11 +23,11 @@ export function StatusBadge({
   className,
 }: StatusBadgeProps) {
   // Normalize status to string
-  let statusType: StatusType
+  let statusType: StatusType;
   if (typeof status === "boolean") {
-    statusType = status ? "active" : "inactive"
+    statusType = status ? "active" : "inactive";
   } else {
-    statusType = status
+    statusType = status;
   }
 
   const config = {
@@ -60,14 +61,14 @@ export function StatusBadge({
       icon: AlertCircle,
       className: "bg-orange-500/10 text-orange-700 dark:text-orange-400 hover:bg-orange-500/20",
     },
-  }
+  };
 
-  const { label, icon: Icon, className: statusClassName } = config[statusType]
+  const { label, icon: Icon, className: statusClassName } = config[statusType];
 
   return (
     <Badge className={cn(statusClassName, className)}>
       {showIcon && <Icon className="mr-1 h-3 w-3" />}
       {label}
     </Badge>
-  )
+  );
 }

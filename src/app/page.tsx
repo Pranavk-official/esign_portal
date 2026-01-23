@@ -1,31 +1,30 @@
-"use client"
+"use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/lib/stores/auth-store";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
 import { getRedirectPathForUser } from "@/lib/auth-utils";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function Home() {
   const router = useRouter();
-  const { user, isAuthenticated, _hasHydrated } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
-    if (!_hasHydrated) return;
-
     if (!isAuthenticated) {
-      router.replace('/login');
+      router.replace("/login");
       return;
     }
 
     // Redirect based on user role
     const redirectPath = getRedirectPathForUser(user);
     router.replace(redirectPath);
-  }, [isAuthenticated, user, _hasHydrated, router]);
+  }, [isAuthenticated, user, router]);
 
   return (
     <div className="flex h-screen w-full items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
     </div>
   );
 }

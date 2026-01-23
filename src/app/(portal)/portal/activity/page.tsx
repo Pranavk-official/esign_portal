@@ -1,55 +1,97 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { RecentActivityTable } from "@/components/tables/recent-activity-table"
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+
+import { RecentActivityTable } from "@/components/tables/recent-activity-table";
+import { auditLogsApi } from "@/lib/api/audit-logs";
 
 export default function RecentActivityPage() {
-    const [params, setParams] = useState({
-        page: 1,
-        page_size: 20,
-        search: "",
-        event_type: "all" as string,
-    })
+  const [params, setParams] = useState({
+    page: 1,
+    page_size: 20,
+    search: "",
+    event_type: "all" as string,
+  });
 
-    // TODO: Implement useUserActivity hook to fetch real data from API
-    // const { data, isLoading, error } = useUserActivity(params)
-    
-    // Placeholder: Empty state until API integration
-    const activities: any[] = []
-    const totalPages = 0
+  // Fetch real data from API
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["audit-logs", params],
+    queryFn: () =>
+      auditLogsApi.list({
+        page: params.page,
+        page_size: params.page_size,
+        search: params.search || undefined,
+        event_type: params.event_type !== "all" ? params.event_type : undefined,
+      }),
+  });
 
-    const handleParamsChange = (newParams: Record<string, number | string>) => {
-        setParams(prev => ({ ...prev, ...newParams }))
-    }
+  const activities = data?.data || [];
+  const totalPages = data?.total_pages || 0;
 
+  const handleParamsChange = (newParams: Record<string, number | string>) => {
+    setParams((prev) => ({ ...prev, ...newParams }));
+  };
+
+  if (isLoading) {
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold">Recent Activity</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        View your recent actions and changes
-                    </p>
-                </div>
-            </div>
-
-            {activities.length === 0 ? (
-                <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg">
-                    <div className="text-center">
-                        <p className="text-muted-foreground">No activity records found</p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                            Activity tracking will be available once API integration is complete
-                        </p>
-                    </div>
-                </div>
-            ) : (
-                <RecentActivityTable
-                    activities={activities}
-                    total={activities.length}
-                    params={params}
-                    onParamsChange={handleParamsChange}
-                />
-            )}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Recent Activity</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              View your recent actions and changes
+            </p>
+          </div>
         </div>
-    )
+        <div className="flex h-64 items-center justify-center">
+          <p className="text-muted-foreground">Loading activity...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Recent Activity</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              View your recent actions and changes
+            </p>
+          </div>
+        </div>
+        <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed">
+          <p className="text-red-500">Error loading activity data</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Recent Activity</h1>
+          <p className="text-muted-foreground mt-1 text-sm">View your recent actions and changes</p>
+        </div>
+      </div>
+
+      {activities.length === 0 ? (
+        <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed">
+          <div className="text-center">
+            <p className="text-muted-foreground">No activity records found</p>
+          </div>
+        </div>
+      ) : (
+        <RecentActivityTable
+          activities={activities}
+          total={data?.total || 0}
+          params={params}
+          onParamsChange={handleParamsChange}
+        />
+      )}
+    </div>
+  );
 }

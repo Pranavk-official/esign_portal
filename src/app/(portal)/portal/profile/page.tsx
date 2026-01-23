@@ -1,10 +1,11 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuthSync } from "@/hooks/use-auth-sync";
-import { Loader2, Mail, Calendar, Shield, Building2 } from "lucide-react";
+import { Building2, Calendar, Mail, Shield } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuthSync } from "@/hooks/use-auth-sync";
 
 export default function PortalProfilePage() {
   const { user, isLoading } = useAuthSync();
@@ -13,7 +14,7 @@ export default function PortalProfilePage() {
     return (
       <div className="space-y-6">
         <div>
-          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="mb-2 h-8 w-48" />
           <Skeleton className="h-4 w-96" />
         </div>
         <Skeleton className="h-64 w-full" />
@@ -33,9 +34,7 @@ export default function PortalProfilePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-        <p className="text-muted-foreground">
-          View your account information and role assignments
-        </p>
+        <p className="text-muted-foreground">View your account information and role assignments</p>
       </div>
 
       <Card>
@@ -46,7 +45,7 @@ export default function PortalProfilePage() {
         <CardContent className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
                 <Mail className="h-4 w-4" />
                 Email Address
               </div>
@@ -54,7 +53,7 @@ export default function PortalProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
                 <Building2 className="h-4 w-4" />
                 Portal ID
               </div>
@@ -62,21 +61,21 @@ export default function PortalProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
                 <Calendar className="h-4 w-4" />
                 Member Since
               </div>
               <p className="text-lg font-medium">
                 {new Date(user.created_at).toLocaleDateString(undefined, {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
                 })}
               </p>
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
                 <Shield className="h-4 w-4" />
                 Account Status
               </div>
@@ -102,7 +101,7 @@ export default function PortalProfilePage() {
                 </Badge>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No roles assigned</p>
+              <p className="text-muted-foreground text-sm">No roles assigned</p>
             )}
           </div>
         </CardContent>

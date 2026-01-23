@@ -1,22 +1,23 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { X } from "lucide-react"
+import { X } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 interface BulkActionToolbarProps {
-  selectedCount: number
-  totalCount: number
-  onClear: () => void
+  selectedCount: number;
+  totalCount: number;
+  onClear: () => void;
   actions: Array<{
-    label: string
-    icon?: React.ComponentType<{ className?: string }>
-    onClick: () => void
-    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
-    disabled?: boolean
-  }>
-  className?: string
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    onClick: () => void;
+    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+    disabled?: boolean;
+  }>;
+  className?: string;
 }
 
 export function BulkActionToolbar({
@@ -26,20 +27,20 @@ export function BulkActionToolbar({
   actions,
   className,
 }: BulkActionToolbarProps) {
-  if (selectedCount === 0) return null
+  if (selectedCount === 0) return null;
 
   return (
-    <div className={`flex items-center gap-4 p-4 bg-muted/50 border rounded-lg ${className}`}>
+    <div className={`bg-muted/50 flex items-center gap-4 rounded-lg border p-4 ${className}`}>
       <div className="flex items-center gap-2">
         <Badge variant="secondary" className="font-mono">
           {selectedCount} / {totalCount}
         </Badge>
-        <span className="text-sm text-muted-foreground">selected</span>
+        <span className="text-muted-foreground text-sm">selected</span>
       </div>
 
       <Separator orientation="vertical" className="h-6" />
 
-      <div className="flex items-center gap-2 flex-1">
+      <div className="flex flex-1 items-center gap-2">
         {actions.map((action, index) => (
           <Button
             key={index}
@@ -54,15 +55,10 @@ export function BulkActionToolbar({
         ))}
       </div>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onClear}
-        className="ml-auto"
-      >
+      <Button variant="ghost" size="sm" onClick={onClear} className="ml-auto">
         <X className="mr-2 h-4 w-4" />
         Clear
       </Button>
     </div>
-  )
+  );
 }

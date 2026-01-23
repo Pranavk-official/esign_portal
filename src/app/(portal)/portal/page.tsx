@@ -1,27 +1,25 @@
-"use client"
+"use client";
 
-import { MetricCard } from "@/components/shared/metric-card"
-import { MdTrendingUp, MdCheckCircle, MdVpnKey, MdSchedule } from "react-icons/md"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "@/components/ui/table"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { usePortalMetrics } from "@/hooks/use-portals"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useAuthStore } from "@/lib/stores/auth-store"
-import { isPortalAdmin } from "@/lib/auth-utils"
+import { MdCheckCircle, MdSchedule, MdTrendingUp, MdVpnKey } from "react-icons/md";
+
+import { MetricCard } from "@/components/shared/metric-card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { usePortalMetrics } from "@/hooks/use-portals";
+import { isPortalAdmin } from "@/lib/auth-utils";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function PortalDashboardPage() {
-  const { data: metrics, isLoading } = usePortalMetrics()
-  const { user } = useAuthStore()
-  
-  // Check if user is portal admin
-  const isAdmin = user && isPortalAdmin(user)
+  const { data: metrics, isLoading } = usePortalMetrics();
+  const { user } = useAuthStore();
 
-  const successRate = metrics ? ((metrics.successful / (metrics.total_transactions || 1)) * 100).toFixed(1) + "%" : "0%"
+  // Check if user is portal admin
+  const isAdmin = user && isPortalAdmin(user);
+
+  const successRate = metrics
+    ? ((metrics.successful / (metrics.total_transactions || 1)) * 100).toFixed(1) + "%"
+    : "0%";
 
   return (
     <div className="space-y-6">
@@ -29,9 +27,10 @@ export default function PortalDashboardPage() {
       {!isAdmin && (
         <Card className="border-zinc-300 bg-blue-50">
           <CardContent className="pt-6">
-            <h2 className="text-xl font-semibold mb-2">Welcome to Your Portal</h2>
+            <h2 className="mb-2 text-xl font-semibold">Welcome to Your Portal</h2>
             <p className="text-gray-600">
-              You can view your profile, update your information, and access your activity history from the menu above.
+              You can view your profile, update your information, and access your activity history
+              from the menu above.
             </p>
           </CardContent>
         </Card>
@@ -43,7 +42,13 @@ export default function PortalDashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <MetricCard
               title="Total Transactions"
-              value={isLoading ? <Skeleton className="h-8 w-16" /> : metrics?.total_transactions.toString() || "0"}
+              value={
+                isLoading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  metrics?.total_transactions.toString() || "0"
+                )
+              }
               subtitle="All time"
               icon={MdTrendingUp}
               iconClassName="text-gray-700"
@@ -61,7 +66,13 @@ export default function PortalDashboardPage() {
 
             <MetricCard
               title="Active Keys"
-              value={isLoading ? <Skeleton className="h-8 w-16" /> : metrics?.api_keys_metrics?.length.toString() || "0"}
+              value={
+                isLoading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  metrics?.api_keys_metrics?.length.toString() || "0"
+                )
+              }
               subtitle="Currently active"
               icon={MdVpnKey}
               iconClassName="text-blue-600"
@@ -70,7 +81,9 @@ export default function PortalDashboardPage() {
 
             <MetricCard
               title="Pending"
-              value={isLoading ? <Skeleton className="h-8 w-16" /> : metrics?.pending.toString() || "0"}
+              value={
+                isLoading ? <Skeleton className="h-8 w-16" /> : metrics?.pending.toString() || "0"
+              }
               subtitle="Awaiting signature"
               icon={MdSchedule}
               iconClassName="text-orange-600"
@@ -86,22 +99,32 @@ export default function PortalDashboardPage() {
             <CardContent>
               <Table>
                 <TableBody>
-                  <TableRow className="hover:bg-transparent border-b">
-                    <TableCell className="text-sm text-gray-600 py-3">Completed / Successful</TableCell>
-                    <TableCell className="text-sm text-gray-900 text-right py-3 font-medium">
-                      {isLoading ? <Skeleton className="h-4 w-12 ml-auto" /> : metrics?.successful || 0}
+                  <TableRow className="border-b hover:bg-transparent">
+                    <TableCell className="py-3 text-sm text-gray-600">
+                      Completed / Successful
+                    </TableCell>
+                    <TableCell className="py-3 text-right text-sm font-medium text-gray-900">
+                      {isLoading ? (
+                        <Skeleton className="ml-auto h-4 w-12" />
+                      ) : (
+                        metrics?.successful || 0
+                      )}
                     </TableCell>
                   </TableRow>
-                  <TableRow className="hover:bg-transparent border-b">
-                    <TableCell className="text-sm text-gray-600 py-3">Pending</TableCell>
-                    <TableCell className="text-sm text-gray-900 text-right py-3 font-medium">
-                      {isLoading ? <Skeleton className="h-4 w-12 ml-auto" /> : metrics?.pending || 0}
+                  <TableRow className="border-b hover:bg-transparent">
+                    <TableCell className="py-3 text-sm text-gray-600">Pending</TableCell>
+                    <TableCell className="py-3 text-right text-sm font-medium text-gray-900">
+                      {isLoading ? (
+                        <Skeleton className="ml-auto h-4 w-12" />
+                      ) : (
+                        metrics?.pending || 0
+                      )}
                     </TableCell>
                   </TableRow>
                   <TableRow className="hover:bg-transparent">
-                    <TableCell className="text-sm text-gray-600 py-3">Failed</TableCell>
-                    <TableCell className="text-sm text-gray-900 text-right py-3 font-medium">
-                      {isLoading ? <Skeleton className="h-4 w-12 ml-auto" /> : metrics?.failed || 0}
+                    <TableCell className="py-3 text-sm text-gray-600">Failed</TableCell>
+                    <TableCell className="py-3 text-right text-sm font-medium text-gray-900">
+                      {isLoading ? <Skeleton className="ml-auto h-4 w-12" /> : metrics?.failed || 0}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -111,5 +134,5 @@ export default function PortalDashboardPage() {
         </>
       )}
     </div>
-  )
+  );
 }

@@ -1,12 +1,13 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { Loader2 } from "lucide-react"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import * as React from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -14,60 +15,48 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp"
-
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useAuth } from "@/hooks/use-auth";
 // Schemas & Hooks
-import {
-  otpRequestSchema,
-  otpVerifySchema,
-  type OTPRequestForm,
-  type OTPVerifyForm
-} from "@/lib/schemas/auth"
+import { otpRequestSchema, type OTPVerifyForm, otpVerifySchema } from "@/lib/schemas/auth";
 
-import { useAuth } from "@/hooks/use-auth"
-import { toast } from "sonner"
-
-type LoginStep = "EMAIL" | "OTP"
+type LoginStep = "EMAIL" | "OTP";
 
 export function LoginForm() {
-  const [step, setStep] = React.useState<LoginStep>("EMAIL")
-  const [email, setEmail] = React.useState<string>("")
-  const { requestOTP, isRequestingOTP, verifyOTP, isVerifyingOTP } = useAuth()
+  const [step, setStep] = React.useState<LoginStep>("EMAIL");
+  const [email, setEmail] = React.useState<string>("");
+  const { requestOTP, isRequestingOTP, verifyOTP, isVerifyingOTP } = useAuth();
 
   // --- Form 1: Request OTP ---
   const emailForm = useForm<z.input<typeof otpRequestSchema>>({
     resolver: zodResolver(otpRequestSchema),
     defaultValues: { email: "", scope: "LOGIN" },
-  })
+  });
 
   // --- Form 2: Verify OTP ---
   const otpForm = useForm<z.input<typeof otpVerifySchema>>({
     resolver: zodResolver(otpVerifySchema),
     defaultValues: { email: "", otp: "", scope: "LOGIN" },
-  })
+  });
 
   const onEmailSubmit = (data: z.output<typeof otpRequestSchema>) => {
-    setEmail(data.email)
-    otpForm.setValue("email", data.email)
+    setEmail(data.email);
+    otpForm.setValue("email", data.email);
     requestOTP(data, {
-      onSuccess: () => setStep("OTP")
-    })
-  }
+      onSuccess: () => setStep("OTP"),
+    });
+  };
 
   const onOtpSubmit = (data: any) => {
-    const finalEmail = email || otpForm.getValues("email")
+    const finalEmail = email || otpForm.getValues("email");
     if (!finalEmail) {
-      toast.error("Session lost. Please reload.")
-      return
+      toast.error("Session lost. Please reload.");
+      return;
     }
-    verifyOTP({ ...data, email: finalEmail } as OTPVerifyForm)
-  }
+    verifyOTP({ ...data, email: finalEmail } as OTPVerifyForm);
+  };
 
   return (
     <div className="grid gap-6">
@@ -81,20 +70,14 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="admin@example.com"
-                      disabled={isRequestingOTP}
-                      {...field}
-                    />
+                    <Input placeholder="admin@example.com" disabled={isRequestingOTP} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <Button className="w-full" type="submit" disabled={isRequestingOTP}>
-              {isRequestingOTP && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {isRequestingOTP && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Request OTP
             </Button>
           </form>
@@ -102,8 +85,8 @@ export function LoginForm() {
       ) : (
         <Form {...otpForm}>
           <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-4">
-            <div className="mb-4 text-center text-sm text-muted-foreground">
-              Sent to <span className="font-medium text-foreground">{email}</span>
+            <div className="text-muted-foreground mb-4 text-center text-sm">
+              Sent to <span className="text-foreground font-medium">{email}</span>
             </div>
 
             <FormField
@@ -113,11 +96,7 @@ export function LoginForm() {
                 <FormItem className="flex flex-col items-center justify-center">
                   <FormLabel className="sr-only">One-Time Password</FormLabel>
                   <FormControl>
-                    <InputOTP
-                      maxLength={6}
-                      disabled={isVerifyingOTP}
-                      {...field}
-                    >
+                    <InputOTP maxLength={6} disabled={isVerifyingOTP} {...field}>
                       <InputOTPGroup>
                         <InputOTPSlot index={0} />
                         <InputOTPSlot index={1} />
@@ -135,9 +114,7 @@ export function LoginForm() {
               )}
             />
             <Button className="w-full" type="submit" disabled={isVerifyingOTP}>
-              {isVerifyingOTP && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {isVerifyingOTP && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Verify Login
             </Button>
             <Button
@@ -154,5 +131,5 @@ export function LoginForm() {
         </Form>
       )}
     </div>
-  )
+  );
 }

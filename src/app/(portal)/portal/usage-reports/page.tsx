@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Download, Activity, TrendingUp, TrendingDown, Clock } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ApiUsageTable } from "@/components/tables/api-usage-table"
-import { DataExportButton } from "@/components/shared/data-export-button"
-import { MetricCard } from "@/components/shared/metric-card"
-import { useMyUsage } from "@/hooks/use-usage"
-import { usePortalUsageSummary } from "@/hooks/use-portals"
+import { Activity, Clock, TrendingDown, TrendingUp } from "lucide-react";
+import { useState } from "react";
+
+import { DataExportButton } from "@/components/shared/data-export-button";
+import { MetricCard } from "@/components/shared/metric-card";
+import { ApiUsageTable } from "@/components/tables/api-usage-table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import { usePortalUsageSummary } from "@/hooks/use-portals";
+import { useMyUsage } from "@/hooks/use-usage";
 
 export default function PortalUsageReportsPage() {
   const [params, setParams] = useState({
@@ -27,52 +27,52 @@ export default function PortalUsageReportsPage() {
     start_date: undefined as string | undefined,
     end_date: undefined as string | undefined,
     api_key_id: undefined as string | undefined,
-  })
+  });
 
-  const [dateRange, setDateRange] = useState("7d")
+  const [dateRange, setDateRange] = useState("7d");
 
-  const { data, isLoading } = useMyUsage(params)
+  const { data, isLoading } = useMyUsage(params);
   const { data: summary, isLoading: summaryLoading } = usePortalUsageSummary({
     start_date: params.start_date,
     end_date: params.end_date,
-  })
+  });
 
   // Handle date range change
   const handleDateRangeChange = (range: string) => {
-    setDateRange(range)
-    const endDate = new Date()
-    const startDate = new Date()
+    setDateRange(range);
+    const endDate = new Date();
+    const startDate = new Date();
 
     switch (range) {
       case "24h":
-        startDate.setHours(startDate.getHours() - 24)
-        break
+        startDate.setHours(startDate.getHours() - 24);
+        break;
       case "7d":
-        startDate.setDate(startDate.getDate() - 7)
-        break
+        startDate.setDate(startDate.getDate() - 7);
+        break;
       case "30d":
-        startDate.setDate(startDate.getDate() - 30)
-        break
+        startDate.setDate(startDate.getDate() - 30);
+        break;
       case "90d":
-        startDate.setDate(startDate.getDate() - 90)
-        break
+        startDate.setDate(startDate.getDate() - 90);
+        break;
       default:
-        return setParams({ ...params, start_date: undefined, end_date: undefined })
+        return setParams({ ...params, start_date: undefined, end_date: undefined });
     }
 
     setParams({
       ...params,
       start_date: startDate.toISOString(),
       end_date: endDate.toISOString(),
-    })
-  }
+    });
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Usage Reports</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm">
             Track your API usage and transaction history
           </p>
         </div>
@@ -91,7 +91,7 @@ export default function PortalUsageReportsPage() {
           </Select>
           <DataExportButton
             data={data?.items || []}
-            filename={`usage-report-${new Date().toISOString().split('T')[0]}`}
+            filename={`usage-report-${new Date().toISOString().split("T")[0]}`}
             formats={["csv", "json"]}
             disabled={!data || data.items.length === 0}
             isLoading={isLoading}
@@ -112,7 +112,7 @@ export default function PortalUsageReportsPage() {
           value={summary?.completed || 0}
           icon={TrendingUp}
           trend={{
-            value: `${Math.round((summary?.completed || 0) / (summary?.total_transactions || 1) * 100)}%`,
+            value: `${Math.round(((summary?.completed || 0) / (summary?.total_transactions || 1)) * 100)}%`,
             isPositive: true,
           }}
           isLoading={summaryLoading}
@@ -122,7 +122,7 @@ export default function PortalUsageReportsPage() {
           value={summary?.failed || 0}
           icon={TrendingDown}
           trend={{
-            value: `${Math.round((summary?.failed || 0) / (summary?.total_transactions || 1) * 100)}%`,
+            value: `${Math.round(((summary?.failed || 0) / (summary?.total_transactions || 1)) * 100)}%`,
             isPositive: false,
           }}
           isLoading={summaryLoading}
@@ -143,5 +143,5 @@ export default function PortalUsageReportsPage() {
         onParamsChange={setParams}
       />
     </div>
-  )
+  );
 }

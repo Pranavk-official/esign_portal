@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { AppSidebar } from "@/components/shared/app-sidebar"
-import { getNavLinks } from "@/app/(portal)/config/navlinks"
-import { userMenuItems } from "@/app/(portal)/config/user-menu-items"
-import { useAuthStore } from "@/lib/stores/auth-store"
+import { getNavLinks } from "@/app/(portal)/config/navlinks";
+import { userMenuItems } from "@/app/(portal)/config/user-menu-items";
+import { AppSidebar } from "@/components/shared/app-sidebar";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 export function PortalSidebar() {
-  const { user } = useAuthStore()
-  
+  const { user } = useAuthStore();
+
   // Get role-based navigation links
-  const navLinks = getNavLinks(user)
+  const navLinks = getNavLinks(user);
 
   return (
     <AppSidebar
@@ -19,5 +19,5 @@ export function PortalSidebar() {
       userName={user?.email || "Portal User"}
       baseHref="/portal"
     />
-  )
+  );
 }

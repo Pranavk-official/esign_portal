@@ -1,33 +1,39 @@
 /**
  * Auth Sync Hook
- * 
+ *
  * Fetches current user from backend and syncs with Zustand store.
  * Should only be called in protected layouts, not globally.
- * 
+ *
  * How it works:
  * 1. Fetch user data (if httpOnly cookies exist, backend returns user)
  * 2. Update Zustand store with user data
  * 3. If fetch fails (401), user is not authenticated
- * 
+ *
  * React Query handles:
  * - Caching (5 min staleTime)
  * - Deduplication (multiple calls use same request)
  * - Background refetching
  */
 
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useAuthStore } from '@/lib/stores/auth-store';
-import { authApi } from '@/lib/api/auth';
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+
+import { authApi } from "@/lib/api/auth";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 export function useAuthSync() {
   const { setUser, clearAuth } = useAuthStore();
 
   // Fetch user data - if httpOnly cookies exist, backend will return user
-  const { data: user, isError, isSuccess, isLoading } = useQuery({
-    queryKey: ['auth', 'me'],
+  const {
+    data: user,
+    isError,
+    isSuccess,
+    isLoading,
+  } = useQuery({
+    queryKey: ["auth", "me"],
     queryFn: () => authApi.getMe(),
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes

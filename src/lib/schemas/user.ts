@@ -39,10 +39,6 @@ export const userUpdateSchema = z
 export type UserCreateRequest = z.infer<typeof userCreateSchema>;
 export type UserUpdateRequest = z.infer<typeof userUpdateSchema>;
 
-// Legacy exports for backwards compatibility
-export type UserCreateSchema = UserCreateRequest;
-export type UserUpdateSchema = UserUpdateRequest;
-
 // Response Validation Schemas
 export const userRoleSchema = z.object({
   id: z.string().uuid(),
@@ -56,7 +52,7 @@ export const userDetailResponseSchema = z.object({
   portal_id: z.string().uuid().nullable(),
   is_active: z.boolean(),
   created_at: z.string().datetime(),
-  roles: z.array(userRoleSchema),
+  role_names: z.array(z.string()),
 });
 
 export const userListResponseSchema = userDetailResponseSchema.extend({

@@ -1,14 +1,8 @@
-"use client"
+"use client";
 
-import { AppHeader } from "@/components/shared/app-header"
-import { navLinks } from "@/app/(portal)/config/navlinks"
+import { navLinks } from "@/app/(portal)/config/navlinks";
+import { AppHeader } from "@/components/shared/app-header";
 
 export function PortalHeader() {
-  return (
-    <AppHeader
-      navLinks={navLinks}
-      baseHref="/portal"
-      showUserEmail={false}
-    />
-  )
+  return <AppHeader navLinks={navLinks} baseHref="/portal" showUserEmail={false} />;
 }
