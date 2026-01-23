@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./_components/admin-sidebar";
@@ -11,28 +11,28 @@ import { Loader2 } from "lucide-react";
 import { isSuperAdmin } from "@/lib/auth-utils";
 import { toast } from "sonner";
 
+// Helper function to read cookie
+function getCookie(name: string): string | undefined {
+    if (typeof document === 'undefined') return undefined;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
-    const { isAuthenticated, _hasHydrated } = useAuthStore();
+    const { isAuthenticated } = useAuthStore();
     const { user, isLoading } = useAuthSync();
     
-    // Read sidebar state from cookie
-    const [defaultOpen, setDefaultOpen] = useState(true);
-    
-    useEffect(() => {
-        const getCookie = (name: string) => {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop()?.split(';').shift();
-        };
-        
+    // Read sidebar state from cookie synchronously
+    const defaultOpen = useMemo(() => {
         const sidebarState = getCookie('sidebar_state');
-        setDefaultOpen(sidebarState === 'true');
+        return sidebarState !== 'false'; // Default to true unless explicitly set to false
     }, []);
 
     useEffect(() => {
-        // Wait for hydration and initial auth check
-        if (!_hasHydrated || isLoading) return;
+        // Wait for initial auth check
+        if (isLoading) return;
 
         // Check authentication first
         if (!isAuthenticated) {
@@ -46,10 +46,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             toast.error('Access denied. Super Admin privileges required.');
             router.replace('/portal');
         }
-    }, [isAuthenticated, user, _hasHydrated, isLoading, router]);
+    }, [isAuthenticated, user, isLoading, router]);
 
     // Show loading state while hydrating, authenticating, or checking authorization
-    if (!_hasHydrated || isLoading || !isAuthenticated || !user || !isSuperAdmin(user)) {
+    if (isLoading || !isAuthenticated || !user || !isSuperAdmin(user)) {
         return (
             <div className="flex h-screen w-full items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -58,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     return (
-        <SidebarProvider defaultOpen={defaultOpen}>
+        <SidebarProvider key="admin-sidebar" defaultOpen={defaultOpen}>
             <AdminSidebar />
             <div className="flex min-h-screen w-full flex-col">
                 <AdminHeader />

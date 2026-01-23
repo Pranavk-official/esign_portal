@@ -1,5 +1,13 @@
 import type { PaginatedResponse, Nullable } from "./common"
 
+// Import request types from schemas (single source of truth)
+export type {
+    ApiKeyGenerateRequest,
+    ApiKeyRevokeRequest,
+    ApiKeyTxnCountUpdateRequest,
+    CallbackUrlUpdateRequest
+} from "@/lib/schemas/api-key"
+
 // API Key Response
 export interface ApiKeyResponse {
     id: string
@@ -19,27 +27,6 @@ export interface ApiKeyResponse {
 
 // Paginated Response
 export type ApiKeyListPaginatedResponse = PaginatedResponse<ApiKeyResponse>
-
-// Requests
-export interface ApiKeyRevokeRequest {
-    is_active: boolean
-    reason: Nullable<string>
-}
-
-export interface ApiKeyTxnCountUpdateRequest {
-    max_txn_count: Nullable<number>
-    max_txn_count_threshold: Nullable<number>
-}
-
-export interface CallbackUrlUpdate {
-    callback_url: string
-}
-
-export interface ApiKeyGenerateRequest {
-    key_name: string
-    environment: "LIVE" | "TEST"
-    callback_url: string
-}
 
 export interface ApiKeyGenerateResponse {
     api_key: string

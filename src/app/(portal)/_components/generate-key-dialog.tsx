@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { apiKeyGenerateSchema, type ApiKeyGenerateRequest } from "@/lib/schemas/api-key"
 import {
     Dialog,
     DialogContent,
@@ -34,22 +34,14 @@ import { useGenerateApiKey } from "@/hooks/use-api-keys"
 import { Loader2, Copy, Check } from "lucide-react"
 import { toast } from "sonner"
 
-const schema = z.object({
-    key_name: z.string().min(2, "Name must be at least 2 characters"),
-    environment: z.enum(["LIVE", "TEST"]),
-    callback_url: z.string().url("Invalid callback URL").optional().or(z.literal("")),
-})
-
-type FormValues = z.infer<typeof schema>
-
 export function GenerateKeyDialog({ children }: { children: React.ReactNode }) {
     const [open, setOpen] = useState(false)
     const [generatedKey, setGeneratedKey] = useState<string | null>(null)
     const [copied, setCopied] = useState(false)
     const { mutate: generateKey, isPending } = useGenerateApiKey()
 
-    const form = useForm<FormValues>({
-        resolver: zodResolver(schema),
+    const form = useForm<ApiKeyGenerateRequest>({
+        resolver: zodResolver(apiKeyGenerateSchema),
         defaultValues: {
             key_name: "",
             environment: "TEST",
@@ -57,7 +49,7 @@ export function GenerateKeyDialog({ children }: { children: React.ReactNode }) {
         },
     })
 
-    const onSubmit = (values: FormValues) => {
+    const onSubmit = (values: ApiKeyGenerateRequest) => {
         generateKey({
             key_name: values.key_name,
             environment: values.environment,

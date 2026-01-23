@@ -3,10 +3,9 @@ import { z } from "zod";
 // User Validation Schemas
 
 const emailSchema = z
-  .string()
+  .email("Invalid email address")
   .trim()
   .min(1, "Email is required")
-  .email("Invalid email address")
   .toLowerCase();
 
 const roleNamesSchema = z
@@ -16,31 +15,55 @@ const roleNamesSchema = z
 
 export const userCreateSchema = z.object({
   email: emailSchema,
-  
-  portal_id: z
-    .string()
-    .uuid("Invalid portal ID")
-    .optional()
-    .nullable(),
-  
+
+  portal_id: z.string().uuid("Invalid portal ID").optional().nullable(),
+
   role_names: roleNamesSchema,
-  
-  send_otp: z.boolean().optional().default(false),
+
+  send_otp: z.boolean().optional(),
 });
 
-export const userUpdateSchema = z.object({
-  email: emailSchema.optional(),
-  
-  role_names: roleNamesSchema.optional(),
-  
-  is_active: z.boolean().optional(),
-}).refine(
-  (data) => data.email || data.role_names || data.is_active !== undefined,
-  {
-    message: "At least one field must be provided for update",
-  }
-);
+export const userUpdateSchema = z
+  .object({
+    email: emailSchema.optional(),
 
-// Type exports
-export type UserCreateSchema = z.infer<typeof userCreateSchema>;
-export type UserUpdateSchema = z.infer<typeof userUpdateSchema>;
+    role_names: roleNamesSchema.optional(),
+
+    is_active: z.boolean().optional(),
+  })
+  .refine((data) => data.email || data.role_names || data.is_active !== undefined, {
+    message: "At least one field must be provided for update",
+  });
+
+// Type exports - Request types
+export type UserCreateRequest = z.infer<typeof userCreateSchema>;
+export type UserUpdateRequest = z.infer<typeof userUpdateSchema>;
+
+// Legacy exports for backwards compatibility
+export type UserCreateSchema = UserCreateRequest;
+export type UserUpdateSchema = UserUpdateRequest;
+
+// Response Validation Schemas
+export const userRoleSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+});
+
+export const userDetailResponseSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  portal_id: z.string().uuid().nullable(),
+  is_active: z.boolean(),
+  created_at: z.string().datetime(),
+  roles: z.array(userRoleSchema),
+});
+
+export const userListResponseSchema = userDetailResponseSchema.extend({
+  updated_at: z.string().datetime(),
+});
+
+// Response type exports
+export type UserRole = z.infer<typeof userRoleSchema>;
+export type UserDetailResponse = z.infer<typeof userDetailResponseSchema>;
+export type UserListResponse = z.infer<typeof userListResponseSchema>;

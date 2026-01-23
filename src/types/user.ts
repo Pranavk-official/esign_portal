@@ -1,5 +1,8 @@
 import type { PaginatedResponse, Nullable } from "./common"
 
+// Import request types from schemas (single source of truth)
+export type { UserCreateRequest, UserUpdateRequest } from "@/lib/schemas/user"
+
 // User Role
 export interface UserRole {
     id: string
@@ -30,20 +33,6 @@ export interface UserDetailResponse {
 
 // Paginated Response
 export type UserListPaginatedResponse = PaginatedResponse<UserListResponse>
-
-// Request Types
-export interface UserCreateRequest {
-    email: string
-    portal_id?: Nullable<string>
-    role_names: string[]
-    send_otp?: boolean // Added from verified UserCreateRequest schema
-}
-
-export interface UserUpdateRequest {
-    email?: string
-    role_names?: string[]
-    is_active?: boolean
-}
 
 // Query Parameters
 export interface ListUsersParams {

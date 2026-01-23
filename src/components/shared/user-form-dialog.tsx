@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
+import { userCreateSchema, type UserCreateRequest } from "@/lib/schemas/user"
 import {
   Dialog,
   DialogContent,
@@ -34,21 +34,12 @@ import { Badge } from "@/components/ui/badge"
 import { Loader2, X } from "lucide-react"
 import type { UserDetailResponse, UserRole } from "@/types/user"
 
-const userFormSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  portal_id: z.string().nullable().optional(),
-  role_names: z.array(z.string()).min(1, "At least one role is required"),
-  send_otp: z.boolean(),
-})
-
-type UserFormValues = z.infer<typeof userFormSchema>
-
 interface UserFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   user?: UserDetailResponse | null
   mode: "create" | "edit"
-  onSubmit: (data: UserFormValues) => Promise<void>
+  onSubmit: (data: UserCreateRequest) => Promise<void>
   isLoading?: boolean
   availableRoles?: UserRole[]
   portalOptions?: Array<{ id: string; name: string }>
@@ -68,8 +59,8 @@ export function UserFormDialog({
 }: UserFormDialogProps) {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([])
 
-  const form = useForm<UserFormValues>({
-    resolver: zodResolver(userFormSchema),
+  const form = useForm<UserCreateRequest>({
+    resolver: zodResolver(userCreateSchema),
     defaultValues: {
       email: "",
       portal_id: null,
@@ -101,7 +92,7 @@ export function UserFormDialog({
     }
   }, [open, user, mode, form])
 
-  const handleSubmit = async (data: UserFormValues) => {
+  const handleSubmit = async (data: UserCreateRequest) => {
     await onSubmit(data)
     form.reset()
     setSelectedRoles([])

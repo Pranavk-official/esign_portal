@@ -1,15 +1,30 @@
 /**
  * Authentication Debug Utilities
  * Use these in browser console to troubleshoot cookie-based auth
+ * 
+ * WARNING: This file is for DEVELOPMENT ONLY.
+ * All functions are guarded and will not execute in production.
  */
 
 import { apiClient } from './client';
+
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+const devOnly = (fn: Function) => {
+  return function(...args: any[]) {
+    if (!isDevelopment) {
+      console.warn('Debug utilities are disabled in production');
+      return Promise.resolve(null);
+    }
+    return fn.apply(this, args);
+  };
+};
 
 export const authDebug = {
   /**
    * Check if cookies are being sent with requests
    */
-  async testCookies() {
+  testCookies: devOnly(async function() {
     console.group('🍪 Cookie Authentication Test');
     
     try {
@@ -36,12 +51,12 @@ export const authDebug = {
     } finally {
       console.groupEnd();
     }
-  },
+  }),
 
   /**
    * Check current authentication state
    */
-  async checkAuth() {
+  checkAuth: devOnly(async function() {
     console.group('🔐 Authentication Status');
     
     try {
@@ -54,12 +69,12 @@ export const authDebug = {
     } finally {
       console.groupEnd();
     }
-  },
+  }),
 
   /**
    * Test token refresh
    */
-  async testRefresh() {
+  testRefresh: devOnly(async function() {
     console.group('🔄 Token Refresh Test');
     
     try {
@@ -72,39 +87,39 @@ export const authDebug = {
     } finally {
       console.groupEnd();
     }
-  },
+  }),
 
   /**
    * Check API configuration
    */
-  checkConfig() {
+  checkConfig: devOnly(function() {
     console.group('⚙️  API Client Configuration');
     console.log('Base URL:', apiClient.defaults.baseURL);
     console.log('With Credentials:', apiClient.defaults.withCredentials);
     console.log('Timeout:', apiClient.defaults.timeout);
     console.log('Headers:', apiClient.defaults.headers);
     console.groupEnd();
-  },
+  }),
 
   /**
    * Full diagnostic
    */
-  async diagnose() {
+  diagnose: devOnly(async function() {
     console.group('🔍 Full Authentication Diagnostic');
     
     console.log('1️⃣  Checking configuration...');
-    this.checkConfig();
+    authDebug.checkConfig();
     
     console.log('\n2️⃣  Testing cookie support...');
     try {
-      await this.testCookies();
+      await authDebug.testCookies();
     } catch (error) {
       console.log('Backend debug endpoint not available or auth failed');
     }
     
     console.log('\n3️⃣  Checking authentication...');
     try {
-      await this.checkAuth();
+      await authDebug.checkAuth();
     } catch (error) {
       console.log('Not currently authenticated');
     }
@@ -115,10 +130,10 @@ export const authDebug = {
     console.log('Current Origin:', window.location.origin);
     
     console.groupEnd();
-  }
+  })
 };
 
-// Make available in browser console for debugging
-if (typeof window !== 'undefined') {
+// Make available in browser console for debugging (development only)
+if (isDevelopment && typeof window !== 'undefined') {
   (window as any).authDebug = authDebug;
 }

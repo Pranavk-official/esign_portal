@@ -13,19 +13,19 @@ import { Loader2 } from "lucide-react"
  */
 export default function TeamMembersLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { user, _hasHydrated } = useAuthStore()
+  const { user } = useAuthStore()
 
   useEffect(() => {
-    if (!_hasHydrated) return
+    if (!user) return
 
-    if (user && !isPortalAdmin(user)) {
+    if (!isPortalAdmin(user)) {
       toast.error("Access denied. Portal Admin privileges required.")
       router.replace("/portal")
     }
-  }, [user, _hasHydrated, router])
+  }, [user, router])
 
   // Show loading while checking permissions
-  if (!_hasHydrated || (user && !isPortalAdmin(user))) {
+  if (!user || !isPortalAdmin(user)) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

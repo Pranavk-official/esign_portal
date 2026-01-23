@@ -1,5 +1,12 @@
 import type { PaginatedResponse, Nullable } from "./common"
 
+// Import request types from schemas (single source of truth)
+export type {
+    PortalOnboardingRequest,
+    PortalRevokeRequest,
+    PortalKeyLimitRequest
+} from "@/lib/schemas/portal"
+
 // Portal Response
 export interface PortalResponse {
     portal_id: string
@@ -23,21 +30,6 @@ export interface PortalListResponse extends PortalResponse {
 
 // Paginated Response
 export type PortalListPaginatedResponse = PaginatedResponse<PortalListResponse>
-
-// Requests
-export interface PortalOnboardingRequest {
-    portal_name: string
-    admin_email: string
-}
-
-export interface PortalRevokeRequest {
-    is_active: boolean
-    reason: Nullable<string>
-}
-
-export interface PortalKeyLimitUpdate {
-    live_key_limit: Nullable<number>
-}
 
 // Query Params
 export interface ListPortalsParams {

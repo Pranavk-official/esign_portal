@@ -12,12 +12,7 @@ import { BulkActionToolbar } from "@/components/shared/bulk-action-toolbar"
 import { BulkUserUpload } from "@/components/shared/bulk-user-upload"
 import type { UserDetailResponse, UserCreateRequest } from "@/types/user"
 
-// Mock available roles - in production, fetch from API
-const AVAILABLE_ROLES = [
-  { id: "1", name: "super_admin", description: "Super Administrator" },
-  { id: "2", name: "portal_admin", description: "Portal Administrator" },
-  { id: "3", name: "portal_user", description: "Portal User" },
-]
+
 
 export default function GlobalUsersPage() {
   const [params, setParams] = useState({
@@ -152,7 +147,6 @@ export default function GlobalUsersPage() {
         mode="create"
         onSubmit={handleCreateUser}
         isLoading={createUser.isPending}
-        availableRoles={AVAILABLE_ROLES}
         showPortalField={true}
       />
 
@@ -163,7 +157,6 @@ export default function GlobalUsersPage() {
         user={editingUser}
         onSubmit={handleUpdateUser}
         isLoading={updateUser.isPending}
-        availableRoles={AVAILABLE_ROLES}
         showPortalField={false}
       />
 

@@ -31,9 +31,15 @@ export const portalKeyLimitSchema = z.object({
     live_key_limit: z.number().int().positive("Limit must be a positive number").optional().nullable(),
 });
 
-export type PortalOnboardingSchema = z.infer<typeof portalOnboardingSchema>;
-export type PortalRevokeSchema = z.infer<typeof portalRevokeSchema>;
-export type PortalKeyLimitSchema = z.infer<typeof portalKeyLimitSchema>;
+// Type exports - Request types
+export type PortalOnboardingRequest = z.infer<typeof portalOnboardingSchema>;
+export type PortalRevokeRequest = z.infer<typeof portalRevokeSchema>;
+export type PortalKeyLimitRequest = z.infer<typeof portalKeyLimitSchema>;
+
+// Legacy exports for backwards compatibility
+export type PortalOnboardingSchema = PortalOnboardingRequest;
+export type PortalRevokeSchema = PortalRevokeRequest;
+export type PortalKeyLimitSchema = PortalKeyLimitRequest;
 
 // Response schemas (for runtime validation if needed)
 export const portalResponseSchema = z.object({

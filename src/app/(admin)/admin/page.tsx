@@ -13,61 +13,36 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 
-// Mock recent activity data
-const recentActivities = [
-  {
-    id: "1",
-    timestamp: "2024-01-15T14:32:00Z",
-    event_type: "portal:created",
-    actor: "super-admin@o",
-    target: "portal-hr-dept",
-  },
-  {
-    id: "2",
-    timestamp: "2024-01-15T14:28:15Z",
-    event_type: "user:created",
-    actor: "admin-002",
-    target: "portal-finance",
-  },
-  {
-    id: "3",
-    timestamp: "2024-01-15T15:42Z",
-    event_type: "key:generated",
-    actor: "manager-hr-001",
-    target: "portal-hr-dept",
-  },
-  {
-    id: "4",
-    timestamp: "2024-01-15T12:08:20Z",
-    event_type: "portal:revoked",
-    actor: "super-admin@o",
-    target: "portal-old-system",
-  },
-  {
-    id: "5",
-    timestamp: "2024-01-15T13:46:10Z",
-    event_type: "user:deactivated",
-    actor: "admin-002",
-    target: "portal-operations",
-  },
-]
+// TODO: Implement useDashboardMetrics() hook to fetch real metrics from /admin/metrics endpoint
+// TODO: Implement useRecentActivity() hook to fetch real activity data
 
 export default function AdminDashboardPage() {
+  // Placeholder data until API integration
+  const metrics = {
+    totalPortals: 0,
+    activePortals: 0,
+    totalUsers: 0,
+    totalTransactions: 0,
+    failureRate: "0%",
+    failedCount: 0,
+  }
+  
+  const recentActivities: any[] = []
   return (
     <div className="space-y-6">
       {/* Metrics Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Total Portals"
-          value="12"
-          subtitle="10 Active"
+          value={metrics.totalPortals.toString()}
+          subtitle={`${metrics.activePortals} Active`}
           icon={MdSpaceDashboard}
           iconClassName="text-blue-600"
           iconBgColor="bg-blue-100"
         />
         <MetricCard
           title="Total Users"
-          value="247"
+          value={metrics.totalUsers.toString()}
           subtitle="Across all portals"
           icon={MdGroup}
           iconClassName="text-green-600"
@@ -75,7 +50,7 @@ export default function AdminDashboardPage() {
         />
         <MetricCard
           title="Total Transactions"
-          value="45,678"
+          value={metrics.totalTransactions.toLocaleString()}
           subtitle="All time"
           icon={MdDescription}
           iconClassName="text-purple-600"
@@ -83,8 +58,8 @@ export default function AdminDashboardPage() {
         />
         <MetricCard
           title="Failure Rate"
-          value="0.51%"
-          subtitle="234 failed"
+          value={metrics.failureRate}
+          subtitle={`${metrics.failedCount} failed`}
           icon={MdError}
           iconClassName="text-orange-600"
           iconBgColor="bg-orange-100"
@@ -95,8 +70,18 @@ export default function AdminDashboardPage() {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Recent Activity</h2>
 
-        <div className="rounded-md border bg-white">
-          <Table>
+        {recentActivities.length === 0 ? (
+          <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-lg bg-white">
+            <div className="text-center">
+              <p className="text-muted-foreground">No recent activity</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Activity tracking will be available once API integration is complete
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-md border bg-white">
+            <Table>
             <TableHeader>
               <TableRow className="bg-gray-50">
                 <TableHead className="font-semibold text-gray-700">Timestamp</TableHead>
@@ -127,6 +112,7 @@ export default function AdminDashboardPage() {
             </TableBody>
           </Table>
         </div>
+        )}
       </div>
     </div>
   )

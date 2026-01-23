@@ -65,8 +65,43 @@ export const callbackUrlUpdateSchema = z.object({
     .regex(/^https?:\/\//, "Callback URL must start with http:// or https://"),
 });
 
-// Type exports
-export type ApiKeyGenerateSchema = z.infer<typeof apiKeyGenerateSchema>;
-export type ApiKeyRevokeSchema = z.infer<typeof apiKeyRevokeSchema>;
-export type ApiKeyTxnCountUpdateSchema = z.infer<typeof apiKeyTxnCountUpdateSchema>;
-export type CallbackUrlUpdateSchema = z.infer<typeof callbackUrlUpdateSchema>;
+// Type exports - Request types
+export type ApiKeyGenerateRequest = z.infer<typeof apiKeyGenerateSchema>;
+export type ApiKeyRevokeRequest = z.infer<typeof apiKeyRevokeSchema>;
+export type ApiKeyTxnCountUpdateRequest = z.infer<typeof apiKeyTxnCountUpdateSchema>;
+export type CallbackUrlUpdateRequest = z.infer<typeof callbackUrlUpdateSchema>;
+
+// Legacy exports for backwards compatibility
+export type ApiKeyGenerateSchema = ApiKeyGenerateRequest;
+export type ApiKeyRevokeSchema = ApiKeyRevokeRequest;
+export type ApiKeyTxnCountUpdateSchema = ApiKeyTxnCountUpdateRequest;
+export type CallbackUrlUpdateSchema = CallbackUrlUpdateRequest;
+
+// Response Validation Schemas
+export const apiKeyResponseSchema = z.object({
+  id: z.string().uuid(),
+  key_name: z.string().nullable(),
+  key_prefix: z.string(),
+  environment: z.enum(["LIVE", "TEST"]),
+  callback_url: z.string().url(),
+  is_active: z.boolean(),
+  created_at: z.string().datetime(),
+  expires_at: z.string().datetime().nullable(),
+  last_used_at: z.string().datetime().nullable(),
+  max_txn_count: z.number().int().nullable(),
+  remaining_txn_count: z.number().int().nullable(),
+  successful_txn_count: z.number().int(),
+  max_txn_count_threshold: z.number().int().nullable(),
+});
+
+export const apiKeyGenerateResponseSchema = z.object({
+  api_key: z.string(),
+  key_id: z.string().uuid(),
+  key_name: z.string(),
+  environment: z.enum(["LIVE", "TEST"]),
+  created_at: z.string().datetime(),
+});
+
+// Response type exports
+export type ApiKeyResponse = z.infer<typeof apiKeyResponseSchema>;
+export type ApiKeyGenerateResponse = z.infer<typeof apiKeyGenerateResponseSchema>;

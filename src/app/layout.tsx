@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ReactQueryProvider from "@/providers/query-provider";
-import { AuthProvider } from "@/providers/auth-provider";
 import { Toaster } from "sonner";
 
 // Load debug utilities in development
@@ -36,10 +35,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ReactQueryProvider>
-          <AuthProvider>
+          <>
             {children}
             <Toaster />
-          </AuthProvider>
+          </>
         </ReactQueryProvider>
       </body>
     </html>
