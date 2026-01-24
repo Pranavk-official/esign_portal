@@ -31,15 +31,12 @@ A modern, type-safe, multi-tenant frontend for the ASP eSign Gateway Service. Bu
     ```env
     # .env.local
     NEXT_PUBLIC_API_BASE_URL="https://mdrr740x-8000.inc1.devtunnels.ms"
-    NEXT_PUBLIC_USE_COOKIES=true
     ```
 
     > **Important:**
     >
     > - Update `NEXT_PUBLIC_API_BASE_URL` when your dev tunnel URL changes
     > - No trailing slash in the URL
-    > - Cookie-based authentication is enabled by default for cross-origin requests
-    > - See [COOKIE_AUTH_SETUP.md](./COOKIE_AUTH_SETUP.md) for detailed authentication configuration
 
 3.  **Run Development Server**
 
