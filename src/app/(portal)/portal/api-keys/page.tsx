@@ -4,7 +4,7 @@ import { useState } from "react";
 import { MdAdd, MdSearch } from "react-icons/md";
 
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { ApiKeysTable } from "@/components/tables/api-keys-table";
+import { PortalApiKeysTable } from "@/app/(portal)/_components/portal-api-keys-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useApiKeys, useRevokeApiKey } from "@/hooks/use-api-keys";
@@ -76,13 +76,12 @@ export default function ApiKeysPage() {
           </div>
         </div>
 
-        <ApiKeysTable
+        <PortalApiKeysTable
           keys={data?.items || []}
           total={data?.total || 0}
           isLoading={isLoading}
           params={params}
           onParamsChange={setParams}
-          onRevoke={handleRevoke}
         />
       </div>
 

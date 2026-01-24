@@ -4,6 +4,7 @@ import { Key, Shield, Users } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
+import { AdminApiKeysTable } from "@/app/(admin)/admin/_components/admin-api-keys-table";
 import { ApiKeyDetailModal } from "@/app/(admin)/admin/_components/api-key-detail-modal";
 import { KeyLimitModal } from "@/app/(admin)/admin/_components/key-limit-modal";
 import { PortalHeader } from "@/app/(admin)/admin/_components/portal-header";
@@ -11,7 +12,6 @@ import { PortalOverviewTab } from "@/app/(admin)/admin/_components/portal-overvi
 import { PortalStatsCards } from "@/app/(admin)/admin/_components/portal-stats-cards";
 import { UserDetailModal } from "@/app/(admin)/admin/_components/user-detail-modal";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { ApiKeysTable } from "@/components/tables/api-keys-table";
 import { UsersTable } from "@/components/tables/users-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -144,7 +144,7 @@ export default function PortalDetailsPage() {
               <CardDescription>Manage and monitor API keys for {portalData.name}</CardDescription>
             </CardHeader>
             <CardContent>
-              <ApiKeysTable
+              <AdminApiKeysTable
                 keys={keysData?.items || []}
                 total={keysData?.total || 0}
                 isLoading={isLoadingKeys}

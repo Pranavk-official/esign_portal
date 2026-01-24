@@ -1,7 +1,8 @@
 "use client";
 
 import { Activity, Clock, TrendingDown, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 
 import { DataExportButton } from "@/components/shared/data-export-button";
 import { MetricCard } from "@/components/shared/metric-card";
@@ -13,10 +14,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useApiKeys } from "@/hooks/use-api-keys";
 import { usePortalUsageSummary } from "@/hooks/use-portals";
 import { useMyUsage } from "@/hooks/use-usage";
 
 export default function PortalUsageReportsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  const apiKeyIdFromUrl = useMemo(() => searchParams.get("api_key_id"), [searchParams]);
+
   const [params, setParams] = useState({
     page: 1,
     page_size: 20,
@@ -26,16 +33,38 @@ export default function PortalUsageReportsPage() {
     status: undefined as string | undefined,
     start_date: undefined as string | undefined,
     end_date: undefined as string | undefined,
-    api_key_id: undefined as string | undefined,
+    api_key_id: apiKeyIdFromUrl || undefined,
   });
 
   const [dateRange, setDateRange] = useState("7d");
 
-  const { data, isLoading } = useMyUsage(params);
+  // Sync params with URL when it changes
+  const effectiveParams = useMemo(() => ({
+    ...params,
+    api_key_id: apiKeyIdFromUrl || params.api_key_id,
+  }), [params, apiKeyIdFromUrl]);
+
+  const { data: apiKeysData } = useApiKeys();
+  const { data, isLoading } = useMyUsage(effectiveParams);
   const { data: summary, isLoading: summaryLoading } = usePortalUsageSummary({
-    start_date: params.start_date,
-    end_date: params.end_date,
+    start_date: effectiveParams.start_date,
+    end_date: effectiveParams.end_date,
+    api_key_id: effectiveParams.api_key_id,
   });
+
+  const handleApiKeyFilterChange = (value: string) => {
+    const newApiKeyId = value === "all" ? undefined : value;
+    setParams((prev) => ({ ...prev, api_key_id: newApiKeyId, page: 1 }));
+    
+    // Update URL
+    const url = new URL(window.location.href);
+    if (newApiKeyId) {
+      url.searchParams.set("api_key_id", newApiKeyId);
+    } else {
+      url.searchParams.delete("api_key_id");
+    }
+    router.push(url.pathname + url.search, { scroll: false });
+  };
 
   // Handle date range change
   const handleDateRangeChange = (range: string) => {
@@ -77,6 +106,22 @@ export default function PortalUsageReportsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Select
+            value={effectiveParams.api_key_id || "all"}
+            onValueChange={handleApiKeyFilterChange}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by API Key" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All API Keys</SelectItem>
+              {apiKeysData?.items.map((key) => (
+                <SelectItem key={key.id} value={key.id}>
+                  {key.key_name || key.key_prefix}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={dateRange} onValueChange={handleDateRangeChange}>
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Time range" />
@@ -139,7 +184,7 @@ export default function PortalUsageReportsPage() {
         records={data?.items || []}
         total={data?.total || 0}
         isLoading={isLoading}
-        params={params}
+        params={effectiveParams}
         onParamsChange={setParams}
       />
     </div>
