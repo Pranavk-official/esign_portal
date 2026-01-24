@@ -2,7 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { apiKeysApi } from "@/lib/api/api-keys";
-import { ApiKeyGenerateRequest, ApiKeyQueryParams } from "@/lib/api/types";
+import { ApiKeyQueryParams } from "@/lib/api/types";
+import { ApiKeyGenerateRequest } from "@/lib/schemas/api-key";
 
 export function useApiKeys(params?: ApiKeyQueryParams) {
   return useQuery({

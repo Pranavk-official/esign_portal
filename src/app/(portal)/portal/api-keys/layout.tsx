@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-import { isPortalAdmin } from "@/lib/auth-utils";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 /**
@@ -19,14 +18,16 @@ export default function ApiKeysLayout({ children }: { children: React.ReactNode 
   useEffect(() => {
     if (!user) return;
 
-    if (!isPortalAdmin(user)) {
+    const isPortalAdmin = user.roles?.some((role) => role.name === "portal_admin");
+    if (!isPortalAdmin) {
       toast.error("Access denied. Portal Admin privileges required.");
       router.replace("/portal");
     }
   }, [user, router]);
 
   // Show loading while checking permissions
-  if (!user || !isPortalAdmin(user)) {
+  const isPortalAdmin = user?.roles?.some((role) => role.name === "portal_admin");
+  if (!user || !isPortalAdmin) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />

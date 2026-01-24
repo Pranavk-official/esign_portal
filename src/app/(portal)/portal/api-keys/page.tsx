@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MdAdd, MdSearch } from "react-icons/md";
 
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ApiKeysTable } from "@/components/tables/api-keys-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,13 +21,28 @@ export default function ApiKeysPage() {
     environment: undefined as "LIVE" | "TEST" | undefined,
     is_active: undefined as boolean | undefined,
   });
+  const [revokeDialog, setRevokeDialog] = useState<{
+    open: boolean;
+    keyId: string | null;
+  }>({ open: false, keyId: null });
 
   const { data, isLoading } = useApiKeys(params);
-  const { mutate: revokeKey } = useRevokeApiKey();
+  const { mutate: revokeKey, isPending: isRevoking } = useRevokeApiKey();
 
   const handleRevoke = (keyId: string) => {
-    if (confirm("Are you sure you want to revoke this API key? This action cannot be undone.")) {
-      revokeKey({ keyId, reason: "Revoked by user" });
+    setRevokeDialog({ open: true, keyId });
+  };
+
+  const confirmRevoke = () => {
+    if (revokeDialog.keyId) {
+      revokeKey(
+        { keyId: revokeDialog.keyId, reason: "Revoked by user" },
+        {
+          onSuccess: () => {
+            setRevokeDialog({ open: false, keyId: null });
+          },
+        }
+      );
     }
   };
 
@@ -69,6 +85,18 @@ export default function ApiKeysPage() {
           onRevoke={handleRevoke}
         />
       </div>
+
+      <ConfirmDialog
+        open={revokeDialog.open}
+        onOpenChange={(open) => setRevokeDialog({ open, keyId: null })}
+        title="Revoke API Key"
+        description="Are you sure you want to revoke this API key? This action cannot be undone and will immediately invalidate the key."
+        confirmText="Revoke Key"
+        cancelText="Cancel"
+        variant="destructive"
+        onConfirm={confirmRevoke}
+        isLoading={isRevoking}
+      />
     </div>
   );
 }

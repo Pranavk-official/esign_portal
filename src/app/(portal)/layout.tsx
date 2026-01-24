@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useAuthSync } from "@/hooks/use-auth-sync";
-import { isPortalAdmin, isSuperAdmin, isUser } from "@/lib/auth-utils";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 import { PortalHeader } from "./_components/portal-header";
@@ -47,21 +46,29 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
     // Check authorization - only PORTAL_ADMIN and USER can access /portal routes
     // If user is SUPER_ADMIN, redirect them to their proper admin dashboard
-    if (isSuperAdmin(user)) {
+    const isSuperAdmin = user.roles?.some((role) => role.name === "super_admin");
+    const isPortalAdmin = user.roles?.some((role) => role.name === "portal_admin");
+    const isUser = user.roles?.some((role) => role.name === "portal_user");
+
+    if (isSuperAdmin) {
       toast.info("Redirecting to admin dashboard...");
       router.replace("/admin");
       return;
     }
 
     // Only allow PORTAL_ADMIN and USER roles here
-    if (!isPortalAdmin(user) && !isUser(user)) {
+    if (!isPortalAdmin && !isUser) {
       toast.error("Access denied. Invalid user role.");
       router.replace("/login");
     }
   }, [isAuthenticated, user, isLoading, router]);
 
   // Show loading state while checking auth and authorization
-  if (isLoading || !isAuthenticated || !user || isSuperAdmin(user)) {
+  const isSuperAdmin = user?.roles?.some((role) => role.name === "super_admin");
+  const isPortalAdmin = user?.roles?.some((role) => role.name === "portal_admin");
+  const isUser = user?.roles?.some((role) => role.name === "portal_user");
+
+  if (isLoading || !isAuthenticated || !user || isSuperAdmin) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
@@ -70,7 +77,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   }
 
   // At this point, user must be PORTAL_ADMIN or USER
-  if (!isPortalAdmin(user) && !isUser(user)) {
+  if (!isPortalAdmin && !isUser) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />

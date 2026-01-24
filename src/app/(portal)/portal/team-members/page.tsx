@@ -3,9 +3,9 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
+import { PortalUsersTable } from "@/app/(portal)/_components/portal-users-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { UserFormDialog } from "@/components/shared/user-form-dialog";
-import { UsersTable } from "@/components/tables/users-table";
 import { Button } from "@/components/ui/button";
 import { usePortalUserMutations } from "@/hooks/use-user-mutations";
 import { useMyPortalUsers } from "@/hooks/use-users";
@@ -78,7 +78,7 @@ export default function PortalUsersPage() {
         </Button>
       </div>
 
-      <UsersTable
+      <PortalUsersTable
         users={data?.items || []}
         total={data?.total || 0}
         isLoading={isLoading}

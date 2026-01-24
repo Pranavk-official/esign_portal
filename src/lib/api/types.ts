@@ -124,14 +124,7 @@ export interface ApiKeyResponse {
   max_txn_count_threshold: number | null;
 }
 
-export interface ApiKeyGenerateRequest {
-  key_name: string;
-  environment: "LIVE" | "TEST";
-  callback_url: string;
-  max_txn_count: number;
-  expires_in_days?: number | null;
-  roll_key_id?: string | null;
-}
+// ApiKeyGenerateRequest is now defined in @/lib/schemas/api-key.ts
 
 export interface ApiKeyGenerateResponse {
   key_id: string;

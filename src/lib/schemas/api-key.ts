@@ -18,11 +18,11 @@ export const apiKeyGenerateSchema = z.object({
   callback_url: z
     .string()
     .trim()
+    .optional()
     .refine(
       (val) => !val || /^https?:\/\/.+/.test(val),
       "Callback URL must be a valid URL starting with http:// or https://"
-    )
-    .default(""),
+    ),
 
   max_txn_count: z
     .number()

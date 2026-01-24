@@ -1,7 +1,6 @@
 import { FileKey, MousePointerClick, SquareChartGantt, UsersRound } from "lucide-react";
 
 import { UserDetailResponse } from "@/lib/api/types";
-import { isPortalAdmin } from "@/lib/auth-utils";
 
 export type NavLink = {
   title: string;
@@ -20,7 +19,7 @@ export type NavGroup = {
  * Portal User: Only profile and activity access
  */
 export function getNavLinks(user: UserDetailResponse | null): NavGroup[] {
-  const isAdmin = user && isPortalAdmin(user);
+  const isAdmin = user?.roles?.some((role) => role.name === "portal_admin");
 
   return [
     {

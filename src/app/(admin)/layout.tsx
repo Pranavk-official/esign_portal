@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useAuthSync } from "@/hooks/use-auth-sync";
-import { isSuperAdmin } from "@/lib/auth-utils";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 import { AdminHeader } from "./_components/admin-header";
@@ -44,14 +43,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     // Check authorization - only SUPER_ADMIN can access /admin routes
     // Wait for user data to be loaded before checking roles
-    if (user && !isSuperAdmin(user)) {
+    const isSuperAdmin = user?.roles?.some((role) => role.name === "super_admin");
+    if (user && !isSuperAdmin) {
       toast.error("Access denied. Super Admin privileges required.");
       router.replace("/portal");
     }
   }, [isAuthenticated, user, isLoading, router]);
 
   // Show loading state while hydrating, authenticating, or checking authorization
-  if (isLoading || !isAuthenticated || !user || !isSuperAdmin(user)) {
+  const isSuperAdmin = user?.roles?.some((role) => role.name === "super_admin");
+  if (isLoading || !isAuthenticated || !user || !isSuperAdmin) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />

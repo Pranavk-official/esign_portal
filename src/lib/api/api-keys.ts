@@ -1,11 +1,11 @@
 import { apiClient } from "./client";
 import {
-  ApiKeyGenerateRequest,
   ApiKeyGenerateResponse,
   ApiKeyQueryParams,
   ApiKeyResponse,
   PaginatedResponse,
 } from "./types";
+import { ApiKeyGenerateRequest } from "../schemas/api-key";
 
 export interface CallbackUrlUpdate {
   callback_url: string | null;

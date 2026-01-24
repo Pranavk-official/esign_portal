@@ -6,13 +6,6 @@ import { Toaster } from "sonner";
 
 import ReactQueryProvider from "@/providers/query-provider";
 
-// Load debug utilities in development
-if (process.env.NODE_ENV === "development") {
-  import("@/lib/api/debug").catch(() => {
-    // Silently fail if debug utils can't be loaded
-  });
-}
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

@@ -4,7 +4,6 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { getRedirectPathForUser } from "@/lib/auth-utils";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function Home() {
@@ -18,7 +17,8 @@ export default function Home() {
     }
 
     // Redirect based on user role
-    const redirectPath = getRedirectPathForUser(user);
+    const isSuperAdmin = user?.roles?.some((role) => role.name === "super_admin");
+    const redirectPath = isSuperAdmin ? "/admin" : "/portal";
     router.replace(redirectPath);
   }, [isAuthenticated, user, router]);
 

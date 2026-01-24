@@ -3,11 +3,11 @@
 import { Plus, Upload, UserMinus } from "lucide-react";
 import { useState } from "react";
 
+import { AdminUsersTable } from "@/app/(admin)/_components/admin-users-table";
 import { BulkActionToolbar } from "@/components/shared/bulk-action-toolbar";
 import { BulkUserUpload } from "@/components/shared/bulk-user-upload";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { UserFormDialog } from "@/components/shared/user-form-dialog";
-import { UsersTable } from "@/components/tables/users-table";
 import { Button } from "@/components/ui/button";
 import { useUserMutations } from "@/hooks/use-user-mutations";
 import { useUsers } from "@/hooks/use-users";
@@ -117,7 +117,7 @@ export default function GlobalUsersPage() {
           actions={bulkActions}
         />
 
-        <UsersTable
+        <AdminUsersTable
           users={data?.items || []}
           total={data?.total || 0}
           isLoading={isLoading}

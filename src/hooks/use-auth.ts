@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { authApi } from "@/lib/api/auth";
-import { getRedirectPathForUser } from "@/lib/auth-utils";
 import { OTPRequestForm, OTPVerifyForm } from "@/lib/schemas/auth";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
@@ -34,8 +33,9 @@ export const useAuth = () => {
         const userData = await authApi.getMe();
         setUser(userData);
 
-        // Redirect based on role using centralized utility
-        const redirectPath = getRedirectPathForUser(userData);
+        // Redirect based on role
+        const isSuperAdmin = userData.roles?.some((role) => role.name === "super_admin");
+        const redirectPath = isSuperAdmin ? "/admin" : "/portal";
         router.push(redirectPath);
       } catch (error) {
         // If fetching user fails, clear auth and show error

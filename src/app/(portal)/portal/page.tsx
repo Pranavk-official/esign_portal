@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { usePortalMetrics } from "@/hooks/use-portals";
-import { isPortalAdmin } from "@/lib/auth-utils";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function PortalDashboardPage() {
@@ -15,7 +14,7 @@ export default function PortalDashboardPage() {
   const { user } = useAuthStore();
 
   // Check if user is portal admin
-  const isAdmin = user && isPortalAdmin(user);
+  const isAdmin = user?.roles?.some((role) => role.name === "portal_admin");
 
   const successRate = metrics
     ? ((metrics.successful / (metrics.total_transactions || 1)) * 100).toFixed(1) + "%"

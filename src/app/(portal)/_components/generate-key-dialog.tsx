@@ -45,7 +45,7 @@ export function GenerateKeyDialog({ children }: { children: React.ReactNode }) {
     resolver: zodResolver(apiKeyGenerateSchema),
     defaultValues: {
       key_name: "",
-      environment: "TEST",
+      environment: "TEST" as const,
       callback_url: "",
       max_txn_count: 1000,
     },
