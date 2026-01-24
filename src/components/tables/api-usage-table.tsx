@@ -2,12 +2,13 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { MoreHorizontal, X } from "lucide-react";
-import { useMemo } from "react";
+import { Calendar, ChevronDown, ChevronUp, Filter, MoreHorizontal, X } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 
 import { TanstackTable } from "@/components/shared/tanstack-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,39 +54,109 @@ export function ApiUsageTable({
   params,
   onParamsChange,
 }: ApiUsageTableProps) {
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [showFilters, setShowFilters] = useState(false);
+
+  const toggleRow = useCallback((id: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedRows(newExpanded);
+  }, [expandedRows]);
+
   const columns = useMemo<ColumnDef<ApiUsageRecord>[]>(
     () => [
       {
         accessorKey: "gateway_txn_id",
-        header: "Transaction ID",
-        cell: ({ row }) => (
-          <div className="flex flex-col gap-1 min-w-[180px] max-w-[250px]">
-            <span className="font-mono text-xs sm:text-sm text-gray-700 truncate" title={row.original.gateway_txn_id}>
-              {row.original.gateway_txn_id}
-            </span>
-            {/* Show portal and status on mobile */}
-            <div className="flex items-center gap-2 sm:hidden">
-              <Badge variant="outline" className="text-[10px] px-1 py-0">
-                {row.original.portal_id}
-              </Badge>
-              <Badge variant={getStatusVariant(row.original.status)} className="text-[10px] px-1 py-0">
-                {row.original.status}
-              </Badge>
+        header: "Transaction Details",
+        cell: ({ row }) => {
+          const isExpanded = expandedRows.has(row.original.gateway_txn_id);
+          return (
+            <div className="py-1">
+              {/* Mobile Layout */}
+              <div className="sm:hidden">
+                <button
+                  onClick={() => toggleRow(row.original.gateway_txn_id)}
+                  className="w-full text-left active:bg-gray-50 rounded-lg -m-2 p-2 transition-colors touch-manipulation"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-mono text-xs font-medium text-gray-900 truncate mb-1" title={row.original.gateway_txn_id}>
+                        {row.original.gateway_txn_id.slice(0, 16)}...
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <Badge variant={getStatusVariant(row.original.status)} className="text-[10px] px-1.5 py-0.5 font-medium">
+                          {row.original.status}
+                        </Badge>
+                        <span className="text-[10px] text-gray-500">
+                          {row.original.created_at ? format(new Date(row.original.created_at), "dd/MM/yy HH:mm") : "-"}
+                        </span>
+                      </div>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                    )}
+                  </div>
+                  
+                  {isExpanded && (
+                    <div className="mt-3 pt-3 border-t border-gray-100 space-y-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Portal:</span>
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+                          {row.original.portal_id}
+                        </Badge>
+                      </div>
+                      {row.original.api_key_name && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">API Key:</span>
+                          <span className="font-medium text-gray-700 truncate max-w-[60%]" title={row.original.api_key_name}>
+                            {row.original.api_key_name}
+                          </span>
+                        </div>
+                      )}
+                      {row.original.auth_mode && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Auth Mode:</span>
+                          <span className="font-medium text-gray-700">{row.original.auth_mode}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Full Transaction ID:</span>
+                      </div>
+                      <div className="font-mono text-[10px] bg-gray-50 p-2 rounded break-all text-gray-700">
+                        {row.original.gateway_txn_id}
+                      </div>
+                    </div>
+                  )}
+                </button>
+              </div>
+
+              {/* Desktop Layout */}
+              <div className="hidden sm:block">
+                <div className="font-mono text-sm text-gray-900 truncate max-w-[220px] lg:max-w-[280px]" title={row.original.gateway_txn_id}>
+                  {row.original.gateway_txn_id}
+                </div>
+              </div>
             </div>
-          </div>
-        ),
+          );
+        },
       },
       {
         accessorKey: "portal_id",
         header: "Portal / Key",
         cell: ({ row }) => (
           <div className="flex flex-col gap-1.5 min-w-[140px]">
-            <Badge variant="outline" className="w-fit text-xs px-2 py-0.5">
+            <Badge variant="outline" className="w-fit text-xs px-2 py-0.5 font-medium">
               {row.original.portal_id}
             </Badge>
             {row.original.api_key_name && (
-              <span className="text-muted-foreground text-xs truncate max-w-[160px]" title={`API Key: ${row.original.api_key_name}`}>
-                Key: {row.original.api_key_name}
+              <span className="text-muted-foreground text-xs truncate max-w-[160px]" title={row.original.api_key_name}>
+                {row.original.api_key_name}
               </span>
             )}
           </div>
@@ -98,7 +169,7 @@ export function ApiUsageTable({
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => (
-          <Badge variant={getStatusVariant(row.original.status)} className="text-xs whitespace-nowrap">
+          <Badge variant={getStatusVariant(row.original.status)} className="text-xs whitespace-nowrap font-medium">
             {row.original.status}
           </Badge>
         ),
@@ -110,7 +181,7 @@ export function ApiUsageTable({
         accessorKey: "auth_mode",
         header: "Auth Mode",
         cell: ({ row }) => (
-          <span className="text-sm text-gray-600 whitespace-nowrap">{row.original.auth_mode || "-"}</span>
+          <span className="text-sm text-gray-700 whitespace-nowrap font-medium">{row.original.auth_mode || "-"}</span>
         ),
         meta: {
           className: "hidden lg:table-cell",
@@ -121,46 +192,49 @@ export function ApiUsageTable({
         header: "Created At",
         cell: ({ row }) => (
           <div className="flex flex-col min-w-[120px]">
-            <span className="text-xs sm:text-sm text-gray-700 whitespace-nowrap">
+            <span className="text-sm text-gray-900 whitespace-nowrap font-medium">
               {row.original.created_at
                 ? format(new Date(row.original.created_at), "dd/MM/yyyy")
                 : "-"}
             </span>
-            <span className="text-[10px] sm:text-xs text-gray-500">
+            <span className="text-xs text-gray-500">
               {row.original.created_at
                 ? format(new Date(row.original.created_at), "HH:mm:ss")
                 : ""}
             </span>
           </div>
         ),
+        meta: {
+          className: "hidden sm:table-cell",
+        },
       },
       {
         id: "actions",
         header: () => <span className="sr-only">Actions</span>,
-        cell: () => (
+        cell: ({ row: _row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="icon"
-                className="h-8 w-8 sm:h-9 sm:w-9"
+                className="h-11 w-11 sm:h-9 sm:w-9 touch-manipulation active:scale-95 transition-transform"
               >
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem>View Details</DropdownMenuItem>
-              <DropdownMenuItem>Download</DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-48 touch-manipulation">
+              <DropdownMenuItem className="h-11 sm:h-9 text-sm">View Details</DropdownMenuItem>
+              <DropdownMenuItem className="h-11 sm:h-9 text-sm">Download</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
         meta: {
-          className: "w-[50px]",
+          className: "hidden sm:table-cell w-[50px]",
         },
       },
     ],
-    []
+    [expandedRows, toggleRow]
   );
 
   const { table } = useDataTable({
@@ -184,86 +258,185 @@ export function ApiUsageTable({
   };
 
   return (
-    <div className="space-y-3 sm:space-y-4">
-      {/* Filters Section - Optimized for Mobile */}
-      <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-3 sm:p-4">
-        {/* Search Input - Full Width on Mobile */}
-        <div className="mb-3 sm:mb-4">
-          <Input
-            placeholder="Search by txn ID, doc ID, or file hash..."
-            value={params.search || ""}
-            onChange={(e) => onParamsChange({ ...params, search: e.target.value, page: 1 })}
-            className="w-full bg-white text-sm sm:text-base h-9 sm:h-10"
-          />
-        </div>
+    <div className="space-y-4">
+      {/* Search Bar - Always Visible */}
+      <div className="relative">
+        <Input
+          placeholder="Search transactions..."
+          value={params.search || ""}
+          onChange={(e) => onParamsChange({ ...params, search: e.target.value, page: 1 })}
+          className="w-full bg-white text-sm sm:text-base h-11 sm:h-10 pl-4 pr-4 rounded-xl border-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500/20 touch-manipulation"
+        />
+      </div>
 
-        {/* Filter Controls - Stack on Mobile, Inline on Desktop */}
-        <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
-          {/* Status Filter */}
-          <div className="w-full sm:w-auto">
-            <label className="text-xs text-gray-600 mb-1.5 block sm:hidden">Status</label>
-            <Select
-              value={params.status || "all"}
-              onValueChange={(value) =>
-                onParamsChange({ ...params, status: value === "all" ? undefined : value, page: 1 })
-              }
-            >
-              <SelectTrigger className="w-full sm:w-[140px] lg:w-[150px] bg-white h-9 text-sm">
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="FAILED">Failed</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="USER_CANCELLED">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Date Range Filters */}
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
-            {/* Start Date */}
-            <div className="flex-1 sm:flex-none">
-              <label className="text-xs text-gray-600 mb-1.5 block">From</label>
-              <Input
-                type="date"
-                value={params.start_date || ""}
-                onChange={(e) => onParamsChange({ ...params, start_date: e.target.value, page: 1 })}
-                className="w-full sm:w-[140px] lg:w-[150px] bg-white h-9 text-sm"
-              />
-            </div>
-
-            {/* End Date */}
-            <div className="flex-1 sm:flex-none">
-              <label className="text-xs text-gray-600 mb-1.5 block">To</label>
-              <Input
-                type="date"
-                value={params.end_date || ""}
-                onChange={(e) => onParamsChange({ ...params, end_date: e.target.value, page: 1 })}
-                className="w-full sm:w-[140px] lg:w-[150px] bg-white h-9 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Clear Filters Button */}
+      {/* Mobile Filters - Collapsible */}
+      <div className="sm:hidden">
+        <div className="flex items-center justify-between mb-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className="h-10 px-4 rounded-xl touch-manipulation active:scale-95 transition-transform"
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Filters
+            {hasActiveFilters && (
+              <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">
+                {[params.status, params.start_date, params.end_date].filter(Boolean).length}
+              </Badge>
+            )}
+          </Button>
           {hasActiveFilters && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={clearFilters}
-              className="w-full sm:w-auto h-9 text-sm sm:ml-auto"
+              className="h-10 px-3 text-gray-600 touch-manipulation active:scale-95 transition-transform"
             >
-              <X className="h-3.5 w-3.5 mr-1.5" />
-              Clear Filters
+              <X className="h-4 w-4 mr-1.5" />
+              Clear
             </Button>
           )}
         </div>
+
+        <Collapsible open={showFilters} onOpenChange={setShowFilters}>
+          <CollapsibleContent>
+            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="space-y-3">
+                {/* Status Filter */}
+                <div className="w-full">
+                  <label className="text-xs font-medium text-gray-700 mb-1.5 block">Status</label>
+                  <Select
+                    value={params.status || "all"}
+                    onValueChange={(value) =>
+                      onParamsChange({ ...params, status: value === "all" ? undefined : value, page: 1 })
+                    }
+                  >
+                    <SelectTrigger className="w-full bg-white h-11 text-sm rounded-lg touch-manipulation">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="h-11">All Status</SelectItem>
+                      <SelectItem value="COMPLETED" className="h-11">Completed</SelectItem>
+                      <SelectItem value="FAILED" className="h-11">Failed</SelectItem>
+                      <SelectItem value="PENDING" className="h-11">Pending</SelectItem>
+                      <SelectItem value="USER_CANCELLED" className="h-11">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Date Range Filters */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Start Date */}
+                  <div className="w-full">
+                    <label className="text-xs font-medium text-gray-700 mb-1.5 block flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      From
+                    </label>
+                    <Input
+                      type="date"
+                      value={params.start_date || ""}
+                      onChange={(e) => onParamsChange({ ...params, start_date: e.target.value, page: 1 })}
+                      className="w-full bg-white h-11 text-sm rounded-lg touch-manipulation"
+                    />
+                  </div>
+
+                  {/* End Date */}
+                  <div className="w-full">
+                    <label className="text-xs font-medium text-gray-700 mb-1.5 block flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      To
+                    </label>
+                    <Input
+                      type="date"
+                      value={params.end_date || ""}
+                      onChange={(e) => onParamsChange({ ...params, end_date: e.target.value, page: 1 })}
+                      className="w-full bg-white h-11 text-sm rounded-lg touch-manipulation"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
-      {/* Table with Horizontal Scroll on Mobile */}
-      <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-        <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+      {/* Desktop Filters - Always Visible */}
+      <div className="hidden sm:block">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex items-end gap-3">
+            {/* Status Filter */}
+            <div className="flex-1 max-w-[180px]">
+              <label className="text-xs font-medium text-gray-700 mb-1.5 block">Status</label>
+              <Select
+                value={params.status || "all"}
+                onValueChange={(value) =>
+                  onParamsChange({ ...params, status: value === "all" ? undefined : value, page: 1 })
+                }
+              >
+                <SelectTrigger className="w-full bg-white h-10 text-sm rounded-lg">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="FAILED">Failed</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="USER_CANCELLED">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Date Range Filters */}
+            <div className="flex gap-3">
+              {/* Start Date */}
+              <div className="w-[160px]">
+                <label className="text-xs font-medium text-gray-700 mb-1.5 block flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  From
+                </label>
+                <Input
+                  type="date"
+                  value={params.start_date || ""}
+                  onChange={(e) => onParamsChange({ ...params, start_date: e.target.value, page: 1 })}
+                  className="w-full bg-white h-10 text-sm rounded-lg"
+                />
+              </div>
+
+              {/* End Date */}
+              <div className="w-[160px]">
+                <label className="text-xs font-medium text-gray-700 mb-1.5 block flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  To
+                </label>
+                <Input
+                  type="date"
+                  value={params.end_date || ""}
+                  onChange={(e) => onParamsChange({ ...params, end_date: e.target.value, page: 1 })}
+                  className="w-full bg-white h-10 text-sm rounded-lg"
+                />
+              </div>
+            </div>
+
+            {/* Clear Filters Button */}
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFilters}
+                className="h-10"
+              >
+                <X className="h-4 w-4 mr-1.5" />
+                Clear
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+        <div className="overflow-x-auto overscroll-x-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
           <TanstackTable
             table={table}
             totalCount={total}

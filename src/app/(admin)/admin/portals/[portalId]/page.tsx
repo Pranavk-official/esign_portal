@@ -1,31 +1,60 @@
 "use client";
 
-import { format } from "date-fns";
-import { Activity, Key, Power, PowerOff, Settings, Shield } from "lucide-react";
+import { Key, Shield, Users } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
+import { ApiKeyDetailModal } from "@/app/(admin)/admin/_components/api-key-detail-modal";
+import { KeyLimitModal } from "@/app/(admin)/admin/_components/key-limit-modal";
+import { PortalHeader } from "@/app/(admin)/admin/_components/portal-header";
+import { PortalOverviewTab } from "@/app/(admin)/admin/_components/portal-overview-tab";
+import { PortalStatsCards } from "@/app/(admin)/admin/_components/portal-stats-cards";
+import { UserDetailModal } from "@/app/(admin)/admin/_components/user-detail-modal";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { StatusBadge } from "@/components/shared/status-badge";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ApiKeysTable } from "@/components/tables/api-keys-table";
+import { UsersTable } from "@/components/tables/users-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePortalMutations } from "@/hooks/use-portal-mutations";
-import { usePortal, usePortalKeys } from "@/hooks/use-portals";
-import type { PortalListResponse } from "@/lib/schemas/portal";
+import { usePortal, usePortalKeys, usePortalSpecificUsageSummary } from "@/hooks/use-portals";
+import { usePortalUsers } from "@/hooks/use-users";
+import type { ApiKeyResponse, PortalListResponse } from "@/lib/api/types";
 
 export default function PortalDetailsPage() {
   const params = useParams();
   const portalId = params.portalId as string;
 
+  const [activeTab, setActiveTab] = useState("overview");
   const [confirmAction, setConfirmAction] = useState<{
     type: "activate" | "deactivate";
   } | null>(null);
 
+  // Modal states
+  const [selectedApiKey, setSelectedApiKey] = useState<ApiKeyResponse | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showKeyLimitModal, setShowKeyLimitModal] = useState(false);
+
+  // API Keys state
+  const [keysParams, setKeysParams] = useState({
+    page: 1,
+    page_size: 10,
+    sort_by: "created_at",
+    sort_order: "desc" as const,
+  });
+
+  // Users state
+  const [usersParams, setUsersParams] = useState({
+    page: 1,
+    page_size: 10,
+    sort_by: "created_at",
+    sort_order: "desc" as const,
+  });
+
   const { data: portal, isLoading } = usePortal(portalId);
-  const { data: keysData } = usePortalKeys(portalId, { page: 1, page_size: 10 });
+  const { data: keysData, isLoading: isLoadingKeys } = usePortalKeys(portalId, keysParams);
+  const { data: usersData, isLoading: isLoadingUsers } = usePortalUsers(portalId, usersParams);
+  const { data: usageData } = usePortalSpecificUsageSummary(portalId);
   const { updatePortalStatus } = usePortalMutations();
 
   // Cast portal to PortalListResponse for optional fields
@@ -63,190 +92,110 @@ export default function PortalDetailsPage() {
         <Shield className="text-muted-foreground mx-auto h-12 w-12" />
         <h3 className="mt-4 text-lg font-semibold">Portal not found</h3>
         <p className="text-muted-foreground mt-2 text-sm">
-          The portal you're looking for doesn't exist.
+          The portal you&apos;re looking for doesn&apos;t exist.
         </p>
       </div>
     );
   }
 
+  // Filter out super_admin users from the list
+  const filteredUsers = (usersData?.items || []).filter(
+    (user) => !user.role_names.includes("super_admin")
+  );
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600 text-white">
-            <Shield className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">{portalData.name}</h1>
-            <p className="text-muted-foreground text-sm">{portalData.portal_id}</p>
-          </div>
-          <StatusBadge status={portalData.is_active} showIcon={true} />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={portalData.is_active ? "destructive" : "default"}
-            onClick={() =>
-              setConfirmAction({ type: portalData.is_active ? "deactivate" : "activate" })
-            }
-          >
-            {portalData.is_active ? (
-              <>
-                <PowerOff className="mr-2 h-4 w-4" />
-                Deactivate Portal
-              </>
-            ) : (
-              <>
-                <Power className="mr-2 h-4 w-4" />
-                Activate Portal
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-4 sm:space-y-6">
+      <PortalHeader
+        portal={portalData}
+        onToggleStatus={() =>
+          setConfirmAction({ type: portalData.is_active ? "deactivate" : "activate" })
+        }
+      />
 
-      {/* Statistics */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total API Keys</CardTitle>
-            <Key className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{keysData?.total || 0}</div>
-            <p className="text-muted-foreground mt-1 text-xs">
-              {keysData?.items.filter((k) => k.is_active).length || 0} active
-            </p>
-          </CardContent>
-        </Card>
+      <PortalStatsCards portal={portalData} onEditKeyLimit={() => setShowKeyLimitModal(true)} />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Key Limits</CardTitle>
-            <Settings className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {portalData.max_keys || portalData.live_key_limit || "Unlimited"}
-            </div>
-            <p className="text-muted-foreground mt-1 text-xs">Maximum allowed keys</p>
-          </CardContent>
-        </Card>
+      {/* Tabs Section */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm">
+            <Shield className="mr-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="keys" className="text-xs sm:text-sm">
+            <Key className="mr-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            API Keys
+          </TabsTrigger>
+          <TabsTrigger value="users" className="text-xs sm:text-sm">
+            <Users className="mr-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            Users
+          </TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Environment</CardTitle>
-            <Activity className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold capitalize">{portalData.environment || "N/A"}</div>
-          </CardContent>
-        </Card>
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-4">
+          <PortalOverviewTab portal={portalData} usageData={usageData} />
+        </TabsContent>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Created</CardTitle>
-            <Activity className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm font-medium">
-              {format(new Date(portalData.created_at), "MMM d, yyyy")}
-            </div>
-            <p className="text-muted-foreground mt-1 text-xs">
-              {format(new Date(portalData.created_at), "h:mm a")}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+        {/* API Keys Tab */}
+        <TabsContent value="keys" className="space-y-4">
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>API Keys Management</CardTitle>
+              <CardDescription>Manage and monitor API keys for {portalData.name}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ApiKeysTable
+                keys={keysData?.items || []}
+                total={keysData?.total || 0}
+                isLoading={isLoadingKeys}
+                params={keysParams}
+                onParamsChange={setKeysParams}
+                onViewKey={(key) => setSelectedApiKey(key)}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Portal Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Portal Information</CardTitle>
-          <CardDescription>Basic details about this portal</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <div className="text-muted-foreground text-sm font-medium">Portal ID</div>
-              <div className="mt-1 font-mono text-sm">{portalData.portal_id}</div>
-            </div>
-            <div>
-              <div className="text-muted-foreground text-sm font-medium">Portal Name</div>
-              <div className="mt-1 text-sm">{portalData.name}</div>
-            </div>
-            <div>
-              <div className="text-muted-foreground text-sm font-medium">Status</div>
-              <div className="mt-1">
-                <StatusBadge status={portalData.is_active} showIcon={true} />
-              </div>
-            </div>
-            <div>
-              <div className="text-muted-foreground text-sm font-medium">Environment</div>
-              <div className="mt-1 text-sm">
-                <Badge variant="outline">{portalData.environment || "Not set"}</Badge>
-              </div>
-            </div>
-            <div>
-              <div className="text-muted-foreground text-sm font-medium">Description</div>
-              <div className="mt-1 text-sm">{portalData.description || "No description"}</div>
-            </div>
-          </div>
+        {/* Users Tab */}
+        <TabsContent value="users" className="space-y-4">
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>Users Management</CardTitle>
+              <CardDescription>Manage users associated with {portalData.name}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UsersTable
+                users={filteredUsers}
+                total={usersData?.total ? usersData.total - (usersData.items.length - filteredUsers.length) : 0}
+                isLoading={isLoadingUsers}
+                params={usersParams}
+                onParamsChange={setUsersParams}
+                onEdit={(user) => setSelectedUserId(user.id)}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-          <Separator />
+      {/* Modals */}
+      <ApiKeyDetailModal
+        open={!!selectedApiKey}
+        onOpenChange={(open) => !open && setSelectedApiKey(null)}
+        apiKey={selectedApiKey}
+        portalId={portalId}
+      />
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <div className="text-muted-foreground text-sm font-medium">Created At</div>
-              <div className="mt-1 text-sm">{format(new Date(portalData.created_at), "PPpp")}</div>
-            </div>
-            {portalData.updated_at && (
-              <div>
-                <div className="text-muted-foreground text-sm font-medium">Last Updated</div>
-                <div className="mt-1 text-sm">
-                  {format(new Date(portalData.updated_at), "PPpp")}
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <UserDetailModal
+        open={!!selectedUserId}
+        onOpenChange={(open) => !open && setSelectedUserId(null)}
+        userId={selectedUserId}
+      />
 
-      {/* Recent API Keys */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent API Keys</CardTitle>
-          <CardDescription>Most recently created API keys for this portal</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {keysData && keysData.items.length > 0 ? (
-            <div className="space-y-4">
-              {keysData.items.map((key) => (
-                <div
-                  key={key.id}
-                  className="flex items-center justify-between rounded-lg border p-4"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{key.key_name}</p>
-                      <StatusBadge status={key.is_active} showIcon={false} />
-                    </div>
-                    <p className="text-muted-foreground font-mono text-sm">{key.key_prefix}...</p>
-                    <div className="text-muted-foreground flex items-center gap-4 text-xs">
-                      <span>Environment: {key.environment}</span>
-                      <span>Created: {format(new Date(key.created_at), "MMM d, yyyy")}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-muted-foreground py-8 text-center">
-              No API keys found for this portal
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <KeyLimitModal
+        open={showKeyLimitModal}
+        onOpenChange={setShowKeyLimitModal}
+        portal={portalData}
+      />
 
       {/* Confirm Dialog */}
       <ConfirmDialog

@@ -43,7 +43,7 @@ export function AuditLogsTable({
         accessorKey: "user_email",
         header: "User",
         cell: ({ row }) => (
-          <span className="text-sm text-gray-700">
+          <span className="text-sm font-medium text-gray-900">
             {row.original.user_email || row.original.user_id || "-"}
           </span>
         ),
@@ -52,7 +52,7 @@ export function AuditLogsTable({
         accessorKey: "event_type",
         header: "Action",
         cell: ({ row }) => (
-          <Badge variant="outline" className="font-mono text-xs">
+          <Badge variant="outline" className="font-mono text-xs font-medium shadow-sm">
             {row.original.event_type}
           </Badge>
         ),
@@ -62,7 +62,7 @@ export function AuditLogsTable({
         header: "Resource",
         cell: ({ row }) => (
           <div className="text-sm">
-            <div className="font-medium text-gray-700">{row.original.resource_type || "-"}</div>
+            <div className="font-semibold text-gray-900">{row.original.resource_type || "-"}</div>
             {row.original.resource_id && (
               <div className="font-mono text-xs text-gray-500">
                 {row.original.resource_id.slice(0, 8)}...
@@ -104,31 +104,36 @@ export function AuditLogsTable({
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-gray-100 bg-gray-50/50 p-4">
-        <div className="min-w-[300px] flex-1">
+    <div className="space-y-3 sm:space-y-4">
+      {/* Filters - Mobile Optimized */}
+      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50/80 to-gray-50/40 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+        {/* Search - Full Width on Mobile */}
+        <div className="mb-3 sm:mb-4">
           <Input
             placeholder="Search by user email or resource ID..."
             value={params.search || ""}
             onChange={(e) => onParamsChange({ ...params, search: e.target.value, page: 1 })}
-            className="max-w-md bg-white"
+            className="h-10 w-full bg-white text-sm shadow-sm transition-shadow focus:shadow-md sm:h-11 sm:max-w-md sm:text-base"
           />
         </div>
 
-        <div className="flex items-center gap-4">
-          <Select
-            value={params.event_type || "all"}
-            onValueChange={(value) =>
-              onParamsChange({
-                ...params,
-                event_type: value === "all" ? undefined : value,
-                page: 1,
-              })
-            }
-          >
-            <SelectTrigger className="w-[180px] bg-white">
-              <SelectValue placeholder="All Actions" />
-            </SelectTrigger>
+        {/* Filters - Stack on Mobile, Row on Desktop */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <div className="flex-1">
+            <label className="mb-1.5 block text-xs font-medium text-gray-600 sm:hidden">Action</label>
+            <Select
+              value={params.event_type || "all"}
+              onValueChange={(value) =>
+                onParamsChange({
+                  ...params,
+                  event_type: value === "all" ? undefined : value,
+                  page: 1,
+                })
+              }
+            >
+              <SelectTrigger className="h-10 w-full bg-white text-sm shadow-sm transition-all focus:ring-2 focus:ring-blue-500 sm:h-11 sm:w-[180px] sm:text-base">
+                <SelectValue placeholder="All Actions" />
+              </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Actions</SelectItem>
               <SelectItem value="portal:create">Create Portal</SelectItem>
@@ -136,27 +141,31 @@ export function AuditLogsTable({
               <SelectItem value="user:deactivate">Deactivate User</SelectItem>
             </SelectContent>
           </Select>
+          </div>
 
-          <Select
-            value={params.resource_type || "all"}
-            onValueChange={(value) =>
-              onParamsChange({
-                ...params,
-                resource_type: value === "all" ? undefined : value,
-                page: 1,
-              })
-            }
-          >
-            <SelectTrigger className="w-[180px] bg-white">
-              <SelectValue placeholder="All Resources" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Resources</SelectItem>
-              <SelectItem value="PORTAL">Portal</SelectItem>
-              <SelectItem value="USER">User</SelectItem>
-              <SelectItem value="API_KEY">API Key</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex-1">
+            <label className="mb-1.5 block text-xs font-medium text-gray-600 sm:hidden">Resource</label>
+            <Select
+              value={params.resource_type || "all"}
+              onValueChange={(value) =>
+                onParamsChange({
+                  ...params,
+                  resource_type: value === "all" ? undefined : value,
+                  page: 1,
+                })
+              }
+            >
+              <SelectTrigger className="h-10 w-full bg-white text-sm shadow-sm transition-all focus:ring-2 focus:ring-blue-500 sm:h-11 sm:w-[180px] sm:text-base">
+                <SelectValue placeholder="All Resources" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Resources</SelectItem>
+                <SelectItem value="PORTAL">Portal</SelectItem>
+                <SelectItem value="USER">User</SelectItem>
+                <SelectItem value="API_KEY">API Key</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 

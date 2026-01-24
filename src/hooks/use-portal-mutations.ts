@@ -75,10 +75,28 @@ export function usePortalMutations() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["portal-keys", variables.portalId] });
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
-      toast.success("API key transaction limits updated successfully");
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.detail || "Failed to update transaction limits");
+    },
+  });
+
+  const updateKeyCallback = useMutation({
+    mutationFn: ({
+      portalId,
+      keyId,
+      callbackUrl,
+    }: {
+      portalId: string;
+      keyId: string;
+      callbackUrl: string | null;
+    }) => portalsApi.updateKeyCallback(portalId, keyId, callbackUrl),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["portal-keys", variables.portalId] });
+      queryClient.invalidateQueries({ queryKey: ["api-keys"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || "Failed to update callback URL");
     },
   });
 
@@ -87,5 +105,6 @@ export function usePortalMutations() {
     updateKeyLimits,
     updateKeyStatus,
     updateKeyTxnCount,
+    updateKeyCallback,
   };
 }

@@ -2,19 +2,11 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { MoreHorizontal } from "lucide-react";
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useMemo } from "react";
 
-import { PortalStatisticsModal } from "@/components/shared/portal-statistics-modal";
 import { TanstackTable } from "@/components/shared/tanstack-table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -41,31 +33,33 @@ export function PortalTable({
   params,
   onParamsChange,
 }: PortalTableProps) {
-  const [selectedPortal, setSelectedPortal] = useState<PortalListResponse | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleViewDetails = (portal: PortalListResponse) => {
-    setSelectedPortal(portal);
-    setIsModalOpen(true);
-  };
-
   const columns = useMemo<ColumnDef<PortalListResponse>[]>(
     () => [
       {
         accessorKey: "name",
         header: "Portal Name",
         cell: ({ row }) => (
-          <div className="flex flex-col">
-            <span className="font-medium">{row.original.name}</span>
-            <span className="text-muted-foreground text-xs">{row.original.portal_id}</span>
-          </div>
+          <Link 
+            href={`/admin/portals/${row.original.portal_id}`}
+            className="flex flex-col gap-1 transition-colors hover:text-blue-600"
+          >
+            <span className="text-sm font-semibold text-gray-900 sm:text-base">
+              {row.original.name}
+            </span>
+            <span className="text-xs text-gray-500 sm:text-sm">
+              {row.original.portal_id}
+            </span>
+          </Link>
         ),
       },
       {
         accessorKey: "is_active",
         header: "Status",
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? "default" : "secondary"}>
+          <Badge 
+            variant={row.original.is_active ? "default" : "secondary"}
+            className="font-medium shadow-sm"
+          >
             {row.original.is_active ? "Active" : "Inactive"}
           </Badge>
         ),
@@ -74,19 +68,21 @@ export function PortalTable({
         id: "keys",
         header: "Keys",
         cell: ({ row }) => (
-          <div className="flex gap-2 text-sm">
-            <span title="Active Keys" className="font-medium text-green-600">
+          <div className="flex items-center gap-1.5 text-sm font-medium">
+            <span className="text-green-600" title="Active Keys">
               {row.original.active_key_count}
             </span>
-            <span className="text-muted-foreground">/</span>
-            <span title="Total Keys">{row.original.total_key_count}</span>
+            <span className="text-gray-400">/</span>
+            <span className="text-gray-700" title="Total Keys">{row.original.total_key_count}</span>
           </div>
         ),
       },
       {
         accessorKey: "user_count",
         header: "Users",
-        cell: ({ row }) => <span className="text-sm">{row.original.user_count}</span>,
+        cell: ({ row }) => (
+          <span className="text-sm font-medium text-gray-700">{row.original.user_count}</span>
+        ),
       },
       {
         accessorKey: "created_at",
@@ -97,26 +93,6 @@ export function PortalTable({
               ? format(new Date(row.original.created_at), "dd/MM/yyyy")
               : "-"}
           </span>
-        ),
-      },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleViewDetails(row.original)}>
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem>Manage Keys</DropdownMenuItem>
-              <DropdownMenuItem>Manage Users</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         ),
       },
     ],
@@ -132,18 +108,22 @@ export function PortalTable({
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-gray-100 bg-gray-50/50 p-4">
-        <div className="min-w-[300px] flex-1">
+    <div className="space-y-3 sm:space-y-4">
+      {/* Filters - Mobile Optimized */}
+      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50/80 to-gray-50/40 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+        {/* Search - Full Width on Mobile */}
+        <div className="mb-3 sm:mb-4">
           <Input
             placeholder="Search portals..."
             value={params.search || ""}
             onChange={(e) => onParamsChange({ ...params, search: e.target.value, page: 1 })}
-            className="max-w-md bg-white"
+            className="h-10 w-full bg-white text-sm shadow-sm transition-shadow focus:shadow-md sm:h-11 sm:max-w-md sm:text-base"
           />
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* Status Filter */}
+        <div className="flex-1">
+          <label className="mb-1.5 block text-xs font-medium text-gray-600 sm:hidden">Status</label>
           <Select
             value={
               params.is_active === undefined ? "all" : params.is_active ? "active" : "inactive"
@@ -156,7 +136,7 @@ export function PortalTable({
               })
             }
           >
-            <SelectTrigger className="w-[150px] bg-white">
+            <SelectTrigger className="h-10 w-full bg-white text-sm shadow-sm transition-all focus:ring-2 focus:ring-blue-500 sm:h-11 sm:w-[160px] sm:text-base">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
@@ -173,12 +153,6 @@ export function PortalTable({
         totalCount={total}
         isLoading={isLoading}
         emptyMessage="No portals found"
-      />
-
-      <PortalStatisticsModal
-        portal={selectedPortal}
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
       />
     </div>
   );

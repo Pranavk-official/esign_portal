@@ -8,7 +8,9 @@
   "paths": {
     "/admin/portals/onboard": {
       "post": {
-        "tags": ["Super Admin - Portal Management"],
+        "tags": [
+          "Super Admin - Portal Management"
+        ],
         "summary": "Onboard New Portal",
         "operationId": "onboard_new_portal_admin_portals_onboard_post",
         "requestBody": {
@@ -55,7 +57,9 @@
     },
     "/admin/portals": {
       "get": {
-        "tags": ["Super Admin - Portal Management"],
+        "tags": [
+          "Super Admin - Portal Management"
+        ],
         "summary": "List All Portals",
         "description": "List all portals with search, filter, sort, and pagination.\n\nSuper Admin only.\n\n- **page**: Page number (1-indexed)\n- **page_size**: Items per page (default 20)\n- **search**: Search by portal_id or name\n- **is_active**: Filter by active status (true/false)\n- **sort_by**: Sort by 'name', 'created_at', or 'portal_id'\n- **sort_order**: 'asc' or 'desc'",
         "operationId": "list_all_portals_admin_portals_get",
@@ -153,7 +157,9 @@
     },
     "/admin/system/overview": {
       "get": {
-        "tags": ["Super Admin - Dashboard"],
+        "tags": [
+          "Super Admin - Dashboard"
+        ],
         "summary": "Get System Overview",
         "description": "Get system-wide overview metrics for Super Admin dashboard.\n\nSuper Admin only.\n\nReturns:\n- **total_active_portals**: Number of active portals\n- **total_active_users**: Number of active users across all portals\n- **total_active_api_keys**: Number of active API keys (LIVE + TEST)\n- **total_transactions**: Total transactions across all portals\n- **total_completed_transactions**: Total successful transactions\n- **total_failed_transactions**: Total failed transactions\n- **total_pending_transactions**: Total pending transactions\n- **success_rate**: Success rate percentage (0-100)",
         "operationId": "get_system_overview_admin_system_overview_get",
@@ -179,9 +185,218 @@
         ]
       }
     },
+    "/admin/portals/{portal_id}/users": {
+      "get": {
+        "tags": [
+          "Super Admin - User Management"
+        ],
+        "summary": "List Portal Users",
+        "description": "List users for a specific portal with search, filter, sort, and pagination.\n\nSuper Admin only.\n\n- **portal_id**: Portal identifier\n- **search**: Search by email\n- **role_name**: Filter by role name (e.g., 'portal_admin', 'portal_user')\n- **is_active**: Filter by active status\n- **sort_by**: Sort by 'email', 'created_at', or 'is_active'\n- **sort_order**: 'asc' or 'desc'",
+        "operationId": "list_portal_users_admin_portals__portal_id__users_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "portal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Portal Id"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "role_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Role Name"
+            }
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "title": "Is Active"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "created_at",
+              "title": "Sort By"
+            }
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "desc",
+              "title": "Sort Order"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListPaginatedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/portals/{portal_id}/usage/summary": {
+      "get": {
+        "tags": [
+          "Super Admin - Analytics"
+        ],
+        "summary": "Get Portal Usage Summary",
+        "description": "Get API usage summary statistics for a specific portal.\n\nSuper Admin only.\n\nReturns counts: total_transactions, completed, pending, failed, cancelled.\n\n- **portal_id**: Portal identifier\n- **api_key_id**: Filter by specific API key (optional)\n- **start_date**: Filter by start date (ISO format, optional)\n- **end_date**: Filter by end date (ISO format, optional)",
+        "operationId": "get_portal_usage_summary_admin_portals__portal_id__usage_summary_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "portal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Portal Id"
+            }
+          },
+          {
+            "name": "api_key_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Api Key Id"
+            }
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Start Date"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "End Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiUsageSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Portal not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/portals/me": {
       "get": {
-        "tags": ["Department Manager - Self Service"],
+        "tags": [
+          "Department Manager - Self Service"
+        ],
         "summary": "Get My Portal",
         "description": "View details of your own portal.",
         "operationId": "get_my_portal_admin_portals_me_get",
@@ -209,7 +424,9 @@
     },
     "/admin/portals/me/keys": {
       "get": {
-        "tags": ["Department Manager - API Keys"],
+        "tags": [
+          "Department Manager - API Keys"
+        ],
         "summary": "Get My Api Keys",
         "description": "List API keys for your portal with search, filter, sort, and pagination.\n\n- **search**: Search by key_name or key_prefix\n- **environment**: Filter by 'LIVE' or 'TEST'\n- **is_active**: Filter by active status\n- **sort_by**: Sort by 'key_name', 'created_at', 'environment', or 'last_used_at'\n- **sort_order**: 'asc' or 'desc'",
         "operationId": "get_my_api_keys_admin_portals_me_keys_get",
@@ -316,7 +533,9 @@
     },
     "/admin/portals/me/generate-key": {
       "post": {
-        "tags": ["Department Manager - API Keys"],
+        "tags": [
+          "Department Manager - API Keys"
+        ],
         "summary": "Generate My Key",
         "operationId": "generate_my_key_admin_portals_me_generate_key_post",
         "requestBody": {
@@ -363,7 +582,9 @@
     },
     "/admin/portals/me/metrics": {
       "get": {
-        "tags": ["Department Manager - Analytics"],
+        "tags": [
+          "Department Manager - Analytics"
+        ],
         "summary": "Get My Metrics",
         "description": "Get basic metrics summary for your portal (useful for dashboard graphs).\n\nReturns aggregated counts: total, successful, failed, pending transactions.",
         "operationId": "get_my_metrics_admin_portals_me_metrics_get",
@@ -391,7 +612,9 @@
     },
     "/admin/portals/me/usage": {
       "get": {
-        "tags": ["Department Manager - Analytics"],
+        "tags": [
+          "Department Manager - Analytics"
+        ],
         "summary": "Get My Api Usage",
         "description": "Get detailed API usage (eSign transactions) for your portal.\n\n- **page**: Page number (1-indexed)\n- **page_size**: Items per page (default 20, max 100)\n- **api_key_id**: Filter by specific API key\n- **status**: Filter by transaction status (PENDING, COMPLETED, FAILED, USER_CANCELLED)\n- **start_date**: Filter by start date (ISO format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)\n- **end_date**: Filter by end date (ISO format)\n- **sort_by**: Sort by 'created_at', 'updated_at', 'status', 'portal_doc_id'\n- **sort_order**: 'asc' or 'desc'\n- **search**: Search by gateway_txn_id, portal_doc_id, or file_hash",
         "operationId": "get_my_api_usage_admin_portals_me_usage_get",
@@ -527,7 +750,9 @@
     },
     "/admin/portals/me/usage/summary": {
       "get": {
-        "tags": ["Department Manager - Analytics"],
+        "tags": [
+          "Department Manager - Analytics"
+        ],
         "summary": "Get My Usage Summary",
         "description": "Get API usage summary statistics for your portal (useful for graphs).\n\nReturns counts: total_transactions, completed, pending, failed, cancelled.\n\n- **api_key_id**: Filter by specific API key\n- **start_date**: Filter by start date (ISO format)\n- **end_date**: Filter by end date (ISO format)",
         "operationId": "get_my_usage_summary_admin_portals_me_usage_summary_get",
@@ -605,7 +830,9 @@
     },
     "/admin/portals/me/keys/{key_id}/usage": {
       "get": {
-        "tags": ["Department Manager - Analytics"],
+        "tags": [
+          "Department Manager - Analytics"
+        ],
         "summary": "Get My Key Usage",
         "description": "Get detailed API usage for a specific API key owned by your portal.\n\n- **key_id**: UUID of the API key\n- **page**: Page number (1-indexed)\n- **page_size**: Items per page (default 20, max 100)\n- **status**: Filter by transaction status (PENDING, COMPLETED, FAILED, USER_CANCELLED)\n- **start_date**: Filter by start date (ISO format)\n- **end_date**: Filter by end date (ISO format)\n- **sort_by**: Sort by 'created_at', 'updated_at', 'status', 'portal_doc_id'\n- **sort_order**: 'asc' or 'desc'\n- **search**: Search by gateway_txn_id, portal_doc_id, or file_hash",
         "operationId": "get_my_key_usage_admin_portals_me_keys__key_id__usage_get",
@@ -751,7 +978,9 @@
     },
     "/admin/portals/me/users": {
       "get": {
-        "tags": ["Department Manager - User Management"],
+        "tags": [
+          "Department Manager - User Management"
+        ],
         "summary": "List My Users",
         "description": "List users in your portal with search, filter, sort, and pagination.\n\n- **search**: Search by email\n- **role_name**: Filter by role name (e.g., 'portal_admin', 'portal_user')\n- **is_active**: Filter by active status\n- **sort_by**: Sort by 'email', 'created_at', or 'is_active'\n- **sort_order**: 'asc' or 'desc'\n\nRequirements: 2.3",
         "operationId": "list_my_users_admin_portals_me_users_get",
@@ -856,7 +1085,9 @@
         }
       },
       "post": {
-        "tags": ["Department Manager - User Management"],
+        "tags": [
+          "Department Manager - User Management"
+        ],
         "summary": "Add User",
         "description": "Create a new user in the portal admin's portal.\n\nPortal admins can only create users in their own portal and can only\nassign portal-level roles (not system-level roles like super_admin).\n\nRequirements: 2.1, 2.2",
         "operationId": "add_user_admin_portals_me_users_post",
@@ -904,7 +1135,9 @@
     },
     "/admin/portals/me/users/{user_id}": {
       "get": {
-        "tags": ["Department Manager - User Management"],
+        "tags": [
+          "Department Manager - User Management"
+        ],
         "summary": "Get User Details",
         "description": "Get detailed information about a user in the portal admin's portal.\n\nRequirements: 2.4",
         "operationId": "get_user_details_admin_portals_me_users__user_id__get",
@@ -952,7 +1185,9 @@
         }
       },
       "patch": {
-        "tags": ["Department Manager - User Management"],
+        "tags": [
+          "Department Manager - User Management"
+        ],
         "summary": "Update User",
         "description": "Update a user in the portal admin's portal.\n\nRequirements: 2.4",
         "operationId": "update_user_admin_portals_me_users__user_id__patch",
@@ -1012,7 +1247,9 @@
     },
     "/admin/portals/me/users/{user_id}/deactivate": {
       "post": {
-        "tags": ["Department Manager - User Management"],
+        "tags": [
+          "Department Manager - User Management"
+        ],
         "summary": "Deactivate User",
         "description": "Deactivate a user in the portal admin's portal.\n\nRequirements: 2.4",
         "operationId": "deactivate_user_admin_portals_me_users__user_id__deactivate_post",
@@ -1062,7 +1299,9 @@
     },
     "/admin/portals/me/users/{user_id}/activate": {
       "post": {
-        "tags": ["Department Manager - User Management"],
+        "tags": [
+          "Department Manager - User Management"
+        ],
         "summary": "Activate User",
         "description": "Activate a deactivated user in the portal admin's portal.\n\nRequirements: 2.4",
         "operationId": "activate_user_admin_portals_me_users__user_id__activate_post",
@@ -1112,7 +1351,9 @@
     },
     "/admin/portals/{portal_id}": {
       "get": {
-        "tags": ["Super Admin - Portal Management"],
+        "tags": [
+          "Super Admin - Portal Management"
+        ],
         "summary": "Get Portal Details",
         "description": "Get detailed information about a specific portal.\n\nSuper Admin only.",
         "operationId": "get_portal_details_admin_portals__portal_id__get",
@@ -1161,7 +1402,9 @@
     },
     "/admin/portals/{portal_id}/keys": {
       "get": {
-        "tags": ["Super Admin - Portal Management"],
+        "tags": [
+          "Super Admin - Portal Management"
+        ],
         "summary": "List Portal Api Keys",
         "description": "List all API keys for a specific portal with search, filter, sort, and pagination.\n\nSuper Admin only.\n\n- **portal_id**: Portal identifier\n- **page**: Page number (1-indexed)\n- **page_size**: Items per page (default 20)\n- **search**: Search by key_name or key_prefix\n- **environment**: Filter by 'LIVE' or 'TEST'\n- **is_active**: Filter by active status (true/false)\n- **sort_by**: Sort by 'key_name', 'created_at', 'environment', or 'last_used_at'\n- **sort_order**: 'asc' or 'desc'",
         "operationId": "list_portal_api_keys_admin_portals__portal_id__keys_get",
@@ -1277,7 +1520,9 @@
     },
     "/admin/portals/{portal_id}/status": {
       "patch": {
-        "tags": ["Super Admin - Portal Management"],
+        "tags": [
+          "Super Admin - Portal Management"
+        ],
         "summary": "Update Portal Status",
         "description": "Revoke or unrevoke a portal.\n\nSuper Admin only. When a portal is revoked:\n- All API requests using this portal's keys will be rejected\n- Portal admins cannot generate new keys\n- Existing transactions in progress may fail\n\n- **is_active**: True to activate, False to deactivate/revoke\n- **reason**: Optional reason for the action (stored for audit)",
         "operationId": "update_portal_status_admin_portals__portal_id__status_patch",
@@ -1336,7 +1581,9 @@
     },
     "/admin/portals/{portal_id}/keys/{key_id}/status": {
       "patch": {
-        "tags": ["Super Admin - Portal Management"],
+        "tags": [
+          "Super Admin - Portal Management"
+        ],
         "summary": "Update Api Key Status",
         "description": "Revoke or unrevoke an API key.\n\nSuper Admin only. When an API key is revoked:\n- All API requests using this key will be rejected\n- Existing transactions in progress may fail\n\n- **is_active**: True to activate, False to deactivate/revoke\n- **reason**: Optional reason for the action (stored for audit)",
         "operationId": "update_api_key_status_admin_portals__portal_id__keys__key_id__status_patch",
@@ -1405,7 +1652,9 @@
     },
     "/admin/portals/{portal_id}/key-limits": {
       "patch": {
-        "tags": ["Super Admin - Portal Management"],
+        "tags": [
+          "Super Admin - Portal Management"
+        ],
         "summary": "Update Portal Key Limits",
         "description": "Update API key generation limits for a portal.\n\nSuper Admin only. Allows setting the maximum number of active LIVE API keys\na portal can have. Set to null or 0 for unlimited keys.\n\nRequirements: 11.6",
         "operationId": "update_portal_key_limits_admin_portals__portal_id__key_limits_patch",
@@ -1464,7 +1713,9 @@
     },
     "/admin/portals/{portal_id}/keys/{key_id}/txn-count": {
       "patch": {
-        "tags": ["Super Admin - Portal Management"],
+        "tags": [
+          "Super Admin - Portal Management"
+        ],
         "summary": "Update Api Key Txn Count",
         "description": "Update transaction count limits for an API key.\n\nSuper Admin only. Set max_txn_count to control the number of successful transactions allowed.\nWhen the count reaches zero, the API key will stop working.\n\n- **max_txn_count**: Maximum transaction count (NULL/0 = unlimited)\n- **max_txn_count_threshold**: Threshold for email notification (NULL = no threshold)\n\nNote: Updating max_txn_count will reset remaining_txn_count to the new value\nand reset the threshold_email_sent flag.",
         "operationId": "update_api_key_txn_count_admin_portals__portal_id__keys__key_id__txn_count_patch",
@@ -1533,7 +1784,9 @@
     },
     "/admin/api-usage": {
       "get": {
-        "tags": ["Super Admin - API Usage"],
+        "tags": [
+          "Super Admin - API Usage"
+        ],
         "summary": "Get All Api Usage",
         "description": "Get all API usage (eSign transactions) with filters.\n\nSuper Admin only.\n\n- **page**: Page number (1-indexed)\n- **page_size**: Items per page (default 20, max 100)\n- **portal_id**: Filter by specific portal\n- **api_key_id**: Filter by specific API key\n- **status**: Filter by transaction status (PENDING, COMPLETED, FAILED, CANCELLED)\n- **start_date**: Filter by start date (ISO format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)\n- **end_date**: Filter by end date (ISO format)\n- **sort_by**: Sort by 'created_at', 'updated_at', 'status', 'portal_doc_id'\n- **sort_order**: 'asc' or 'desc'\n- **search**: Search by gateway_txn_id, portal_doc_id, or file_hash",
         "operationId": "get_all_api_usage_admin_api_usage_get",
@@ -1688,7 +1941,9 @@
     },
     "/admin/api-usage/summary": {
       "get": {
-        "tags": ["Super Admin - API Usage"],
+        "tags": [
+          "Super Admin - API Usage"
+        ],
         "summary": "Get Api Usage Summary",
         "description": "Get API usage summary statistics.\n\nSuper Admin only. Returns counts of transactions by status.\n\n- **portal_id**: Filter by specific portal\n- **api_key_id**: Filter by specific API key\n- **start_date**: Filter by start date (ISO format)\n- **end_date**: Filter by end date (ISO format)",
         "operationId": "get_api_usage_summary_admin_api_usage_summary_get",
@@ -1785,7 +2040,9 @@
     },
     "/admin/portals/{portal_id}/usage": {
       "get": {
-        "tags": ["Super Admin - API Usage"],
+        "tags": [
+          "Super Admin - API Usage"
+        ],
         "summary": "Get Portal Api Usage",
         "description": "Get API usage for a specific portal.\n\nSuper Admin only.",
         "operationId": "get_portal_api_usage_admin_portals__portal_id__usage_get",
@@ -1950,7 +2207,9 @@
     },
     "/admin/portals/{portal_id}/keys/{key_id}/usage": {
       "get": {
-        "tags": ["Super Admin - API Usage"],
+        "tags": [
+          "Super Admin - API Usage"
+        ],
         "summary": "Get Api Key Usage",
         "description": "Get API usage for a specific API key.\n\nSuper Admin only.",
         "operationId": "get_api_key_usage_admin_portals__portal_id__keys__key_id__usage_get",
@@ -2115,7 +2374,9 @@
     },
     "/admin/portals/me/keys/{key_id}/callback": {
       "put": {
-        "tags": ["Department Manager - API Keys"],
+        "tags": [
+          "Department Manager - API Keys"
+        ],
         "summary": "Update My Api Key Callback",
         "description": "Update the callback URL for a specific API key.",
         "operationId": "update_my_api_key_callback_admin_portals_me_keys__key_id__callback_put",
@@ -2175,7 +2436,9 @@
     },
     "/admin/auth/request-otp": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Request Otp",
         "description": "1. Check if user exists.\n2. Rate Limit Check.\n3. Generate OTP & Store in DB.\n4. Send Email (Background Task).",
         "operationId": "request_otp_admin_auth_request_otp_post",
@@ -2215,7 +2478,9 @@
     },
     "/admin/auth/verify-otp": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Verify Otp",
         "operationId": "verify_otp_admin_auth_verify_otp_post",
         "requestBody": {
@@ -2254,7 +2519,9 @@
     },
     "/admin/auth/refresh": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Refresh Token",
         "description": "Refresh access token using a refresh token.\nImplements token rotation: returns new access token and new refresh token.\nOld refresh token is marked as replaced.\n\nIf a replaced token is reused, all tokens for the user are revoked (theft detection).",
         "operationId": "refresh_token_admin_auth_refresh_post",
@@ -2293,7 +2560,9 @@
     },
     "/admin/auth/logout": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Logout",
         "description": "Logout user by revoking refresh tokens.\n\n- If refresh_token is provided: revoke that specific token\n- If revoke_all is True: revoke all tokens for the user\n- If neither: revoke all tokens for the user (safer default)",
         "operationId": "logout_admin_auth_logout_post",
@@ -2341,7 +2610,9 @@
     },
     "/admin/audit-logs": {
       "get": {
-        "tags": ["Super Admin - Auditing"],
+        "tags": [
+          "Super Admin - Auditing"
+        ],
         "summary": "Read Audit Logs",
         "description": "List audit logs with search, filter, sort, and pagination.\n\nSuper Admin only.\n\n- **search**: Search in event_type or portal_id\n- **user_id**: Filter by user involved in the event\n- **portal_id**: Filter by portal\n- **event_type**: Filter by event type (e.g., 'user:create', 'apikey:generate')\n- **start_date**: Filter events after this datetime\n- **end_date**: Filter events before this datetime",
         "operationId": "read_audit_logs_admin_audit_logs_get",
@@ -2543,7 +2814,9 @@
     },
     "/admin/users": {
       "post": {
-        "tags": ["Admin - User Management"],
+        "tags": [
+          "Admin - User Management"
+        ],
         "summary": "Create User",
         "description": "Create a new user (Super Admin only).\n\nSuper admins can create users in any portal with any roles.\n\nRequirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6",
         "operationId": "create_user_admin_users_post",
@@ -2589,7 +2862,10 @@
         }
       },
       "get": {
-        "tags": ["Admin - User Management", "Super Admin - User Management"],
+        "tags": [
+          "Admin - User Management",
+          "Super Admin - User Management"
+        ],
         "summary": "List Users",
         "description": "List all users with search, filter, sort, and pagination (Super Admin only).\n\n- **search**: Search by email\n- **portal_id**: Filter by portal ID\n- **role_name**: Filter by role name\n- **is_active**: Filter by active status\n- **sort_by**: Sort by 'email', 'created_at', or 'is_active'\n- **sort_order**: 'asc' or 'desc'\n\nRequirements: 5.1, 5.2, 5.3, 5.4, 5.5",
         "operationId": "list_users_admin_users_get",
@@ -2752,7 +3028,9 @@
     },
     "/admin/users/{user_id}": {
       "get": {
-        "tags": ["Admin - User Management"],
+        "tags": [
+          "Admin - User Management"
+        ],
         "summary": "Get User",
         "description": "Get detailed user information (Super Admin only).\n\nRequirements: 1.1",
         "operationId": "get_user_admin_users__user_id__get",
@@ -2799,7 +3077,9 @@
         }
       },
       "patch": {
-        "tags": ["Admin - User Management"],
+        "tags": [
+          "Admin - User Management"
+        ],
         "summary": "Update User",
         "description": "Update user details (Super Admin only).\n\nRequirements: 4.3",
         "operationId": "update_user_admin_users__user_id__patch",
@@ -2858,7 +3138,9 @@
     },
     "/admin/users/{user_id}/deactivate": {
       "post": {
-        "tags": ["Admin - User Management"],
+        "tags": [
+          "Admin - User Management"
+        ],
         "summary": "Deactivate User",
         "description": "Deactivate a user (Super Admin only).\n\nRequirements: 4.1",
         "operationId": "deactivate_user_admin_users__user_id__deactivate_post",
@@ -2924,7 +3206,9 @@
     },
     "/admin/users/{user_id}/activate": {
       "post": {
-        "tags": ["Admin - User Management"],
+        "tags": [
+          "Admin - User Management"
+        ],
         "summary": "Activate User",
         "description": "Activate a deactivated user (Super Admin only).\n\nRequirements: 4.2",
         "operationId": "activate_user_admin_users__user_id__activate_post",
@@ -2973,7 +3257,9 @@
     },
     "/admin/users/{user_id}/roles": {
       "post": {
-        "tags": ["Admin - User Management"],
+        "tags": [
+          "Admin - User Management"
+        ],
         "summary": "Assign Roles",
         "description": "Assign roles to a user (Super Admin only).\n\nRequirements: 1.3",
         "operationId": "assign_roles_admin_users__user_id__roles_post",
@@ -3030,7 +3316,9 @@
         }
       },
       "delete": {
-        "tags": ["Admin - User Management"],
+        "tags": [
+          "Admin - User Management"
+        ],
         "summary": "Remove Roles",
         "description": "Remove roles from a user (Super Admin only).\n\nRequirements: 1.3",
         "operationId": "remove_roles_admin_users__user_id__roles_delete",
@@ -3089,7 +3377,9 @@
     },
     "/admin/users/bulk-create": {
       "post": {
-        "tags": ["Admin - User Management"],
+        "tags": [
+          "Admin - User Management"
+        ],
         "summary": "Bulk Create Users",
         "description": "Create multiple users in a single operation (Super Admin only).\n\nAll users are validated before any are created. If validation fails,\nno users are created and detailed errors are returned.\n\nRequirements: 7.1, 7.5",
         "operationId": "bulk_create_users_admin_users_bulk_create_post",
@@ -3137,7 +3427,9 @@
     },
     "/admin/users/bulk-assign-roles": {
       "post": {
-        "tags": ["Admin - User Management"],
+        "tags": [
+          "Admin - User Management"
+        ],
         "summary": "Bulk Assign Roles",
         "description": "Assign roles to multiple users atomically (Super Admin only).\n\nAll role assignments are applied in a single transaction. If any\nassignment fails, all changes are rolled back.\n\nRequirements: 7.2",
         "operationId": "bulk_assign_roles_admin_users_bulk_assign_roles_post",
@@ -3185,7 +3477,9 @@
     },
     "/admin/users/bulk-deactivate": {
       "post": {
-        "tags": ["Admin - User Management"],
+        "tags": [
+          "Admin - User Management"
+        ],
         "summary": "Bulk Deactivate Users",
         "description": "Deactivate multiple users (Super Admin only).\n\nEach user is deactivated individually with an audit log entry.\nPartial success is allowed - some users may be deactivated while\nothers fail.\n\nRequirements: 7.3",
         "operationId": "bulk_deactivate_users_admin_users_bulk_deactivate_post",
@@ -3233,7 +3527,9 @@
     },
     "/users/me": {
       "get": {
-        "tags": ["User - Self Service"],
+        "tags": [
+          "User - Self Service"
+        ],
         "summary": "Get My Profile",
         "description": "Get the current user's own profile.\n\nReturns the user's email, portal assignment, roles, and account status.\n\nRequirements: 8.1",
         "operationId": "get_my_profile_users_me_get",
@@ -3259,7 +3555,9 @@
         ]
       },
       "patch": {
-        "tags": ["User - Self Service"],
+        "tags": [
+          "User - Self Service"
+        ],
         "summary": "Update My Profile",
         "description": "Update the current user's own profile (limited fields).\n\nUsers can only update non-critical fields. Attempts to modify roles or\nportal assignment will be rejected. Email changes require OTP verification.\n\nRequirements: 8.2, 8.3, 8.4",
         "operationId": "update_my_profile_users_me_patch",
@@ -3307,7 +3605,9 @@
     },
     "/users/me/activity": {
       "get": {
-        "tags": ["User - Self Service"],
+        "tags": [
+          "User - Self Service"
+        ],
         "summary": "Get My Activity",
         "description": "Get the current user's activity history from audit logs.\n\nReturns recent actions performed by or on the current user.\n\nRequirements: 8.5",
         "operationId": "get_my_activity_users_me_activity_get",
@@ -3378,7 +3678,9 @@
     },
     "/api/v1/initiate": {
       "post": {
-        "tags": ["eSign Core"],
+        "tags": [
+          "eSign Core"
+        ],
         "summary": "Initiate Signing",
         "description": "Tenant API: Initiates the signing process.",
         "operationId": "initiate_signing_api_v1_initiate_post",
@@ -3423,7 +3725,9 @@
     },
     "/api/v1/finalize": {
       "post": {
-        "tags": ["eSign Core"],
+        "tags": [
+          "eSign Core"
+        ],
         "summary": "Finalize Signing",
         "description": "Tenant API: Posts the hash of the final signed document.\nThis confirms the client successfully embedded the signature.",
         "operationId": "finalize_signing_api_v1_finalize_post",
@@ -3468,7 +3772,9 @@
     },
     "/api/v1/verify": {
       "post": {
-        "tags": ["eSign Core"],
+        "tags": [
+          "eSign Core"
+        ],
         "summary": "Verify Document",
         "description": "Tenant API: Check if a specific document hash corresponds to a valid transaction.",
         "operationId": "verify_document_api_v1_verify_post",
@@ -3513,7 +3819,9 @@
     },
     "/internal/v1/cdac-callback": {
       "post": {
-        "tags": ["eSign Core"],
+        "tags": [
+          "eSign Core"
+        ],
         "summary": "Handle Cdac Callback",
         "operationId": "handle_cdac_callback_internal_v1_cdac_callback_post",
         "requestBody": {
@@ -3550,7 +3858,9 @@
     },
     "/test/simulator": {
       "post": {
-        "tags": ["eSign Core"],
+        "tags": [
+          "eSign Core"
+        ],
         "summary": "Cdac Simulator Page",
         "description": "Mocks the C-DAC Page. \nShows a simulated eSign page where users can simulate success or failure.",
         "operationId": "cdac_simulator_page_test_simulator_post",
@@ -3590,7 +3900,9 @@
     },
     "/health": {
       "get": {
-        "tags": ["Health"],
+        "tags": [
+          "Health"
+        ],
         "summary": "Health Check",
         "description": "Standard health check endpoint.",
         "operationId": "health_check_health_get",
@@ -3636,7 +3948,13 @@
           }
         },
         "type": "object",
-        "required": ["items", "total", "page", "page_size", "total_pages"],
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "total_pages"
+        ],
         "title": "ApiKeyDetailPaginatedResponse",
         "description": "Paginated response for detailed API key list."
       },
@@ -3779,7 +4097,10 @@
         "properties": {
           "environment": {
             "type": "string",
-            "enum": ["LIVE", "TEST"],
+            "enum": [
+              "LIVE",
+              "TEST"
+            ],
             "title": "Environment",
             "default": "LIVE"
           },
@@ -3828,7 +4149,11 @@
           }
         },
         "type": "object",
-        "required": ["key_name", "callback_url", "max_txn_count"],
+        "required": [
+          "key_name",
+          "callback_url",
+          "max_txn_count"
+        ],
         "title": "ApiKeyGenerateRequest"
       },
       "ApiKeyGenerateResponse": {
@@ -3926,7 +4251,13 @@
           }
         },
         "type": "object",
-        "required": ["items", "total", "page", "page_size", "total_pages"],
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "total_pages"
+        ],
         "title": "ApiKeyListPaginatedResponse",
         "description": "Paginated response for API key list."
       },
@@ -4070,7 +4401,9 @@
           }
         },
         "type": "object",
-        "required": ["is_active"],
+        "required": [
+          "is_active"
+        ],
         "title": "ApiKeyRevokeRequest",
         "description": "Request to revoke/unrevoke an API key."
       },
@@ -4205,7 +4538,13 @@
           }
         },
         "type": "object",
-        "required": ["gateway_txn_id", "portal_id", "status", "file_hash", "created_at"],
+        "required": [
+          "gateway_txn_id",
+          "portal_id",
+          "status",
+          "file_hash",
+          "created_at"
+        ],
         "title": "ApiUsageEntry",
         "description": "Single API usage/transaction entry."
       },
@@ -4236,7 +4575,13 @@
           }
         },
         "type": "object",
-        "required": ["items", "total", "page", "page_size", "total_pages"],
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "total_pages"
+        ],
         "title": "ApiUsagePaginatedResponse",
         "description": "Paginated API usage response."
       },
@@ -4264,7 +4609,13 @@
           }
         },
         "type": "object",
-        "required": ["total_transactions", "completed", "pending", "failed", "cancelled"],
+        "required": [
+          "total_transactions",
+          "completed",
+          "pending",
+          "failed",
+          "cancelled"
+        ],
         "title": "ApiUsageSummary",
         "description": "Summary statistics for API usage."
       },
@@ -4381,7 +4732,13 @@
           }
         },
         "type": "object",
-        "required": ["items", "total", "page", "page_size", "total_pages"],
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "total_pages"
+        ],
         "title": "AuditLogPaginatedResponse",
         "description": "Paginated response for audit logs."
       },
@@ -4408,7 +4765,9 @@
           }
         },
         "type": "object",
-        "required": ["message"],
+        "required": [
+          "message"
+        ],
         "title": "AuthResponse",
         "description": "Response schema for successful authentication via cookies."
       },
@@ -4424,7 +4783,10 @@
           }
         },
         "type": "object",
-        "required": ["eSignRequest", "aspTxnID"],
+        "required": [
+          "eSignRequest",
+          "aspTxnID"
+        ],
         "title": "Body_cdac_simulator_page_test_simulator_post"
       },
       "Body_handle_cdac_callback_internal_v1_cdac_callback_post": {
@@ -4439,7 +4801,10 @@
           }
         },
         "type": "object",
-        "required": ["eSignResponse", "espTxnID"],
+        "required": [
+          "eSignResponse",
+          "espTxnID"
+        ],
         "title": "Body_handle_cdac_callback_internal_v1_cdac_callback_post"
       },
       "BulkOperationResult": {
@@ -4465,7 +4830,10 @@
           }
         },
         "type": "object",
-        "required": ["success_count", "failure_count"],
+        "required": [
+          "success_count",
+          "failure_count"
+        ],
         "title": "BulkOperationResult",
         "description": "Response schema for bulk operations.",
         "example": {
@@ -4493,7 +4861,9 @@
           }
         },
         "type": "object",
-        "required": ["callback_url"],
+        "required": [
+          "callback_url"
+        ],
         "title": "CallbackUrlUpdate"
       },
       "ErrorDetail": {
@@ -4504,7 +4874,9 @@
           }
         },
         "type": "object",
-        "required": ["detail"],
+        "required": [
+          "detail"
+        ],
         "title": "ErrorDetail",
         "description": "Standard error response detail."
       },
@@ -4574,7 +4946,12 @@
           }
         },
         "type": "object",
-        "required": ["gateway_txn_id", "c_dac_url", "eSignRequest", "aspTxnID"],
+        "required": [
+          "gateway_txn_id",
+          "c_dac_url",
+          "eSignRequest",
+          "aspTxnID"
+        ],
         "title": "EsignInitiateResponse"
       },
       "FinalizeTransactionRequest": {
@@ -4591,7 +4968,10 @@
           }
         },
         "type": "object",
-        "required": ["gateway_txn_id", "signed_file_hash"],
+        "required": [
+          "gateway_txn_id",
+          "signed_file_hash"
+        ],
         "title": "FinalizeTransactionRequest"
       },
       "FinalizeTransactionResponse": {
@@ -4606,7 +4986,10 @@
           }
         },
         "type": "object",
-        "required": ["status", "message"],
+        "required": [
+          "status",
+          "message"
+        ],
         "title": "FinalizeTransactionResponse"
       },
       "HTTPValidationError": {
@@ -4659,7 +5042,9 @@
           }
         },
         "type": "object",
-        "required": ["message"],
+        "required": [
+          "message"
+        ],
         "title": "LogoutResponse",
         "description": "Response schema for logout."
       },
@@ -4729,14 +5114,19 @@
           },
           "scope": {
             "type": "string",
-            "enum": ["LOGIN", "RESET_PASSWORD"],
+            "enum": [
+              "LOGIN",
+              "RESET_PASSWORD"
+            ],
             "title": "Scope",
             "description": "Scope of the OTP: LOGIN or RESET_PASSWORD",
             "default": "LOGIN"
           }
         },
         "type": "object",
-        "required": ["email"],
+        "required": [
+          "email"
+        ],
         "title": "OTPRequest"
       },
       "OTPRequestResponse": {
@@ -4747,7 +5137,9 @@
           }
         },
         "type": "object",
-        "required": ["message"],
+        "required": [
+          "message"
+        ],
         "title": "OTPRequestResponse"
       },
       "OTPVerify": {
@@ -4763,14 +5155,20 @@
           },
           "scope": {
             "type": "string",
-            "enum": ["LOGIN", "RESET_PASSWORD"],
+            "enum": [
+              "LOGIN",
+              "RESET_PASSWORD"
+            ],
             "title": "Scope",
             "description": "Must match the scope used during request",
             "default": "LOGIN"
           }
         },
         "type": "object",
-        "required": ["email", "otp"],
+        "required": [
+          "email",
+          "otp"
+        ],
         "title": "OTPVerify"
       },
       "PortalKeyLimitUpdate": {
@@ -4819,7 +5217,13 @@
           }
         },
         "type": "object",
-        "required": ["items", "total", "page", "page_size", "total_pages"],
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "total_pages"
+        ],
         "title": "PortalListPaginatedResponse",
         "description": "Paginated response for portal list."
       },
@@ -4881,7 +5285,12 @@
           }
         },
         "type": "object",
-        "required": ["portal_id", "name", "is_active", "created_at"],
+        "required": [
+          "portal_id",
+          "name",
+          "is_active",
+          "created_at"
+        ],
         "title": "PortalListResponse",
         "description": "Portal response with additional details for super admin."
       },
@@ -4898,7 +5307,10 @@
           }
         },
         "type": "object",
-        "required": ["portal_name", "admin_email"],
+        "required": [
+          "portal_name",
+          "admin_email"
+        ],
         "title": "PortalOnboardingRequest"
       },
       "PortalResponse": {
@@ -4933,7 +5345,12 @@
           }
         },
         "type": "object",
-        "required": ["portal_id", "name", "is_active", "created_at"],
+        "required": [
+          "portal_id",
+          "name",
+          "is_active",
+          "created_at"
+        ],
         "title": "PortalResponse"
       },
       "PortalRevokeRequest": {
@@ -4958,7 +5375,9 @@
           }
         },
         "type": "object",
-        "required": ["is_active"],
+        "required": [
+          "is_active"
+        ],
         "title": "PortalRevokeRequest",
         "description": "Request to revoke/unrevoke a portal."
       },
@@ -4971,7 +5390,9 @@
           }
         },
         "type": "object",
-        "required": ["refresh_token"],
+        "required": [
+          "refresh_token"
+        ],
         "title": "RefreshTokenRequest",
         "description": "Request schema for refreshing access token.",
         "example": {
@@ -5002,7 +5423,10 @@
           }
         },
         "type": "object",
-        "required": ["id", "name"],
+        "required": [
+          "id",
+          "name"
+        ],
         "title": "RoleResponse",
         "description": "Response schema for role information.",
         "example": {
@@ -5093,7 +5517,10 @@
           }
         },
         "type": "object",
-        "required": ["event_type", "timestamp"],
+        "required": [
+          "event_type",
+          "timestamp"
+        ],
         "title": "UserActivityResponse",
         "description": "Response schema for user activity history.",
         "example": {
@@ -5122,7 +5549,9 @@
           }
         },
         "type": "object",
-        "required": ["users"],
+        "required": [
+          "users"
+        ],
         "title": "UserBulkCreateRequest",
         "description": "Request schema for bulk user creation.",
         "example": {
@@ -5130,13 +5559,17 @@
             {
               "email": "user1@example.com",
               "portal_id": "PORTAL001",
-              "role_names": ["portal_user"],
+              "role_names": [
+                "portal_user"
+              ],
               "send_otp": false
             },
             {
               "email": "user2@example.com",
               "portal_id": "PORTAL001",
-              "role_names": ["portal_admin"],
+              "role_names": [
+                "portal_admin"
+              ],
               "send_otp": false
             }
           ]
@@ -5166,12 +5599,16 @@
           }
         },
         "type": "object",
-        "required": ["user_ids"],
+        "required": [
+          "user_ids"
+        ],
         "title": "UserBulkDeactivateRequest",
         "description": "Request schema for bulk user deactivation.",
         "example": {
           "reason": "Account cleanup",
-          "user_ids": ["123e4567-e89b-12d3-a456-426614174000"]
+          "user_ids": [
+            "123e4567-e89b-12d3-a456-426614174000"
+          ]
         }
       },
       "UserBulkRoleAssignRequest": {
@@ -5194,12 +5631,19 @@
           }
         },
         "type": "object",
-        "required": ["user_ids", "role_names"],
+        "required": [
+          "user_ids",
+          "role_names"
+        ],
         "title": "UserBulkRoleAssignRequest",
         "description": "Request schema for bulk role assignment.",
         "example": {
-          "role_names": ["portal_admin"],
-          "user_ids": ["123e4567-e89b-12d3-a456-426614174000"]
+          "role_names": [
+            "portal_admin"
+          ],
+          "user_ids": [
+            "123e4567-e89b-12d3-a456-426614174000"
+          ]
         }
       },
       "UserDeactivateRequest": {
@@ -5265,7 +5709,12 @@
           }
         },
         "type": "object",
-        "required": ["id", "email", "is_active", "created_at"],
+        "required": [
+          "id",
+          "email",
+          "is_active",
+          "created_at"
+        ],
         "title": "UserDetailResponse",
         "description": "Detailed response schema for user information including roles.",
         "example": {
@@ -5310,7 +5759,13 @@
           }
         },
         "type": "object",
-        "required": ["items", "total", "page", "page_size", "total_pages"],
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "total_pages"
+        ],
         "title": "UserListPaginatedResponse",
         "description": "Paginated response for user list."
       },
@@ -5355,7 +5810,12 @@
           }
         },
         "type": "object",
-        "required": ["id", "email", "is_active", "created_at"],
+        "required": [
+          "id",
+          "email",
+          "is_active",
+          "created_at"
+        ],
         "title": "UserListResponse",
         "description": "List response schema for user information with role names.",
         "example": {
@@ -5364,7 +5824,10 @@
           "id": "123e4567-e89b-12d3-a456-426614174000",
           "is_active": true,
           "portal_id": "PORTAL001",
-          "role_names": ["portal_user", "portal_admin"]
+          "role_names": [
+            "portal_user",
+            "portal_admin"
+          ]
         }
       },
       "UserRoleAssignRequest": {
@@ -5379,11 +5842,16 @@
           }
         },
         "type": "object",
-        "required": ["role_names"],
+        "required": [
+          "role_names"
+        ],
         "title": "UserRoleAssignRequest",
         "description": "Request schema for assigning roles to a user.",
         "example": {
-          "role_names": ["portal_admin", "portal_user"]
+          "role_names": [
+            "portal_admin",
+            "portal_user"
+          ]
         }
       },
       "UserRoleRemoveRequest": {
@@ -5398,11 +5866,15 @@
           }
         },
         "type": "object",
-        "required": ["role_names"],
+        "required": [
+          "role_names"
+        ],
         "title": "UserRoleRemoveRequest",
         "description": "Request schema for removing roles from a user.",
         "example": {
-          "role_names": ["portal_user"]
+          "role_names": [
+            "portal_user"
+          ]
         }
       },
       "ValidationError": {
@@ -5431,7 +5903,11 @@
           }
         },
         "type": "object",
-        "required": ["loc", "msg", "type"],
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
         "title": "ValidationError"
       },
       "VerifyDocumentRequest": {
@@ -5442,7 +5918,9 @@
           }
         },
         "type": "object",
-        "required": ["signed_file_hash"],
+        "required": [
+          "signed_file_hash"
+        ],
         "title": "VerifyDocumentRequest"
       },
       "VerifyDocumentResponse": {
@@ -5492,7 +5970,10 @@
           }
         },
         "type": "object",
-        "required": ["valid", "message"],
+        "required": [
+          "valid",
+          "message"
+        ],
         "title": "VerifyDocumentResponse"
       },
       "app__portals__schemas__UserCreateRequest": {
@@ -5516,7 +5997,10 @@
           }
         },
         "type": "object",
-        "required": ["email", "role_names"],
+        "required": [
+          "email",
+          "role_names"
+        ],
         "title": "UserCreateRequest"
       },
       "app__portals__schemas__UserUpdateRequest": {
@@ -5570,13 +6054,17 @@
           }
         },
         "type": "object",
-        "required": ["email"],
+        "required": [
+          "email"
+        ],
         "title": "UserCreateRequest",
         "description": "Request schema for creating a new user.",
         "example": {
           "email": "user@example.com",
           "portal_id": "PORTAL001",
-          "role_names": ["portal_user"],
+          "role_names": [
+            "portal_user"
+          ],
           "send_otp": true
         }
       },

@@ -59,7 +59,7 @@ export function RecentActivityTable({
         cell: ({ row }) => (
           <Badge
             variant={getEventBadgeVariant(row.original.event_type)}
-            className="font-mono text-xs"
+            className="font-mono text-xs font-medium shadow-sm"
           >
             {row.original.event_type}
           </Badge>
@@ -80,7 +80,7 @@ export function RecentActivityTable({
         accessorKey: "timestamp",
         header: "Timestamp",
         cell: ({ row }) => (
-          <span className="text-sm text-gray-600">
+          <span className="text-sm font-medium text-gray-700">
             {format(new Date(row.original.timestamp), "dd/MM/yyyy, HH:mm:ss")}
           </span>
         ),
@@ -98,17 +98,20 @@ export function RecentActivityTable({
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Select
-          value={params.event_type || "all"}
-          onValueChange={(value) =>
-            onParamsChange({ ...params, event_type: value === "all" ? undefined : value, page: 1 })
-          }
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="All Events" />
-          </SelectTrigger>
+    <div className="space-y-3 sm:space-y-4">
+      {/* Filters - Mobile Optimized */}
+      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50/80 to-gray-50/40 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+        <div className="flex-1">
+          <label className="mb-1.5 block text-xs font-medium text-gray-600 sm:hidden">Event Type</label>
+          <Select
+            value={params.event_type || "all"}
+            onValueChange={(value) =>
+              onParamsChange({ ...params, event_type: value === "all" ? undefined : value, page: 1 })
+            }
+          >
+            <SelectTrigger className="h-10 w-full bg-white text-sm shadow-sm transition-all focus:ring-2 focus:ring-blue-500 sm:h-11 sm:w-[200px] sm:text-base">
+              <SelectValue placeholder="All Events" />
+            </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Events</SelectItem>
             <SelectItem value="profile:update">Profile Updates</SelectItem>
@@ -116,6 +119,7 @@ export function RecentActivityTable({
             <SelectItem value="user:logout">Logout Events</SelectItem>
           </SelectContent>
         </Select>
+        </div>
       </div>
 
       <TanstackTable

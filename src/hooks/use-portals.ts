@@ -48,6 +48,14 @@ export function usePortalUsageSummary(params?: ApiUsageQueryParams) {
   });
 }
 
+export function usePortalSpecificUsageSummary(portalId: string, params?: ApiUsageQueryParams) {
+  return useQuery({
+    queryKey: ["portal-usage-summary", portalId, params],
+    queryFn: () => portalsApi.getPortalUsageSummary(portalId, params),
+    enabled: !!portalId,
+  });
+}
+
 export function useOnboardPortal() {
   const queryClient = useQueryClient();
 

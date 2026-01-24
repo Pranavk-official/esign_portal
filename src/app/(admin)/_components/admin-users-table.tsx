@@ -112,11 +112,11 @@ export function AdminUsersTable({
         accessorKey: "email",
         header: "User",
         cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-xs font-bold text-white shadow-sm sm:h-10 sm:w-10">
               {getInitials(row.original.email)}
             </div>
-            <span className="text-sm font-medium">{row.original.email}</span>
+            <span className="truncate text-sm font-medium text-gray-900 sm:text-base">{row.original.email}</span>
           </div>
         ),
       },
@@ -161,12 +161,17 @@ export function AdminUsersTable({
       },
       {
         id: "actions",
-        header: "Actions",
+        header: () => <span className="sr-only">Actions</span>,
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-9 w-9 touch-manipulation transition-all hover:bg-gray-100 active:scale-95 sm:h-10 sm:w-10"
+              >
                 <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -214,56 +219,65 @@ export function AdminUsersTable({
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-gray-100 bg-gray-50/50 p-4">
-        <div className="min-w-[300px] flex-1">
+    <div className="space-y-3 sm:space-y-4">
+      {/* Filters - Mobile Optimized */}
+      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50/80 to-gray-50/40 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+        {/* Search - Full Width on Mobile */}
+        <div className="mb-3 sm:mb-4">
           <Input
             placeholder="Search by email..."
             value={params.search || ""}
             onChange={(e) => onParamsChange({ ...params, search: e.target.value, page: 1 })}
-            className="max-w-md bg-white"
+            className="h-10 w-full bg-white text-sm shadow-sm transition-shadow focus:shadow-md sm:h-11 sm:max-w-md sm:text-base"
           />
         </div>
 
-        <div className="flex items-center gap-4">
-          <Select
-            value={params.role_name || "all"}
-            onValueChange={(value) =>
-              onParamsChange({ ...params, role_name: value === "all" ? undefined : value, page: 1 })
-            }
-          >
-            <SelectTrigger className="w-[180px] bg-white">
-              <SelectValue placeholder="All Roles" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              <SelectItem value="super_admin">Super Admin</SelectItem>
-              <SelectItem value="portal_admin">Portal Admin</SelectItem>
-              <SelectItem value="portal_user">Portal User</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Filters - Stack on Mobile, Row on Desktop */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <div className="flex-1">
+            <label className="mb-1.5 block text-xs font-medium text-gray-600 sm:hidden">Role</label>
+            <Select
+              value={params.role_name || "all"}
+              onValueChange={(value) =>
+                onParamsChange({ ...params, role_name: value === "all" ? undefined : value, page: 1 })
+              }
+            >
+              <SelectTrigger className="h-10 w-full bg-white text-sm shadow-sm transition-all focus:ring-2 focus:ring-blue-500 sm:h-11 sm:w-[180px] sm:text-base">
+                <SelectValue placeholder="All Roles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="super_admin">Super Admin</SelectItem>
+                <SelectItem value="portal_admin">Portal Admin</SelectItem>
+                <SelectItem value="portal_user">Portal User</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Select
-            value={
-              params.is_active === undefined ? "all" : params.is_active ? "active" : "inactive"
-            }
-            onValueChange={(value) =>
-              onParamsChange({
-                ...params,
-                is_active: value === "all" ? undefined : value === "active",
-                page: 1,
-              })
-            }
-          >
-            <SelectTrigger className="w-[150px] bg-white">
-              <SelectValue placeholder="All Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex-1">
+            <label className="mb-1.5 block text-xs font-medium text-gray-600 sm:hidden">Status</label>
+            <Select
+              value={
+                params.is_active === undefined ? "all" : params.is_active ? "active" : "inactive"
+              }
+              onValueChange={(value) =>
+                onParamsChange({
+                  ...params,
+                  is_active: value === "all" ? undefined : value === "active",
+                  page: 1,
+                })
+              }
+            >
+              <SelectTrigger className="h-10 w-full bg-white text-sm shadow-sm transition-all focus:ring-2 focus:ring-blue-500 sm:h-11 sm:w-[160px] sm:text-base">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 

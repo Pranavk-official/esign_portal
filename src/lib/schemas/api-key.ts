@@ -73,6 +73,11 @@ export const apiKeyTxnCountUpdateSchema = z
     }
   );
 
+export const apiKeyTxnCountFormSchema = z.object({
+  max_txn_count: z.string().optional(),
+  max_txn_count_threshold: z.string().optional(),
+});
+
 export const callbackUrlUpdateSchema = z.object({
   callback_url: z
     .url("Callback URL must be a valid URL")
@@ -108,6 +113,7 @@ export const apiKeyGenerateResponseSchema = z.object({
 export type ApiKeyGenerateRequest = z.infer<typeof apiKeyGenerateSchema>;
 export type ApiKeyRevokeRequest = z.infer<typeof apiKeyRevokeSchema>;
 export type ApiKeyTxnCountUpdateRequest = z.infer<typeof apiKeyTxnCountUpdateSchema>;
+export type ApiKeyTxnCountFormData = z.infer<typeof apiKeyTxnCountFormSchema>;
 export type CallbackUrlUpdateRequest = z.infer<typeof callbackUrlUpdateSchema>;
 
 // Response type exports

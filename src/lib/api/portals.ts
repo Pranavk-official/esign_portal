@@ -94,6 +94,14 @@ export const portalsApi = {
     return response.data;
   },
 
+  updateKeyCallback: async (portalId: string, keyId: string, callbackUrl: string | null) => {
+    const response = await apiClient.put<ApiKeyResponse>(
+      `/admin/portals/${portalId}/keys/${keyId}/callback`,
+      { callback_url: callbackUrl }
+    );
+    return response.data;
+  },
+
   // Usage and metrics
   getMetrics: async () => {
     const response = await apiClient.get<MetricsResponse>("/admin/portals/me/metrics");
@@ -104,6 +112,15 @@ export const portalsApi = {
     const response = await apiClient.get<ApiUsageSummary>("/admin/portals/me/usage/summary", {
       params,
     });
+    return response.data;
+  },
+
+  // Get usage summary for a specific portal (Super Admin)
+  getPortalUsageSummary: async (portalId: string, params?: ApiUsageQueryParams) => {
+    const response = await apiClient.get<ApiUsageSummary>(
+      `/admin/portals/${portalId}/usage/summary`,
+      { params }
+    );
     return response.data;
   },
 
