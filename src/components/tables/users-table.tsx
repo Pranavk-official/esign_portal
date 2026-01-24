@@ -1,11 +1,10 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
 import { Edit, MoreHorizontal, Power, PowerOff } from "lucide-react";
 import { useMemo } from "react";
 
+import { Column, DataTable } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { TanstackTable } from "@/components/shared/tanstack-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDataTable } from "@/hooks/use-data-table";
 import type { UserListResponse } from "@/lib/api/types";
 
 interface UsersTableProps {
@@ -60,17 +58,18 @@ export function UsersTable({
   onEdit,
   onToggleStatus,
 }: UsersTableProps) {
-  const columns = useMemo<ColumnDef<UserListResponse>[]>(
+  const allSelected = users.length > 0 && selectedUsers.length === users.length;
+
+  const columns = useMemo<Column<UserListResponse>[]>(
     () => [
       ...(onSelectedUsersChange
         ? [
             {
               id: "select",
-              header: ({ table }: any) => (
+              header: (
                 <Checkbox
-                  checked={table.getIsAllPageRowsSelected()}
+                  checked={allSelected}
                   onCheckedChange={(value) => {
-                    table.toggleAllPageRowsSelected(!!value);
                     if (value) {
                       onSelectedUsersChange(users.map((u) => u.id));
                     } else {
@@ -80,50 +79,48 @@ export function UsersTable({
                   aria-label="Select all"
                 />
               ),
-              cell: ({ row }: any) => (
+              cell: (row: UserListResponse) => (
                 <Checkbox
-                  checked={selectedUsers.includes(row.original.id)}
+                  checked={selectedUsers.includes(row.id)}
                   onCheckedChange={(value) => {
                     if (value) {
-                      onSelectedUsersChange([...selectedUsers, row.original.id]);
+                      onSelectedUsersChange([...selectedUsers, row.id]);
                     } else {
-                      onSelectedUsersChange(selectedUsers.filter((id) => id !== row.original.id));
+                      onSelectedUsersChange(selectedUsers.filter((id) => id !== row.id));
                     }
                   }}
                   aria-label="Select row"
                 />
               ),
-              enableSorting: false,
-              enableHiding: false,
-            } as ColumnDef<UserListResponse>,
+            } as Column<UserListResponse>,
           ]
         : []),
       {
-        accessorKey: "email",
+        id: "email",
         header: "User",
-        cell: ({ row }) => (
+        cell: (row) => (
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-xs font-bold text-white shadow-sm sm:h-10 sm:w-10">
-              {getInitials(row.original.email)}
+              {getInitials(row.email)}
             </div>
-            <span className="truncate text-sm text-gray-900 sm:text-base">{row.original.email}</span>
+            <span className="truncate text-sm text-gray-900 sm:text-base">{row.email}</span>
           </div>
         ),
       },
       {
-        accessorKey: "portal_id",
+        id: "portal_id",
         header: "Portal",
-        cell: ({ row }) => (
+        cell: (row) => (
           <Badge variant="outline" className="text-xs font-medium shadow-sm">
-            {row.original.portal_id || "Global"}
+            {row.portal_id || "Global"}
           </Badge>
         ),
       },
       {
         id: "roles",
         header: "Roles",
-        cell: ({ row }) => {
-          const roleNames = row.original.role_names;
+        cell: (row) => {
+          const roleNames = row.role_names;
           
           if (!roleNames || roleNames.length === 0) {
             return <span className="text-xs text-muted-foreground">No roles</span>;
@@ -141,14 +138,14 @@ export function UsersTable({
         },
       },
       {
-        accessorKey: "is_active",
+        id: "is_active",
         header: "Status",
-        cell: ({ row }) => <StatusBadge status={row.original.is_active} showIcon={true} />,
+        cell: (row) => <StatusBadge status={row.is_active} showIcon={true} />,
       },
       {
         id: "actions",
         header: () => <span className="sr-only">Actions</span>,
-        cell: ({ row }) => (
+        cell: (row) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
@@ -162,7 +159,7 @@ export function UsersTable({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {onEdit && (
-                <DropdownMenuItem onClick={() => onEdit(row.original)}>
+                <DropdownMenuItem onClick={() => onEdit(row)}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Roles
                 </DropdownMenuItem>
@@ -171,10 +168,10 @@ export function UsersTable({
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => onToggleStatus(row.original)}
-                    className={row.original.is_active ? "text-destructive" : "text-green-600"}
+                    onClick={() => onToggleStatus(row)}
+                    className={row.is_active ? "text-destructive" : "text-green-600"}
                   >
-                    {row.original.is_active ? (
+                    {row.is_active ? (
                       <>
                         <PowerOff className="mr-2 h-4 w-4" />
                         Deactivate
@@ -193,16 +190,8 @@ export function UsersTable({
         ),
       },
     ],
-    [users, selectedUsers, onSelectedUsersChange, onEdit, onToggleStatus]
+    [users, selectedUsers, onSelectedUsersChange, onEdit, onToggleStatus, allSelected]
   );
-
-  const { table } = useDataTable({
-    columns,
-    data: users,
-    totalCount: total,
-    onParamsChange,
-    initialParams: params,
-  });
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -267,11 +256,16 @@ export function UsersTable({
         </div>
       </div>
 
-      <TanstackTable
-        table={table}
+      <DataTable
+        columns={columns}
+        data={users}
         totalCount={total}
         isLoading={isLoading}
         emptyMessage="No users found"
+        page={params.page || 1}
+        pageSize={params.page_size || 20}
+        onPageChange={(page) => onParamsChange({ ...params, page })}
+        onPageSizeChange={(pageSize) => onParamsChange({ ...params, page_size: pageSize, page: 1 })}
       />
     </div>
   );

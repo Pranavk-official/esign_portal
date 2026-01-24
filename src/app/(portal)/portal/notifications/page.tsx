@@ -30,7 +30,7 @@ export default function PortalNotificationsPage() {
             </div>
             <h3 className="mb-2 text-lg font-semibold">No Notifications Yet</h3>
             <p className="text-muted-foreground mb-4 max-w-sm text-sm">
-              You don't have any notifications at the moment. We'll notify you when there are
+              You don&apos;t have any notifications at the moment. We&apos;ll notify you when there are
               important updates or actions that require your attention.
             </p>
             <Button variant="outline" disabled>

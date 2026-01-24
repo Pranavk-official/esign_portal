@@ -1,11 +1,10 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
 import { Edit, MoreHorizontal, Power, PowerOff, Shield, User } from "lucide-react";
 import { useMemo } from "react";
 
+import { Column, DataTable } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { TanstackTable } from "@/components/shared/tanstack-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDataTable } from "@/hooks/use-data-table";
 import type { UserListResponse } from "@/lib/api/types";
 
 interface PortalUsersTableProps {
@@ -70,21 +68,21 @@ export function PortalUsersTable({
   onEdit,
   onToggleStatus,
 }: PortalUsersTableProps) {
-  const columns = useMemo<ColumnDef<UserListResponse>[]>(
+  const columns = useMemo<Column<UserListResponse>[]>(
     () => [
       {
-        accessorKey: "email",
+        id: "email",
         header: "Team Member",
-        cell: ({ row }) => (
+        cell: (row) => (
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-sm font-bold text-white shadow-sm">
-              {getInitials(row.original.email)}
+              {getInitials(row.email)}
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-medium">{row.original.email}</span>
+              <span className="text-sm font-medium">{row.email}</span>
               <span className="text-xs text-muted-foreground">
-                {row.original.role_names?.[0]
-                  ? formatRoleName(row.original.role_names[0])
+                {row.role_names?.[0]
+                  ? formatRoleName(row.role_names[0])
                   : "No role"}
               </span>
             </div>
@@ -94,8 +92,8 @@ export function PortalUsersTable({
       {
         id: "roles",
         header: "Roles & Permissions",
-        cell: ({ row }) => {
-          const roleNames = row.original.role_names?.filter(
+        cell: (row) => {
+          const roleNames = row.role_names?.filter(
             (role) => role === "portal_admin" || role === "portal_user"
           );
 
@@ -127,14 +125,14 @@ export function PortalUsersTable({
         },
       },
       {
-        accessorKey: "is_active",
+        id: "is_active",
         header: "Status",
-        cell: ({ row }) => <StatusBadge status={row.original.is_active} showIcon={true} />,
+        cell: (row) => <StatusBadge status={row.is_active} showIcon={true} />,
       },
       {
         id: "actions",
         header: "Actions",
-        cell: ({ row }) => (
+        cell: (row) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -143,7 +141,7 @@ export function PortalUsersTable({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {onEdit && (
-                <DropdownMenuItem onClick={() => onEdit(row.original)}>
+                <DropdownMenuItem onClick={() => onEdit(row)}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Roles
                 </DropdownMenuItem>
@@ -152,10 +150,10 @@ export function PortalUsersTable({
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => onToggleStatus(row.original)}
-                    className={row.original.is_active ? "text-destructive" : "text-green-600"}
+                    onClick={() => onToggleStatus(row)}
+                    className={row.is_active ? "text-destructive" : "text-green-600"}
                   >
-                    {row.original.is_active ? (
+                    {row.is_active ? (
                       <>
                         <PowerOff className="mr-2 h-4 w-4" />
                         Deactivate
@@ -176,14 +174,6 @@ export function PortalUsersTable({
     ],
     [onEdit, onToggleStatus]
   );
-
-  const { table } = useDataTable({
-    columns,
-    data: users,
-    totalCount: total,
-    onParamsChange,
-    initialParams: params,
-  });
 
   return (
     <div className="space-y-4">
@@ -238,11 +228,16 @@ export function PortalUsersTable({
         </div>
       </div>
 
-      <TanstackTable
-        table={table}
+      <DataTable
+        columns={columns}
+        data={users}
         totalCount={total}
         isLoading={isLoading}
         emptyMessage="No team members found. Add your first team member to get started."
+        page={params.page || 1}
+        pageSize={params.page_size || 20}
+        onPageChange={(page) => onParamsChange({ ...params, page })}
+        onPageSizeChange={(page_size) => onParamsChange({ ...params, page_size, page: 1 })}
       />
     </div>
   );

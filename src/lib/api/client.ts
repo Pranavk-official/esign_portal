@@ -103,7 +103,7 @@ apiClient.interceptors.response.use(
 
         // Retry original request - browser will automatically attach the new access_token cookie
         return apiClient(originalRequest);
-      } catch (refreshError) {
+      } catch {
         // Refresh failed - clear auth state and redirect to login
         useAuthStore.getState().clearAuth();
 

@@ -27,7 +27,7 @@ export default function RecentActivityPage() {
   });
 
   const activities = data?.data || [];
-  const totalPages = data?.total_pages || 0;
+  const _totalPages = data?.total_pages || 0;
 
   const handleParamsChange = (newParams: Record<string, number | string>) => {
     setParams((prev) => ({ ...prev, ...newParams }));

@@ -1,10 +1,9 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useMemo } from "react";
 
-import { TanstackTable } from "@/components/shared/tanstack-table";
+import { Column, DataTable } from "@/components/shared/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDataTable } from "@/hooks/use-data-table";
 import type { AuditLogRecord } from "@/lib/schemas/audit-log";
 
 interface AuditLogsTableProps {
@@ -37,71 +35,63 @@ export function AuditLogsTable({
   params,
   onParamsChange,
 }: AuditLogsTableProps) {
-  const columns = useMemo<ColumnDef<AuditLogRecord>[]>(
+  const columns = useMemo<Column<AuditLogRecord>[]>(
     () => [
       {
-        accessorKey: "user_email",
+        id: "user_email",
         header: "User",
-        cell: ({ row }) => (
+        cell: (row) => (
           <span className="text-sm font-medium text-gray-900">
-            {row.original.user_email || row.original.user_id || "-"}
+            {row.user_email || row.user_id || "-"}
           </span>
         ),
       },
       {
-        accessorKey: "event_type",
+        id: "event_type",
         header: "Action",
-        cell: ({ row }) => (
+        cell: (row) => (
           <Badge variant="outline" className="font-mono text-xs font-medium shadow-sm">
-            {row.original.event_type}
+            {row.event_type}
           </Badge>
         ),
       },
       {
-        accessorKey: "resource_type",
+        id: "resource_type",
         header: "Resource",
-        cell: ({ row }) => (
+        cell: (row) => (
           <div className="text-sm">
-            <div className="font-semibold text-gray-900">{row.original.resource_type || "-"}</div>
-            {row.original.resource_id && (
+            <div className="font-semibold text-gray-900">{row.resource_type || "-"}</div>
+            {row.resource_id && (
               <div className="font-mono text-xs text-gray-500">
-                {row.original.resource_id.slice(0, 8)}...
+                {row.resource_id.slice(0, 8)}...
               </div>
             )}
           </div>
         ),
       },
       {
-        accessorKey: "details",
+        id: "details",
         header: "Details",
-        cell: ({ row }) => (
+        cell: (row) => (
           <div className="max-w-xs">
             <code className="text-xs whitespace-pre-wrap text-gray-600">
-              {formatDetails(row.original.details)}
+              {formatDetails(row.details)}
             </code>
           </div>
         ),
       },
       {
-        accessorKey: "timestamp",
+        id: "timestamp",
         header: "Timestamp",
-        cell: ({ row }) => (
+        cell: (row) => (
           <span className="text-sm text-gray-600">
-            {format(new Date(row.original.timestamp), "dd/MM/yyyy, HH:mm:ss")}
+            {format(new Date(row.timestamp), "dd/MM/yyyy, HH:mm:ss")}
           </span>
         ),
       },
     ],
     []
   );
-
-  const { table } = useDataTable({
-    columns,
-    data: logs,
-    totalCount: total,
-    onParamsChange,
-    initialParams: params,
-  });
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -169,11 +159,16 @@ export function AuditLogsTable({
         </div>
       </div>
 
-      <TanstackTable
-        table={table}
+      <DataTable
+        columns={columns}
+        data={logs}
         totalCount={total}
         isLoading={isLoading}
         emptyMessage="No audit logs found"
+        page={params.page || 1}
+        pageSize={params.page_size || 20}
+        onPageChange={(page) => onParamsChange({ ...params, page })}
+        onPageSizeChange={(page_size) => onParamsChange({ ...params, page_size, page: 1 })}
       />
     </div>
   );

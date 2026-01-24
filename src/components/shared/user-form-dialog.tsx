@@ -81,7 +81,8 @@ export function UserFormDialog({
           role_names: roleNames,
           send_otp: false,
         });
-        setSelectedRoles(roleNames);
+        // Use setTimeout to defer state update to next tick
+        setTimeout(() => setSelectedRoles(roleNames), 0);
       } else {
         form.reset({
           email: "",
@@ -89,7 +90,7 @@ export function UserFormDialog({
           role_names: [],
           send_otp: true,
         });
-        setSelectedRoles([]);
+        setTimeout(() => setSelectedRoles([]), 0);
       }
     }
   }, [open, user, mode, form]);

@@ -25,8 +25,6 @@ type AppHeaderProps = {
 export function AppHeader({
   navLinks,
   baseHref,
-  showUserEmail = false,
-  userEmail = "user@example.com",
 }: AppHeaderProps) {
   const pathname = usePathname();
 

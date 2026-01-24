@@ -1,11 +1,10 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Calendar, ChevronDown, ChevronUp, Filter, MoreHorizontal, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
-import { TanstackTable } from "@/components/shared/tanstack-table";
+import { Column, DataTable } from "@/components/shared/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -23,7 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDataTable } from "@/hooks/use-data-table";
 import { ApiUsageRecord } from "@/lib/api/usage";
 
 interface ApiUsageTableProps {
@@ -67,32 +65,32 @@ export function ApiUsageTable({
     setExpandedRows(newExpanded);
   }, [expandedRows]);
 
-  const columns = useMemo<ColumnDef<ApiUsageRecord>[]>(
+  const columns = useMemo<Column<ApiUsageRecord>[]>(
     () => [
       {
-        accessorKey: "gateway_txn_id",
+        id: "gateway_txn_id",
         header: "Transaction Details",
-        cell: ({ row }) => {
-          const isExpanded = expandedRows.has(row.original.gateway_txn_id);
+        cell: (row) => {
+          const isExpanded = expandedRows.has(row.gateway_txn_id);
           return (
             <div className="py-1">
               {/* Mobile Layout */}
               <div className="sm:hidden">
                 <button
-                  onClick={() => toggleRow(row.original.gateway_txn_id)}
+                  onClick={() => toggleRow(row.gateway_txn_id)}
                   className="w-full text-left active:bg-gray-50 rounded-lg -m-2 p-2 transition-colors touch-manipulation"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex-1 min-w-0">
-                      <div className="font-mono text-xs font-medium text-gray-900 truncate mb-1" title={row.original.gateway_txn_id}>
-                        {row.original.gateway_txn_id.slice(0, 16)}...
+                      <div className="font-mono text-xs font-medium text-gray-900 truncate mb-1" title={row.gateway_txn_id}>
+                        {row.gateway_txn_id.slice(0, 16)}...
                       </div>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <Badge variant={getStatusVariant(row.original.status)} className="text-[10px] px-1.5 py-0.5 font-medium">
-                          {row.original.status}
+                        <Badge variant={getStatusVariant(row.status)} className="text-[10px] px-1.5 py-0.5 font-medium">
+                          {row.status}
                         </Badge>
                         <span className="text-[10px] text-gray-500">
-                          {row.original.created_at ? format(new Date(row.original.created_at), "dd/MM/yy HH:mm") : "-"}
+                          {row.created_at ? format(new Date(row.created_at), "dd/MM/yy HH:mm") : "-"}
                         </span>
                       </div>
                     </div>
@@ -108,28 +106,28 @@ export function ApiUsageTable({
                       <div className="flex justify-between">
                         <span className="text-gray-500">Portal:</span>
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
-                          {row.original.portal_id}
+                          {row.portal_id}
                         </Badge>
                       </div>
-                      {row.original.api_key_name && (
+                      {row.api_key_name && (
                         <div className="flex justify-between">
                           <span className="text-gray-500">API Key:</span>
-                          <span className="font-medium text-gray-700 truncate max-w-[60%]" title={row.original.api_key_name}>
-                            {row.original.api_key_name}
+                          <span className="font-medium text-gray-700 truncate max-w-[60%]" title={row.api_key_name}>
+                            {row.api_key_name}
                           </span>
                         </div>
                       )}
-                      {row.original.auth_mode && (
+                      {row.auth_mode && (
                         <div className="flex justify-between">
                           <span className="text-gray-500">Auth Mode:</span>
-                          <span className="font-medium text-gray-700">{row.original.auth_mode}</span>
+                          <span className="font-medium text-gray-700">{row.auth_mode}</span>
                         </div>
                       )}
                       <div className="flex justify-between">
                         <span className="text-gray-500">Full Transaction ID:</span>
                       </div>
                       <div className="font-mono text-[10px] bg-gray-50 p-2 rounded break-all text-gray-700">
-                        {row.original.gateway_txn_id}
+                        {row.gateway_txn_id}
                       </div>
                     </div>
                   )}
@@ -138,8 +136,8 @@ export function ApiUsageTable({
 
               {/* Desktop Layout */}
               <div className="hidden sm:block">
-                <div className="font-mono text-sm text-gray-900 truncate max-w-[220px] lg:max-w-[280px]" title={row.original.gateway_txn_id}>
-                  {row.original.gateway_txn_id}
+                <div className="font-mono text-sm text-gray-900 truncate max-w-[220px] lg:max-w-[280px]" title={row.gateway_txn_id}>
+                  {row.gateway_txn_id}
                 </div>
               </div>
             </div>
@@ -147,71 +145,59 @@ export function ApiUsageTable({
         },
       },
       {
-        accessorKey: "portal_id",
+        id: "portal_id",
         header: "Portal / Key",
-        cell: ({ row }) => (
+        cell: (row) => (
           <div className="flex flex-col gap-1.5 min-w-[140px]">
             <Badge variant="outline" className="w-fit text-xs px-2 py-0.5 font-medium">
-              {row.original.portal_id}
+              {row.portal_id}
             </Badge>
-            {row.original.api_key_name && (
-              <span className="text-muted-foreground text-xs truncate max-w-[160px]" title={row.original.api_key_name}>
-                {row.original.api_key_name}
+            {row.api_key_name && (
+              <span className="text-muted-foreground text-xs truncate max-w-[160px]" title={row.api_key_name}>
+                {row.api_key_name}
               </span>
             )}
           </div>
         ),
-        meta: {
-          className: "hidden sm:table-cell",
-        },
       },
       {
-        accessorKey: "status",
+        id: "status",
         header: "Status",
-        cell: ({ row }) => (
-          <Badge variant={getStatusVariant(row.original.status)} className="text-xs whitespace-nowrap font-medium">
-            {row.original.status}
+        cell: (row) => (
+          <Badge variant={getStatusVariant(row.status)} className="text-xs whitespace-nowrap font-medium">
+            {row.status}
           </Badge>
         ),
-        meta: {
-          className: "hidden sm:table-cell",
-        },
       },
       {
-        accessorKey: "auth_mode",
+        id: "auth_mode",
         header: "Auth Mode",
-        cell: ({ row }) => (
-          <span className="text-sm text-gray-700 whitespace-nowrap font-medium">{row.original.auth_mode || "-"}</span>
+        cell: (row) => (
+          <span className="text-sm text-gray-700 whitespace-nowrap font-medium">{row.auth_mode || "-"}</span>
         ),
-        meta: {
-          className: "hidden lg:table-cell",
-        },
       },
       {
-        accessorKey: "created_at",
+        id: "created_at",
         header: "Created At",
-        cell: ({ row }) => (
+        cell: (row) => (
           <div className="flex flex-col min-w-[120px]">
             <span className="text-sm text-gray-900 whitespace-nowrap font-medium">
-              {row.original.created_at
-                ? format(new Date(row.original.created_at), "dd/MM/yyyy")
+              {row.created_at
+                ? format(new Date(row.created_at), "dd/MM/yyyy")
                 : "-"}
             </span>
             <span className="text-xs text-gray-500">
-              {row.original.created_at
-                ? format(new Date(row.original.created_at), "HH:mm:ss")
+              {row.created_at
+                ? format(new Date(row.created_at), "HH:mm:ss")
                 : ""}
             </span>
           </div>
         ),
-        meta: {
-          className: "hidden sm:table-cell",
-        },
       },
       {
         id: "actions",
-        header: () => <span className="sr-only">Actions</span>,
-        cell: ({ row: _row }) => (
+        header: "",
+        cell: (_row) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
@@ -229,21 +215,10 @@ export function ApiUsageTable({
             </DropdownMenuContent>
           </DropdownMenu>
         ),
-        meta: {
-          className: "hidden sm:table-cell w-[50px]",
-        },
       },
     ],
     [expandedRows, toggleRow]
   );
-
-  const { table } = useDataTable({
-    columns,
-    data: records,
-    totalCount: total,
-    onParamsChange,
-    initialParams: params,
-  });
 
   const hasActiveFilters = params.status || params.start_date || params.end_date;
 
@@ -437,11 +412,16 @@ export function ApiUsageTable({
       {/* Table */}
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
         <div className="overflow-x-auto overscroll-x-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <TanstackTable
-            table={table}
+          <DataTable
+            columns={columns}
+            data={records}
             totalCount={total}
             isLoading={isLoading}
             emptyMessage="No API usage records found"
+            page={params.page || 1}
+            pageSize={params.page_size || 20}
+            onPageChange={(page) => onParamsChange({ ...params, page })}
+            onPageSizeChange={(page_size) => onParamsChange({ ...params, page_size, page: 1 })}
           />
         </div>
       </div>

@@ -1,11 +1,10 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useMemo } from "react";
 
-import { TanstackTable } from "@/components/shared/tanstack-table";
+import { Column, DataTable } from "@/components/shared/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDataTable } from "@/hooks/use-data-table";
 import type { PortalListResponse } from "@/lib/api/types";
 
 interface PortalTableProps {
@@ -33,64 +31,64 @@ export function PortalTable({
   params,
   onParamsChange,
 }: PortalTableProps) {
-  const columns = useMemo<ColumnDef<PortalListResponse>[]>(
+  const columns = useMemo<Column<PortalListResponse>[]>(
     () => [
       {
-        accessorKey: "name",
+        id: "name",
         header: "Portal Name",
-        cell: ({ row }) => (
+        cell: (row) => (
           <Link 
-            href={`/admin/portals/${row.original.portal_id}`}
+            href={`/admin/portals/${row.portal_id}`}
             className="flex flex-col gap-1 transition-colors hover:text-blue-600"
           >
             <span className="text-sm font-semibold text-gray-900 sm:text-base">
-              {row.original.name}
+              {row.name}
             </span>
             <span className="text-xs text-gray-500 sm:text-sm">
-              {row.original.portal_id}
+              {row.portal_id}
             </span>
           </Link>
         ),
       },
       {
-        accessorKey: "is_active",
+        id: "is_active",
         header: "Status",
-        cell: ({ row }) => (
+        cell: (row) => (
           <Badge 
-            variant={row.original.is_active ? "default" : "secondary"}
+            variant={row.is_active ? "default" : "secondary"}
             className="font-medium shadow-sm"
           >
-            {row.original.is_active ? "Active" : "Inactive"}
+            {row.is_active ? "Active" : "Inactive"}
           </Badge>
         ),
       },
       {
         id: "keys",
         header: "Keys",
-        cell: ({ row }) => (
+        cell: (row) => (
           <div className="flex items-center gap-1.5 text-sm font-medium">
             <span className="text-green-600" title="Active Keys">
-              {row.original.active_key_count}
+              {row.active_key_count}
             </span>
             <span className="text-gray-400">/</span>
-            <span className="text-gray-700" title="Total Keys">{row.original.total_key_count}</span>
+            <span className="text-gray-700" title="Total Keys">{row.total_key_count}</span>
           </div>
         ),
       },
       {
-        accessorKey: "user_count",
+        id: "user_count",
         header: "Users",
-        cell: ({ row }) => (
-          <span className="text-sm font-medium text-gray-700">{row.original.user_count}</span>
+        cell: (row) => (
+          <span className="text-sm font-medium text-gray-700">{row.user_count}</span>
         ),
       },
       {
-        accessorKey: "created_at",
+        id: "created_at",
         header: "Created At",
-        cell: ({ row }) => (
+        cell: (row) => (
           <span className="text-sm text-gray-600">
-            {row.original.created_at
-              ? format(new Date(row.original.created_at), "dd/MM/yyyy")
+            {row.created_at
+              ? format(new Date(row.created_at), "dd/MM/yyyy")
               : "-"}
           </span>
         ),
@@ -98,14 +96,6 @@ export function PortalTable({
     ],
     []
   );
-
-  const { table } = useDataTable({
-    columns,
-    data: portals,
-    totalCount: total,
-    onParamsChange,
-    initialParams: params,
-  });
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -148,11 +138,16 @@ export function PortalTable({
         </div>
       </div>
 
-      <TanstackTable
-        table={table}
+      <DataTable
+        columns={columns}
+        data={portals}
         totalCount={total}
         isLoading={isLoading}
         emptyMessage="No portals found"
+        page={params.page || 1}
+        pageSize={params.page_size || 20}
+        onPageChange={(page) => onParamsChange({ ...params, page })}
+        onPageSizeChange={(pageSize) => onParamsChange({ ...params, page_size: pageSize, page: 1 })}
       />
     </div>
   );

@@ -37,7 +37,7 @@ export const useAuth = () => {
         const isSuperAdmin = userData.roles?.some((role) => role.name === "super_admin");
         const redirectPath = isSuperAdmin ? "/admin" : "/portal";
         router.push(redirectPath);
-      } catch (error) {
+      } catch {
         // If fetching user fails, clear auth and show error
         clearAuth();
         toast.error("Failed to fetch user data. Please try logging in again.");

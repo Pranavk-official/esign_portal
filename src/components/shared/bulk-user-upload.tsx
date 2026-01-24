@@ -200,7 +200,7 @@ export function BulkUserUpload({
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-    } catch (error) {
+    } catch {
       // Error handling is done in the mutation hook
     }
   };
@@ -303,7 +303,7 @@ export function BulkUserUpload({
             <h4 className="mb-2 text-sm font-medium">Excel Format Instructions</h4>
             <ul className="text-muted-foreground space-y-1 text-sm">
               <li>
-                • <strong>email</strong>: User's email address (required)
+                • <strong>email</strong>: User&apos;s email address (required)
               </li>
               <li>
                 • <strong>portal_id</strong>: Portal identifier (optional, leave empty for no
@@ -311,7 +311,7 @@ export function BulkUserUpload({
               </li>
               <li>
                 • <strong>roles</strong>: Comma-separated role names (required, e.g.,
-                "portal_admin,portal_user")
+                &quot;portal_admin,portal_user&quot;)
               </li>
               <li>
                 • <strong>send_otp</strong>: TRUE or FALSE (optional, defaults to TRUE)

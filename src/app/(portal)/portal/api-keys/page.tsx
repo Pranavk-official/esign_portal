@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { MdAdd, MdSearch } from "react-icons/md";
 
-import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { PortalApiKeysTable } from "@/app/(portal)/_components/portal-api-keys-table";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useApiKeys, useRevokeApiKey } from "@/hooks/use-api-keys";
@@ -28,10 +28,6 @@ export default function ApiKeysPage() {
 
   const { data, isLoading } = useApiKeys(params);
   const { mutate: revokeKey, isPending: isRevoking } = useRevokeApiKey();
-
-  const handleRevoke = (keyId: string) => {
-    setRevokeDialog({ open: true, keyId });
-  };
 
   const confirmRevoke = () => {
     if (revokeDialog.keyId) {
