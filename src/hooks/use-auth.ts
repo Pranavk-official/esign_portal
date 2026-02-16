@@ -1,70 +1,50 @@
-"use client";
-
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 import { authApi } from "@/lib/api/auth";
-import { OTPRequestForm, OTPVerifyForm } from "@/lib/schemas/auth";
+import { authKeys } from "@/lib/auth/query-keys";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
-export const useAuth = () => {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-  const { setUser, clearAuth } = useAuthStore();
+/**
+ * useCurrentUser — fetches `/users/me` via React Query and syncs the
+ * result into Zustand so the rest of the app has a single read source.
+ *
+ * On success → `authStore.setUser(user)`.
+ * On error   → `authStore.clearAuth()` (cookie expired / invalid).
+ *
+ * Components should read user data from `useAuthStore((s) => s.user)`,
+ * but *this* hook must be mounted somewhere high in the tree (e.g. the
+ * root page or the layout guards) so the data stays fresh.
+ */
+export function useCurrentUser() {
+  const setUser = useAuthStore((s) => s.setUser);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
-  const requestOTPMutation = useMutation({
-    mutationFn: (data: OTPRequestForm) => authApi.requestOTP(data),
-    onSuccess: (data) => {
-      toast.success(data.message);
-    },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to send OTP");
-    },
+  const query = useQuery({
+    queryKey: authKeys.me(),
+    queryFn: authApi.getMe,
+    retry: false, // Don't retry on 401 — the interceptor already handles refresh
+    staleTime: 2 * 60 * 1000, // 2 min — user profile rarely changes mid-session
   });
 
-  const verifyOTPMutation = useMutation({
-    mutationFn: (data: OTPVerifyForm) => authApi.verifyOTP(data),
-    onSuccess: async (data) => {
-      toast.success(data.message);
+  // Sync React Query state → Zustand
+  useEffect(() => {
+    if (query.data) {
+      setUser(query.data);
+    }
+  }, [query.data, setUser]);
 
-      // Fetch fresh user data from the backend to ensure we have the complete user object
-      try {
-        const userData = await authApi.getMe();
-        setUser(userData);
-
-        // Redirect based on role
-        const isSuperAdmin = userData.roles?.some((role) => role.name === "super_admin");
-        const redirectPath = isSuperAdmin ? "/admin" : "/portal";
-        router.push(redirectPath);
-      } catch {
-        // If fetching user fails, clear auth and show error
-        clearAuth();
-        toast.error("Failed to fetch user data. Please try logging in again.");
-        router.push("/login");
-      }
-    },
-    onError: (error: any) => {
-      toast.error(error.message || "OTP verification failed");
-    },
-  });
-
-  const logoutMutation = useMutation({
-    mutationFn: () => authApi.logout(),
-    onSuccess: () => {
+  useEffect(() => {
+    if (query.isError) {
       clearAuth();
-      queryClient.clear();
-      toast.success("Logged out successfully");
-      router.push("/login");
-    },
-  });
+    }
+  }, [query.isError, clearAuth]);
 
   return {
-    requestOTP: requestOTPMutation.mutate,
-    isRequestingOTP: requestOTPMutation.isPending,
-    verifyOTP: verifyOTPMutation.mutate,
-    isVerifyingOTP: verifyOTPMutation.isPending,
-    logout: logoutMutation.mutate,
-    isLoggingOut: logoutMutation.isPending,
+    user: query.data ?? null,
+    isLoading: query.isLoading,
+    isAuthenticated: query.isSuccess && isAuthenticated,
+    error: query.error,
   };
-};
+}

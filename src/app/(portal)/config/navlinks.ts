@@ -1,6 +1,7 @@
 import { FileKey, MousePointerClick, SquareChartGantt, UsersRound } from "lucide-react";
 
-import { UserDetailResponse } from "@/lib/api/types";
+import { hasRole, ROLES } from "@/lib/auth/roles";
+import type { UserDetailResponse } from "@/lib/schemas/auth";
 
 export type NavLink = {
   title: string;
@@ -19,7 +20,7 @@ export type NavGroup = {
  * Portal User: Only profile and activity access
  */
 export function getNavLinks(user: UserDetailResponse | null): NavGroup[] {
-  const isAdmin = user?.roles?.some((role) => role.name === "portal_admin");
+  const isAdmin = user ? hasRole(user, [ROLES.PORTAL_ADMIN]) : false;
 
   return [
     {
@@ -33,22 +34,22 @@ export function getNavLinks(user: UserDetailResponse | null): NavGroup[] {
         // Portal Admin only features
         ...(isAdmin
           ? [
-              {
-                title: "Team Members",
-                href: "/portal/team-members",
-                icon: UsersRound,
-              },
-              {
-                title: "API Keys",
-                href: "/portal/api-keys",
-                icon: FileKey,
-              },
-              {
-                title: "Usage Reports",
-                href: "/portal/usage-reports",
-                icon: MousePointerClick,
-              },
-            ]
+            {
+              title: "Team Members",
+              href: "/portal/team-members",
+              icon: UsersRound,
+            },
+            {
+              title: "API Keys",
+              href: "/portal/api-keys",
+              icon: FileKey,
+            },
+            {
+              title: "Usage Reports",
+              href: "/portal/usage-reports",
+              icon: MousePointerClick,
+            },
+          ]
           : []),
       ],
     },

@@ -4,6 +4,14 @@ A modern, type-safe, multi-tenant frontend for the ASP eSign Gateway Service. Bu
 
 ---
 
+## 📚 Documentation
+
+- [**System Architecture**](./docs/architecture.md) - Detailed breakdown of the system's design, auth flow, and state management.
+- [**Development Guidelines**](./docs/DEVELOPMENT.md) - Coding standards and best practices.
+- [**Cookie Auth Setup**](./docs/COOKIE_AUTH_SETUP.md) - Deep dive into the HttpOnly cookie authentication.
+
+---
+
 ## 🚀 Dev Quickstart
 
 ### Prerequisites
@@ -55,6 +63,8 @@ A modern, type-safe, multi-tenant frontend for the ASP eSign Gateway Service. Bu
 ---
 
 ## 📂 Project Structure
+
+For a detailed explanation of the directory structure and architectural decisions, see [**System Architecture**](./docs/architecture.md).
 
 We use **Next.js 16 App Router** with **Route Groups** to strictly separate authentication contexts and organize features.
 
@@ -143,12 +153,7 @@ src/
 - **TypeScript 5** - Type safety
 - **Bun** - Runtime & package manager
 
-### Core
 
-- **Next.js 15** - React framework with App Router
-- **React 19** - UI library
-- **TypeScript 5** - Type safety
-- **Bun** - Runtime & package manager
 
 ### State & Data
 
@@ -213,7 +218,7 @@ When any API request returns `401 Unauthorized`:
 4. Retries original request automatically
 5. If refresh fails, clears auth state and redirects to `/login`
 
-> **Note:** All of this is handled automatically by the API client. See [COOKIE_AUTH_SETUP.md](./COOKIE_AUTH_SETUP.md) for details.
+> **Note:** All of this is handled automatically by the API client. See [COOKIE_AUTH_SETUP.md](./docs/COOKIE_AUTH_SETUP.md) for details.
 
 ---
 
@@ -258,7 +263,7 @@ await authDebug.diagnose();
 - Check backend logs for refresh endpoint errors
 - User may need to login again
 
-See [COOKIE_AUTH_SETUP.md](./COOKIE_AUTH_SETUP.md) for comprehensive troubleshooting guide. 5. If refresh fails → Clear Zustand state → Redirect to login
+See [COOKIE_AUTH_SETUP.md](./docs/COOKIE_AUTH_SETUP.md) for comprehensive troubleshooting guide.
 
 **Key Points:**
 

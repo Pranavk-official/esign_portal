@@ -1,7 +1,8 @@
+import type { UserDetailResponse } from "@/lib/schemas/auth";
 import { UserCreateRequest, UserUpdateRequest } from "@/lib/schemas/user";
 
 import { apiClient } from "./client";
-import { PaginatedResponse, UserDetailResponse, UserListResponse, UserQueryParams } from "./types";
+import { PaginatedResponse, UserListResponse, UserQueryParams } from "./types";
 
 export interface BulkCreateUsersRequest {
   users: UserCreateRequest[];

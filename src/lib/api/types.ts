@@ -10,20 +10,8 @@ export interface APIError {
   detail: string | ValidationError[];
 }
 
-export interface UserRole {
-  id: string;
-  name: string;
-  description: string | null;
-}
-
-export interface UserDetailResponse {
-  id: string;
-  email: string;
-  portal_id: string | null;
-  is_active: boolean;
-  created_at: string;
-  roles: UserRole[];
-}
+// Auth types are now in @/lib/schemas/auth.ts as Zod-inferred types:
+// UserRole, UserDetailResponse, AuthResponse, OTPRequestResponse
 
 export interface UserListResponse {
   id: string;
@@ -32,16 +20,6 @@ export interface UserListResponse {
   is_active: boolean;
   created_at: string;
   role_names: string[];
-}
-
-export interface AuthResponse {
-  message: string;
-  token_type: string;
-  user: UserDetailResponse | null;
-}
-
-export interface OTPRequestResponse {
-  message: string;
 }
 
 export interface PaginatedResponse<T> {

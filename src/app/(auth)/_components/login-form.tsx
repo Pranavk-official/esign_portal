@@ -2,10 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import * as React from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,51 +17,78 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { useAuth } from "@/hooks/use-auth";
-// Schemas & Hooks
-import { otpRequestSchema, type OTPVerifyForm, otpVerifySchema } from "@/lib/schemas/auth";
+import { useAuthMutations } from "@/hooks/use-auth-mutations";
+import {
+  type OTPRequestForm,
+  otpRequestSchema,
+  type OTPVerifyForm,
+  otpVerifySchema,
+} from "@/lib/schemas/auth";
 
 type LoginStep = "EMAIL" | "OTP";
 
-export function LoginForm() {
-  const [step, setStep] = React.useState<LoginStep>("EMAIL");
-  const [email, setEmail] = React.useState<string>("");
-  const { requestOTP, isRequestingOTP, verifyOTP, isVerifyingOTP } = useAuth();
+const RESEND_COOLDOWN = 30; // seconds
 
-  // --- Form 1: Request OTP ---
-  const emailForm = useForm<z.input<typeof otpRequestSchema>>({
+export function LoginForm() {
+  const [step, setStep] = useState<LoginStep>("EMAIL");
+  const [resendTimer, setResendTimer] = useState(0);
+  const { requestOTP, isRequestingOTP, verifyOTP, isVerifyingOTP } = useAuthMutations();
+
+  // ── Resend cooldown timer ─────────────────────────────────
+  useEffect(() => {
+    if (resendTimer <= 0) return;
+    const id = setInterval(() => setResendTimer((t) => Math.max(0, t - 1)), 1000);
+    return () => clearInterval(id);
+  }, [resendTimer]);
+
+  // ── Email Form (Step 1) ───────────────────────────────────
+  const emailForm = useForm<OTPRequestForm>({
     resolver: zodResolver(otpRequestSchema),
     defaultValues: { email: "", scope: "LOGIN" },
   });
 
-  // --- Form 2: Verify OTP ---
-  const otpForm = useForm<z.input<typeof otpVerifySchema>>({
+  // ── OTP Form (Step 2) ────────────────────────────────────
+  const otpForm = useForm<OTPVerifyForm>({
     resolver: zodResolver(otpVerifySchema),
     defaultValues: { email: "", otp: "", scope: "LOGIN" },
   });
 
-  const onEmailSubmit = (data: z.output<typeof otpRequestSchema>) => {
-    setEmail(data.email);
-    otpForm.setValue("email", data.email);
+  // ── Handlers ──────────────────────────────────────────────
+  const handleEmailSubmit = (data: OTPRequestForm) => {
     requestOTP(data, {
-      onSuccess: () => setStep("OTP"),
+      onSuccess: () => {
+        otpForm.setValue("email", data.email);
+        setStep("OTP");
+        setResendTimer(RESEND_COOLDOWN);
+      },
     });
   };
 
-  const onOtpSubmit = (data: any) => {
-    const finalEmail = email || otpForm.getValues("email");
-    if (!finalEmail) {
+  const handleOtpSubmit = (data: OTPVerifyForm) => {
+    verifyOTP(data);
+  };
+
+  const handleResendOTP = useCallback(() => {
+    const email = otpForm.getValues("email");
+    if (!email) {
       toast.error("Session lost. Please reload.");
       return;
     }
-    verifyOTP({ ...data, email: finalEmail } as OTPVerifyForm);
-  };
+    setResendTimer(RESEND_COOLDOWN);
+    requestOTP({ email, scope: "LOGIN" });
+  }, [requestOTP, otpForm]);
 
+  const handleChangeEmail = useCallback(() => {
+    otpForm.reset();
+    setStep("EMAIL");
+  }, [otpForm]);
+
+  // ── Render ────────────────────────────────────────────────
   return (
     <div className="grid gap-6">
       {step === "EMAIL" ? (
         <Form {...emailForm}>
-          <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
+          <form onSubmit={emailForm.handleSubmit(handleEmailSubmit)} className="space-y-4">
             <FormField
               control={emailForm.control}
               name="email"
@@ -84,9 +110,10 @@ export function LoginForm() {
         </Form>
       ) : (
         <Form {...otpForm}>
-          <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-4">
+          <form onSubmit={otpForm.handleSubmit(handleOtpSubmit)} className="space-y-4">
             <div className="text-muted-foreground mb-4 text-center text-sm">
-              Sent to <span className="text-foreground font-medium">{email}</span>
+              Sent to{" "}
+              <span className="text-foreground font-medium">{otpForm.getValues("email")}</span>
             </div>
 
             <FormField
@@ -113,20 +140,41 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
+
             <Button className="w-full" type="submit" disabled={isVerifyingOTP}>
               {isVerifyingOTP && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Verify Login
             </Button>
-            <Button
-              variant="link"
-              className="w-full"
-              size="sm"
-              type="button"
-              onClick={() => setStep("EMAIL")}
-              disabled={isVerifyingOTP}
-            >
-              Change Email
-            </Button>
+
+            <div className="mt-4 space-y-2">
+              {resendTimer > 0 ? (
+                <p className="text-muted-foreground text-center text-sm">
+                  Resend OTP in {resendTimer}s
+                </p>
+              ) : (
+                <Button
+                  variant="link"
+                  className="w-full"
+                  size="sm"
+                  type="button"
+                  onClick={handleResendOTP}
+                  disabled={isRequestingOTP}
+                >
+                  {isRequestingOTP && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Resend OTP
+                </Button>
+              )}
+              <Button
+                variant="link"
+                className="w-full"
+                size="sm"
+                type="button"
+                onClick={handleChangeEmail}
+                disabled={isVerifyingOTP}
+              >
+                Change Email
+              </Button>
+            </div>
           </form>
         </Form>
       )}

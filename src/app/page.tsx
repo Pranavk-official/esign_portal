@@ -4,23 +4,23 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { useAuthStore } from "@/lib/stores/auth-store";
+import { useCurrentUser } from "@/hooks/use-auth";
+import { getRedirectPath } from "@/lib/auth/roles";
 
 export default function Home() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isLoading, isAuthenticated } = useCurrentUser();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (isLoading) return;
+
+    if (!isAuthenticated || !user) {
       router.replace("/login");
       return;
     }
 
-    // Redirect based on user role
-    const isSuperAdmin = user?.roles?.some((role) => role.name === "super_admin");
-    const redirectPath = isSuperAdmin ? "/admin" : "/portal";
-    router.replace(redirectPath);
-  }, [isAuthenticated, user, router]);
+    router.replace(getRedirectPath(user));
+  }, [isAuthenticated, isLoading, user, router]);
 
   return (
     <div className="flex h-screen w-full items-center justify-center">

@@ -1,0 +1,371 @@
+
+> esign_portal@0.1.0 build
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+▲ Next.js 16.1.4 (Turbopack)
+- Environments: .env.local, .env
+
+  Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+
+> Build error occurred
+Error: Turbopack build failed with 14 errors:
+./src/app/(admin)/layout.tsx:8:1
+Export ROLES doesn't exist in target module
+[0m [90m  6 |[39m [36mimport[39m { [33mSidebarProvider[39m } [36mfrom[39m [32m"@/components/ui/sidebar"[39m[33m;[39m
+ [90m  7 |[39m [36mimport[39m { useRequireAuth } [36mfrom[39m [32m"@/hooks/use-require-auth"[39m[33m;[39m
+[31m[1m>[22m[39m[90m  8 |[39m [36mimport[39m { [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m  9 |[39m [36mimport[39m { getCookie } [36mfrom[39m [32m"@/lib/utils"[39m[33m;[39m
+ [90m 10 |[39m
+ [90m 11 |[39m [36mimport[39m { [33mAdminHeader[39m } [36mfrom[39m [32m"./_components/admin-header"[39m[33m;[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-client] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+
+./src/app/(admin)/layout.tsx:8:1
+Export ROLES doesn't exist in target module
+[0m [90m  6 |[39m [36mimport[39m { [33mSidebarProvider[39m } [36mfrom[39m [32m"@/components/ui/sidebar"[39m[33m;[39m
+ [90m  7 |[39m [36mimport[39m { useRequireAuth } [36mfrom[39m [32m"@/hooks/use-require-auth"[39m[33m;[39m
+[31m[1m>[22m[39m[90m  8 |[39m [36mimport[39m { [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m  9 |[39m [36mimport[39m { getCookie } [36mfrom[39m [32m"@/lib/utils"[39m[33m;[39m
+ [90m 10 |[39m
+ [90m 11 |[39m [36mimport[39m { [33mAdminHeader[39m } [36mfrom[39m [32m"./_components/admin-header"[39m[33m;[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-ssr] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(admin)/layout.tsx [Client Component Browser]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(admin)/layout.tsx [Client Component SSR]
+    ./src/app/(admin)/layout.tsx [Server Component]
+
+
+./src/app/(portal)/config/navlinks.ts:3:1
+Export ROLES doesn't exist in target module
+[0m [90m 1 |[39m [36mimport[39m { [33mFileKey[39m[33m,[39m [33mMousePointerClick[39m[33m,[39m [33mSquareChartGantt[39m[33m,[39m [33mUsersRound[39m } [36mfrom[39m [32m"lucide-react"[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m { hasRole[33m,[39m [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m type { [33mUserDetailResponse[39m } [36mfrom[39m [32m"@/lib/schemas/auth"[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m type [33mNavLink[39m [33m=[39m {[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-client] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/config/navlinks.ts [Client Component Browser]
+    ./src/app/(portal)/_components/portal-sidebar.tsx [Client Component Browser]
+    ./src/app/(portal)/layout.tsx [Client Component Browser]
+    ./src/app/(portal)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/config/navlinks.ts [Client Component SSR]
+    ./src/app/(portal)/_components/portal-sidebar.tsx [Client Component SSR]
+    ./src/app/(portal)/layout.tsx [Client Component SSR]
+    ./src/app/(portal)/layout.tsx [Server Component]
+
+
+./src/app/(portal)/config/navlinks.ts:3:1
+Export ROLES doesn't exist in target module
+[0m [90m 1 |[39m [36mimport[39m { [33mFileKey[39m[33m,[39m [33mMousePointerClick[39m[33m,[39m [33mSquareChartGantt[39m[33m,[39m [33mUsersRound[39m } [36mfrom[39m [32m"lucide-react"[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m { hasRole[33m,[39m [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m type { [33mUserDetailResponse[39m } [36mfrom[39m [32m"@/lib/schemas/auth"[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m type [33mNavLink[39m [33m=[39m {[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-ssr] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/config/navlinks.ts [Client Component Browser]
+    ./src/app/(portal)/_components/portal-sidebar.tsx [Client Component Browser]
+    ./src/app/(portal)/layout.tsx [Client Component Browser]
+    ./src/app/(portal)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/config/navlinks.ts [Client Component SSR]
+    ./src/app/(portal)/_components/portal-sidebar.tsx [Client Component SSR]
+    ./src/app/(portal)/layout.tsx [Client Component SSR]
+    ./src/app/(portal)/layout.tsx [Server Component]
+
+
+./src/app/(portal)/layout.tsx:8:1
+Export ROLES doesn't exist in target module
+[0m [90m  6 |[39m [36mimport[39m { [33mSidebarProvider[39m } [36mfrom[39m [32m"@/components/ui/sidebar"[39m[33m;[39m
+ [90m  7 |[39m [36mimport[39m { useRequireAuth } [36mfrom[39m [32m"@/hooks/use-require-auth"[39m[33m;[39m
+[31m[1m>[22m[39m[90m  8 |[39m [36mimport[39m { [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m  9 |[39m [36mimport[39m { getCookie } [36mfrom[39m [32m"@/lib/utils"[39m[33m;[39m
+ [90m 10 |[39m
+ [90m 11 |[39m [36mimport[39m { [33mPortalHeader[39m } [36mfrom[39m [32m"./_components/portal-header"[39m[33m;[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-client] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/layout.tsx [Client Component Browser]
+    ./src/app/(portal)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/layout.tsx [Client Component SSR]
+    ./src/app/(portal)/layout.tsx [Server Component]
+
+
+./src/app/(portal)/layout.tsx:8:1
+Export ROLES doesn't exist in target module
+[0m [90m  6 |[39m [36mimport[39m { [33mSidebarProvider[39m } [36mfrom[39m [32m"@/components/ui/sidebar"[39m[33m;[39m
+ [90m  7 |[39m [36mimport[39m { useRequireAuth } [36mfrom[39m [32m"@/hooks/use-require-auth"[39m[33m;[39m
+[31m[1m>[22m[39m[90m  8 |[39m [36mimport[39m { [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m  9 |[39m [36mimport[39m { getCookie } [36mfrom[39m [32m"@/lib/utils"[39m[33m;[39m
+ [90m 10 |[39m
+ [90m 11 |[39m [36mimport[39m { [33mPortalHeader[39m } [36mfrom[39m [32m"./_components/portal-header"[39m[33m;[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-ssr] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/layout.tsx [Client Component Browser]
+    ./src/app/(portal)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/layout.tsx [Client Component SSR]
+    ./src/app/(portal)/layout.tsx [Server Component]
+
+
+./src/app/(portal)/portal/api-keys/layout.tsx:6:1
+Export ROLES doesn't exist in target module
+[0m [90m 4 |[39m
+ [90m 5 |[39m [36mimport[39m { useRequireAuth } [36mfrom[39m [32m"@/hooks/use-require-auth"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [90m/**[39m
+ [90m 9 |[39m [90m * Layout protection for API Keys page[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-client] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/portal/api-keys/layout.tsx [Client Component Browser]
+    ./src/app/(portal)/portal/api-keys/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/portal/api-keys/layout.tsx [Client Component SSR]
+    ./src/app/(portal)/portal/api-keys/layout.tsx [Server Component]
+
+
+./src/app/(portal)/portal/api-keys/layout.tsx:6:1
+Export ROLES doesn't exist in target module
+[0m [90m 4 |[39m
+ [90m 5 |[39m [36mimport[39m { useRequireAuth } [36mfrom[39m [32m"@/hooks/use-require-auth"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [90m/**[39m
+ [90m 9 |[39m [90m * Layout protection for API Keys page[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-ssr] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/portal/api-keys/layout.tsx [Client Component Browser]
+    ./src/app/(portal)/portal/api-keys/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/portal/api-keys/layout.tsx [Client Component SSR]
+    ./src/app/(portal)/portal/api-keys/layout.tsx [Server Component]
+
+
+./src/app/(portal)/portal/page.tsx:11:1
+Export ROLES doesn't exist in target module
+[0m [90m  9 |[39m [36mimport[39m { useCurrentUser } [36mfrom[39m [32m"@/hooks/use-auth"[39m[33m;[39m
+ [90m 10 |[39m [36mimport[39m { usePortalMetrics } [36mfrom[39m [32m"@/hooks/use-portals"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 11 |[39m [36mimport[39m { hasRole[33m,[39m [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 12 |[39m
+ [90m 13 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mPortalDashboardPage[39m() {
+ [90m 14 |[39m   [36mconst[39m { data[33m:[39m metrics[33m,[39m isLoading } [33m=[39m usePortalMetrics()[33m;[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-client] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/portal/page.tsx [Client Component Browser]
+    ./src/app/(portal)/portal/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/portal/page.tsx [Client Component SSR]
+    ./src/app/(portal)/portal/page.tsx [Server Component]
+
+
+./src/app/(portal)/portal/page.tsx:11:1
+Export ROLES doesn't exist in target module
+[0m [90m  9 |[39m [36mimport[39m { useCurrentUser } [36mfrom[39m [32m"@/hooks/use-auth"[39m[33m;[39m
+ [90m 10 |[39m [36mimport[39m { usePortalMetrics } [36mfrom[39m [32m"@/hooks/use-portals"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 11 |[39m [36mimport[39m { hasRole[33m,[39m [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 12 |[39m
+ [90m 13 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mPortalDashboardPage[39m() {
+ [90m 14 |[39m   [36mconst[39m { data[33m:[39m metrics[33m,[39m isLoading } [33m=[39m usePortalMetrics()[33m;[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-ssr] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/portal/page.tsx [Client Component Browser]
+    ./src/app/(portal)/portal/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/portal/page.tsx [Client Component SSR]
+    ./src/app/(portal)/portal/page.tsx [Server Component]
+
+
+./src/app/(portal)/portal/team-members/layout.tsx:6:1
+Export ROLES doesn't exist in target module
+[0m [90m 4 |[39m
+ [90m 5 |[39m [36mimport[39m { useRequireAuth } [36mfrom[39m [32m"@/hooks/use-require-auth"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [90m/**[39m
+ [90m 9 |[39m [90m * Layout protection for Team Members page[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-client] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/portal/team-members/layout.tsx [Client Component Browser]
+    ./src/app/(portal)/portal/team-members/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/portal/team-members/layout.tsx [Client Component SSR]
+    ./src/app/(portal)/portal/team-members/layout.tsx [Server Component]
+
+
+./src/app/(portal)/portal/team-members/layout.tsx:6:1
+Export ROLES doesn't exist in target module
+[0m [90m 4 |[39m
+ [90m 5 |[39m [36mimport[39m { useRequireAuth } [36mfrom[39m [32m"@/hooks/use-require-auth"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [90m/**[39m
+ [90m 9 |[39m [90m * Layout protection for Team Members page[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-ssr] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/portal/team-members/layout.tsx [Client Component Browser]
+    ./src/app/(portal)/portal/team-members/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/portal/team-members/layout.tsx [Client Component SSR]
+    ./src/app/(portal)/portal/team-members/layout.tsx [Server Component]
+
+
+./src/app/(portal)/portal/usage-reports/layout.tsx:6:1
+Export ROLES doesn't exist in target module
+[0m [90m 4 |[39m
+ [90m 5 |[39m [36mimport[39m { useRequireAuth } [36mfrom[39m [32m"@/hooks/use-require-auth"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [90m/**[39m
+ [90m 9 |[39m [90m * Layout protection for Usage Reports page[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-client] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/portal/usage-reports/layout.tsx [Client Component Browser]
+    ./src/app/(portal)/portal/usage-reports/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/portal/usage-reports/layout.tsx [Client Component SSR]
+    ./src/app/(portal)/portal/usage-reports/layout.tsx [Server Component]
+
+
+./src/app/(portal)/portal/usage-reports/layout.tsx:6:1
+Export ROLES doesn't exist in target module
+[0m [90m 4 |[39m
+ [90m 5 |[39m [36mimport[39m { useRequireAuth } [36mfrom[39m [32m"@/hooks/use-require-auth"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mROLES[39m } [36mfrom[39m [32m"@/lib/auth/roles"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [90m/**[39m
+ [90m 9 |[39m [90m * Layout protection for Usage Reports page[39m[0m
+
+The export ROLES was not found in module [project]/src/lib/auth/roles.ts [app-ssr] (ecmascript).
+Did you mean to import getRedirectPath?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/(portal)/portal/usage-reports/layout.tsx [Client Component Browser]
+    ./src/app/(portal)/portal/usage-reports/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/(portal)/portal/usage-reports/layout.tsx [Client Component SSR]
+    ./src/app/(portal)/portal/usage-reports/layout.tsx [Server Component]
+
+
+    at <unknown> (./src/app/(admin)/layout.tsx:8:1)
+    at <unknown> (./src/app/(admin)/layout.tsx:8:1)
+    at <unknown> (./src/app/(portal)/config/navlinks.ts:3:1)
+    at <unknown> (./src/app/(portal)/config/navlinks.ts:3:1)
+    at <unknown> (./src/app/(portal)/layout.tsx:8:1)
+    at <unknown> (./src/app/(portal)/layout.tsx:8:1)
+    at <unknown> (./src/app/(portal)/portal/api-keys/layout.tsx:6:1)
+    at <unknown> (./src/app/(portal)/portal/api-keys/layout.tsx:6:1)
+    at <unknown> (./src/app/(portal)/portal/page.tsx:11:1)
+    at <unknown> (./src/app/(portal)/portal/page.tsx:11:1)
+    at <unknown> (./src/app/(portal)/portal/team-members/layout.tsx:6:1)
+    at <unknown> (./src/app/(portal)/portal/team-members/layout.tsx:6:1)
+    at <unknown> (./src/app/(portal)/portal/usage-reports/layout.tsx:6:1)
+    at <unknown> (./src/app/(portal)/portal/usage-reports/layout.tsx:6:1)

@@ -24,14 +24,14 @@ export function MetricCard({
   value,
   subtitle,
   icon: Icon,
-  iconClassName = "text-blue-600",
-  iconBgColor = "bg-blue-100",
+  iconClassName = "text-primary",
+  iconBgColor = "bg-primary/10",
   trend,
   isLoading = false,
 }: MetricCardProps) {
   if (isLoading) {
     return (
-      <Card className="border-zinc-300">
+      <Card className="glass-card">
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div className="flex-1 space-y-2">
@@ -46,7 +46,7 @@ export function MetricCard({
   }
 
   return (
-    <Card className="border-zinc-300">
+    <Card className="glass-card">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -55,9 +55,8 @@ export function MetricCard({
               <h3 className="text-3xl font-bold">{value}</h3>
               {trend && (
                 <span
-                  className={`text-sm font-medium ${
-                    trend.isPositive ? "text-green-600" : "text-red-600"
-                  }`}
+                  className={`text-sm font-medium ${trend.isPositive ? "text-emerald-500" : "text-rose-500"
+                    }`}
                 >
                   {trend.value}
                 </span>

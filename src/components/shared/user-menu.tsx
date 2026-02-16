@@ -20,7 +20,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuthMutations } from "@/hooks/use-auth-mutations";
 
 type UserMenuItem = {
   title: string;
@@ -36,7 +36,7 @@ type UserMenuProps = {
 export function UserMenu({ name, menuItems }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { state } = useSidebar();
-  const { logout, isLoggingOut } = useAuth();
+  const { logout, isLoggingOut } = useAuthMutations();
 
   const initials = name
     ? name

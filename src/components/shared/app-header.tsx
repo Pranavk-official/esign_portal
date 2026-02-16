@@ -39,7 +39,7 @@ export function AppHeader({
   const pageTitle = currentItem?.title ?? "Dashboard";
 
   return (
-    <header className="bg-background m-2 flex h-14 items-center gap-4 rounded-md border border-zinc-300 p-2">
+    <header className="glass sticky top-2 z-50 m-2 flex h-14 items-center gap-4 rounded-md p-2 transition-all duration-300 hover:shadow-md">
       <SidebarTrigger />
 
       <div className="flex flex-1 items-center justify-between">

@@ -66,7 +66,7 @@ export function AppSidebar({
     <Sidebar
       collapsible="icon"
       variant="floating"
-      className="py-2 group-data-[variant=floating]:border-zinc-300"
+      className="py-2 group-data-[variant=floating]:border-zinc-300 bg-sidebar/60 backdrop-blur-xl border-r-0 shadow-lg"
     >
       <SidebarHeader>
         {state === "collapsed" ? (

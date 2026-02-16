@@ -6,7 +6,7 @@ This document outlines the coding standards, architectural patterns, and best pr
 
 ## 🏗️ Architecture Overview
 
-We use a **Domain-Driven Design (DDD)** approach adapted for Next.js App Router.
+We use a **Domain-Driven Design (DDD)** approach adapted for Next.js App Router. For a high-level view of the system components, see [**System Architecture**](./architecture.md).
 
 ### 1. Folder Structure
 

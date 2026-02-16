@@ -5,10 +5,10 @@ import { Building2, Calendar, Mail, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuthSync } from "@/hooks/use-auth-sync";
+import { useCurrentUser } from "@/hooks/use-auth";
 
 export default function AdminProfilePage() {
-  const { user, isLoading } = useAuthSync();
+  const { user, isLoading } = useCurrentUser();
 
   if (isLoading) {
     return (

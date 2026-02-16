@@ -1,0 +1,26 @@
+
+> esign_portal@0.1.0 build
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+▲ Next.js 16.1.4 (Turbopack)
+- Environments: .env.local, .env
+
+  Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+✓ Compiled successfully in 8.1s
+  Running TypeScript ...
+Failed to compile.
+
+./src/app/(portal)/portal/page.tsx:17:27
+Type error: Argument of type '{ id: string; email: string; portal_id: string | null; is_active: boolean; created_at: string; roles: { id: string; name: string; description: string | null; }[]; } | null' is not assignable to parameter of type '{ id: string; email: string; portal_id: string | null; is_active: boolean; created_at: string; roles: { id: string; name: string; description: string | null; }[]; }'.
+  Type 'null' is not assignable to type '{ id: string; email: string; portal_id: string | null; is_active: boolean; created_at: string; roles: { id: string; name: string; description: string | null; }[]; }'.
+
+[0m [90m 15 |[39m   [36mconst[39m { user } [33m=[39m useCurrentUser()[33m;[39m
+ [90m 16 |[39m
+[31m[1m>[22m[39m[90m 17 |[39m   [36mconst[39m isAdmin [33m=[39m hasRole(user[33m,[39m [[33mROLES[39m[33m.[39m[33mPORTAL_ADMIN[39m])[33m;[39m
+ [90m    |[39m                           [31m[1m^[22m[39m
+ [90m 18 |[39m
+ [90m 19 |[39m   [36mconst[39m successRate [33m=[39m metrics
+ [90m 20 |[39m     [33m?[39m ((metrics[33m.[39msuccessful [33m/[39m (metrics[33m.[39mtotal_transactions [33m||[39m [35m1[39m)) [33m*[39m [35m100[39m)[33m.[39mtoFixed([35m1[39m) [33m+[39m [32m"%"[39m[0m
+Next.js build worker exited with code: 1 and signal: null
