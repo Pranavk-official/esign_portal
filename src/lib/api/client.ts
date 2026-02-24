@@ -71,33 +71,31 @@ apiClient.interceptors.response.use(
     const data = error.response.data as any;
     const message = data?.detail || data?.message || "An unexpected error occurred";
 
-    // B. Handle 401 Token Refresh Logic (Cookie Based)
+    // B. Handle 401 Token Refresh Logic (Cookie-based)
+    // The browser sends the HttpOnly refresh_token cookie automatically;
+    // the body can be omitted since the backend reads the token from the cookie.
     const originalRequest = error.config as CustomAxiosRequestConfig;
-    
+
     if (status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        // Call refresh endpoint with withCredentials to send HttpOnly refresh_token cookie
-        // Backend validates it and sets a new access_token cookie in the response
-        await axios.post(`${BASE_URL}/admin/auth/refresh`, {}, { 
+        // POST with empty body — backend reads refresh_token from HttpOnly cookie.
+        await axios.post(`${BASE_URL}/admin/auth/refresh`, {}, {
           withCredentials: true,
-          timeout: 10000 // Shorter timeout for refresh attempts
+          timeout: 10000,
         });
-        
-        // Retry original request - browser will automatically attach the new access_token cookie
+
+        // Retry the original request — browser will send the new access_token cookie.
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - clear auth state and redirect to login
+        // Refresh failed — clear auth state and send user back to login.
         useAuthStore.getState().clearAuth();
-        
-        // Only redirect on client side
+
         if (typeof window !== 'undefined') {
-          // DEV: Disabled redirect for development
-          console.log('Auth failed, but redirect disabled for dev');
-          // window.location.href = '/login';
+          window.location.href = '/login';
         }
-        
+
         return Promise.reject(new UnauthorizedError('Session expired. Please login again.'));
       }
     }

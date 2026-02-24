@@ -1,19 +1,15 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { UserDetailResponse } from '@/lib/api/auth';
 
-export interface UserInfo {
-  id: string;
-  email: string;
-  portal_id: string | null;
-  is_active: boolean;
-  roles: string[];
-}
+// Re-export for convenience — the authoritative shape comes from the OpenAPI spec.
+export type UserInfo = UserDetailResponse;
 
 interface AuthState {
   user: UserInfo | null;
   isAuthenticated: boolean;
   _hasHydrated: boolean;
-  
+
   // Actions
   setUser: (user: UserInfo) => void;
   clearAuth: () => void;
@@ -23,27 +19,20 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      // DEV: Always authenticated with SUPER_ADMIN
-      user: {
-        id: 'dev-user',
-        email: 'dev@example.com',
-        portal_id: 'dev-portal',
-        is_active: true,
-        roles: ['SUPER_ADMIN']
-      },
-      isAuthenticated: true,
-      _hasHydrated: true,
+      user: null,
+      isAuthenticated: false,
+      _hasHydrated: false,
 
-      setUser: (user) => 
+      setUser: (user) =>
         set({ user, isAuthenticated: true }),
-      
-      clearAuth: () => 
+
+      clearAuth: () =>
         set({ user: null, isAuthenticated: false }),
 
       setHasHydrated: (state) => set({ _hasHydrated: state }),
     }),
     {
-      name: 'auth-storage-dev', // Changed for dev to ignore previous auth state
+      name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
