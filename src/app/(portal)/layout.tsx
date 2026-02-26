@@ -1,17 +1,20 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { PortalSidebar } from "./_components/portal-sidebar";
 import { PortalHeader } from "./_components/portal-header";
+import { PortalRoleGuard } from "./_components/portal-role-guard";
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
-    <body className="bg-background min-h-screen">
-      <SidebarProvider defaultOpen={false}>
-        <PortalSidebar />
-        <div className="flex min-h-screen w-full flex-col">
-          <PortalHeader />
-          <main className="m-2 mt-0 flex-1 rounded-md border border-zinc-300 p-4">{children}</main>
-        </div>
-      </SidebarProvider>
-    </body>
+    <PortalRoleGuard>
+      <div className="bg-background min-h-screen flex">
+        <SidebarProvider defaultOpen={false}>
+          <PortalSidebar />
+          <div className="flex min-h-screen w-full flex-col">
+            <PortalHeader />
+            <main className="m-2 mt-0 flex-1 rounded-md border border-zinc-300 p-4">{children}</main>
+          </div>
+        </SidebarProvider>
+      </div>
+    </PortalRoleGuard>
   );
 }

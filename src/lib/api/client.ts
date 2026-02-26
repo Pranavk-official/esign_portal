@@ -16,7 +16,7 @@
  * 4. On refresh failure, clears auth state and redirects to login
  * 
  * Configuration:
- * - Update NEXT_PUBLIC_API_BASE_URL in .env.local when dev tunnel URL changes
+ * - Update BACKEND_URL in .env.local when the backend URL changes
  * - Backend must have CORS configured with allow_credentials=True
  * - Backend must set cookies with secure=True, httponly=True, samesite=none
  * 
@@ -43,8 +43,8 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-// Remove trailing slash if present
-const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+// Base URL uses our new Next.js API proxy to avoid cross-origin cookie issues
+const BASE_URL = '/api';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

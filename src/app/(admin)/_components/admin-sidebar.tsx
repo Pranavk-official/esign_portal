@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navLinks } from "@/app/(portal)/config/navlinks";
+import { navLinks } from "@/app/(admin)/config/navlinks";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 import {
@@ -18,17 +18,17 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
-import { SidebarUserMenu } from "./user-menu";
+import { AdminUserMenu } from "./admin-user-menu";
 
-export function PortalSidebar() {
+export function AdminSidebar() {
   const pathname = usePathname();
-  // PortalRoleGuard guarantees the store is hydrated before this renders.
+  // SuperAdminGuard guarantees the store is hydrated before this renders.
   const user = useAuthStore((s) => s.user);
 
   return (
     <Sidebar collapsible="icon" variant="floating" className="py-2 group-data-[variant=floating]:border-zinc-300">
       <SidebarHeader>
-        <div className="text-sm font-semibold text-center">My App</div>
+        <div className="text-sm font-semibold text-center">Admin Panel</div>
       </SidebarHeader>
 
       <SidebarContent>
@@ -40,8 +40,8 @@ export function PortalSidebar() {
               <SidebarMenu>
                 {group.items.map((item) => {
                   const isActive =
-                    item.href === "/portal"
-                      ? pathname === "/portal" || pathname === "/portal/"
+                    item.href === "/admin"
+                      ? pathname === "/admin" || pathname === "/admin/"
                       : pathname === item.href || pathname.startsWith(item.href + "/");
 
                   return (
@@ -61,9 +61,8 @@ export function PortalSidebar() {
         ))}
       </SidebarContent>
 
-      {/* ---------- USER DROPDOWN ---------- */}
       <SidebarFooter>
-        <SidebarUserMenu email={user?.email ?? ""} />
+        <AdminUserMenu email={user?.email ?? ""} />
       </SidebarFooter>
     </Sidebar>
   );
