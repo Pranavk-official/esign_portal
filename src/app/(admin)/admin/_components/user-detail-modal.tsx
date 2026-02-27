@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-users";
-import type { RoleResponse } from "@/lib/api/auth";
 
 interface UserDetailModalProps {
   open: boolean;
@@ -93,7 +92,7 @@ export function UserDetailModal({ open, onOpenChange, userId }: UserDetailModalP
               <CardContent>
                 {user.roles && user.roles.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {user.roles.map((role: RoleResponse) => (
+                    {user.roles.map((role) => (
                       <Badge
                         key={role.id}
                         variant="outline"
@@ -113,13 +112,13 @@ export function UserDetailModal({ open, onOpenChange, userId }: UserDetailModalP
                   <div className="text-sm text-gray-500">No roles assigned</div>
                 )}
 
-                {user.roles && user.roles.some((r: RoleResponse) => r.description) && (
+                {user.roles && user.roles.some((r) => r.description) && (
                   <>
                     <Separator className="my-4" />
                     <div className="space-y-2">
                       {user.roles
-                        .filter((r: RoleResponse) => r.description)
-                        .map((role: RoleResponse) => (
+                        .filter((r) => r.description)
+                        .map((role) => (
                           <div key={role.id} className="text-sm">
                             <span className="font-medium text-gray-700">{role.name}:</span>{" "}
                             <span className="text-gray-600">{role.description}</span>

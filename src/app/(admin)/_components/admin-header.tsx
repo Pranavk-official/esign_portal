@@ -1,8 +1,9 @@
 "use client"
 
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { usePathname } from "next/navigation"
+
 import { navLinks } from "@/app/(admin)/config/navlinks"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 
 export function AdminHeader() {
   const pathname = usePathname()
