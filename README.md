@@ -28,7 +28,7 @@ A modern, type-safe, multi-tenant frontend for the ASP eSign Gateway Service. Bu
     ```
 
 2.  **Environment Setup**
-    Copy the example environment file and configure the backend API URL:
+    Copy the example environment file and configure the backend URL:
 
     ```bash
     cp .env.example .env.local
@@ -38,13 +38,19 @@ A modern, type-safe, multi-tenant frontend for the ASP eSign Gateway Service. Bu
 
     ```env
     # .env.local
-    NEXT_PUBLIC_API_BASE_URL="https://mdrr740x-8000.inc1.devtunnels.ms"
+
+    # URL of the FastAPI backend — server-side ONLY (no NEXT_PUBLIC_ prefix).
+    # The browser never talks to this URL directly; all requests go through
+    # the Next.js API proxy at /api/* which forwards them here.
+    BACKEND_URL="http://localhost:8000"
     ```
 
     > **Important:**
     >
-    > - Update `NEXT_PUBLIC_API_BASE_URL` when your dev tunnel URL changes
-    > - No trailing slash in the URL
+    > - `BACKEND_URL` is the **only** required environment variable.
+    > - It is **never** embedded in the client bundle — the real backend IP stays server-side.
+    > - No trailing slash in the URL.
+    > - When using a dev tunnel set this to the tunnel HTTPS URL (e.g. `https://mdrr740x-8000.inc1.devtunnels.ms`).
 
 3.  **Run Development Server**
 
@@ -54,10 +60,12 @@ A modern, type-safe, multi-tenant frontend for the ASP eSign Gateway Service. Bu
 
     Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-4.  **Linting**
+4.  **Linting & Formatting**
     To ensure your code meets the project's strict standards:
     ```bash
-    bun run lint      # Check for issues and auto-fix formatting
+    bun run lint        # Check for lint errors
+    bun run lint:fix    # Check and auto-fix lint errors + import sorting
+    bun run format      # Format all files with Prettier
     ```
 
 ---
@@ -148,39 +156,47 @@ src/
 
 ### Core
 
-- **Next.js 16** - React framework with App Router
+- **Next.js 16.1** - React framework with App Router
 - **React 19** - UI library
 - **TypeScript 5** - Type safety
 - **Bun** - Runtime & package manager
 
-
-
 ### State & Data
 
 - **React Query (TanStack Query v5)** - Server state management
-- **Zustand** - Client state management
-- **Zod** - Schema validation
-- **React Hook Form** - Form management
+- **Zustand v5** - Client state management
+- **Zod v4** - Schema validation
+- **React Hook Form v7** - Form management
 
 ### UI & Styling
 
-- **Shadcn UI** - Component primitives (Radix UI + Tailwind)
+- **Shadcn UI** (`new-york` style) - Component primitives (Radix UI + Tailwind)
 - **Tailwind CSS 4** - Utility-first CSS
-- **Lucide React** - Icon library
+- **Lucide React** - Primary icon library
+- **React Icons** - Supplementary icon sets
 - **Sonner** - Toast notifications
-- **next-themes** - Dark mode support
+- **next-themes** - Dark/light mode support
+
+### Utilities
+
+- **date-fns** - Date formatting/manipulation
+- **xlsx** - Excel export for data tables
+- **clsx + tailwind-merge** - Conditional class merging
 
 ### HTTP & API
 
-- **Axios** - HTTP client with interceptors
-- **HttpOnly Cookies** - Secure authentication
+- **Axios** - HTTP client with interceptors (401 auto-refresh)
+- **Next.js API Route Proxy** - `src/app/api/[...path]/route.ts` forwards browser requests to `BACKEND_URL` server-side
+- **HttpOnly Cookies** - Secure authentication (no tokens in JS)
 
 ### Dev Tools
 
 - **ESLint 9** - Linting (with Prettier integration)
+- **Prettier** - Code formatting
 - **TypeScript Strict Mode** - Maximum type safety
 - **simple-import-sort** - Auto-sort imports
-- **unused-imports** - Remove unused code
+- **unused-imports** - Remove unused imports
+- **lint-staged** - Pre-commit lint hook
 
 ---
 
@@ -382,7 +398,8 @@ AppError (Base)
 
 **Run before committing:**
 ```bash
-bun run lint  # Auto-fixes formatting, imports, and catches errors
+bun run lint:fix  # Auto-fixes import order, removes unused imports, catches errors
+bun run format    # Applies Prettier formatting
 ````
 
 ### 3. Developer Experience (DX) Priorities
@@ -519,21 +536,23 @@ export function CreatePortalForm() {
 'use client';
 
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { ROLES } from '@/lib/auth/roles';
 
 export function UserProfile() {
-  const { user, isAuthenticated } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   if (!isAuthenticated) {
     return <div>Please log in</div>;
   }
 
-  const isAdmin = user?.roles.includes('ADMIN');
-  const isPortalAdmin = user?.roles.includes('PORTAL_ADMIN');
+  // Use ROLES constants — never hardcode raw strings
+  const isAdmin = user?.roles.some((r) => r.name === ROLES.SUPER_ADMIN);
+  const isPortalAdmin = user?.roles.some((r) => r.name === ROLES.PORTAL_ADMIN);
 
   return (
     <div>
       <p>Email: {user.email}</p>
-      <p>Roles: {user.roles.join(', ')}</p>
       {isAdmin && <AdminPanel />}
     </div>
   );
@@ -665,9 +684,9 @@ bun run lint
 
 ### File Naming
 
-- **Components:** PascalCase (e.g., `UserTable.tsx`)
-- **Utils/API:** kebab-case (e.g., `auth-store.ts`, `api-client.ts`)
-- **Routes:** kebab-case (e.g., `api-keys/page.tsx`)
+- **All files:** `kebab-case.tsx` / `kebab-case.ts` (e.g., `user-table.tsx`, `auth-store.ts`)
+- **Routes:** kebab-case directories (e.g., `api-keys/page.tsx`, `team-members/page.tsx`)
+- **Components export:** named function declaration — `export function MyComponent()`, not `const`
 
 ### Component Organization
 
