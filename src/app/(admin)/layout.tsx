@@ -1,42 +1,38 @@
-"use client";
-
-import { Loader2 } from "lucide-react";
-import { useMemo } from "react";
-
+import { SuperAdminGuard } from "./_components/super-admin-guard";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { useRequireAuth } from "@/hooks/use-require-auth";
-import { ROLES } from "@/lib/auth/roles";
-import { getCookie } from "@/lib/utils";
-
-import { AdminHeader } from "./_components/admin-header";
 import { AdminSidebar } from "./_components/admin-sidebar";
+import { AdminHeader } from "./_components/admin-header";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { isLoading, isAuthorized } = useRequireAuth({
-    requiredRoles: [ROLES.SUPER_ADMIN],
-    fallbackPath: "/portal",
-  });
-
-  const defaultOpen = useMemo(() => {
-    const sidebarState = getCookie("sidebar_state");
-    return sidebarState !== "false";
-  }, []);
-
-  if (isLoading || !isAuthorized) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
+/**
+ * Admin group layout
+ *
+ * All routes under /admin are wrapped in SuperAdminGuard which:
+ *  - Hydrates the auth store if needed (calls /users/me once)
+ *  - Verifies the user holds the SUPER_ADMIN role
+ *  - Redirects non-super-admins to /portal
+ *
+ * This is the *client-side* enforcement layer. The backend independently
+ * enforces the same rules via `Depends(get_super_admin_user)` on every
+ * protected endpoint.
+ */
+export default function AdminGroupLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <SidebarProvider key="admin-sidebar" defaultOpen={defaultOpen}>
-      <AdminSidebar />
-      <div className="flex min-h-screen w-full flex-col">
-        <AdminHeader />
-        <main className="m-2 mt-0 flex-1 rounded-md border border-zinc-300 p-4">{children}</main>
+    <SuperAdminGuard>
+      <div className="bg-background min-h-screen flex">
+        <SidebarProvider defaultOpen={false}>
+          <AdminSidebar />
+          <div className="flex min-h-screen w-full flex-col">
+            <AdminHeader />
+            <main className="m-2 mt-0 flex-1 rounded-md border border-zinc-300 p-4">
+              {children}
+            </main>
+          </div>
+        </SidebarProvider>
       </div>
-    </SidebarProvider>
+    </SuperAdminGuard>
   );
 }
