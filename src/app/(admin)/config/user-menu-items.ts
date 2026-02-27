@@ -1,25 +1,20 @@
-import { Activity, Bell, User } from "lucide-react";
+import { User, Settings } from "lucide-react"
 
 export type UserMenuItem = {
-  title: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
+  title: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+}
 
 export const userMenuItems: UserMenuItem[] = [
   {
-    title: "Profile",
-    href: "/admin/profile",
+    title: "Account",
+    href: "/admin/account",
     icon: User,
   },
   {
-    title: "Activity",
-    href: "/admin/activity",
-    icon: Activity,
+    title: "Settings",
+    href: "/admin/settings",
+    icon: Settings,
   },
-  {
-    title: "Notifications",
-    href: "/admin/notifications",
-    icon: Bell,
-  },
-];
+]

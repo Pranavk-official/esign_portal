@@ -26,21 +26,20 @@ import {
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ChevronUp, LogOut } from "lucide-react"
-import { userMenuItems } from "@/app/(portal)/config/user-menu-items"
+import { userMenuItems } from "@/app/(admin)/config/user-menu-items"
 import { authApi } from "@/lib/api/auth"
 import { useAuthStore } from "@/lib/stores/auth-store"
 
-type UserMenuProps = {
+type AdminUserMenuProps = {
   email: string
 }
 
-export function SidebarUserMenu({ email }: UserMenuProps) {
+export function AdminUserMenu({ email }: AdminUserMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const { state } = useSidebar()
   const clearAuth = useAuthStore((s) => s.clearAuth)
 
-  // Derive initials from the email local part (before @)
-  const initials = (email.split("@")[0]?.[0] ?? "U").toUpperCase()
+  const initials = (email.split("@")[0]?.[0] ?? "A").toUpperCase()
 
   async function handleLogout() {
     try {
@@ -53,7 +52,6 @@ export function SidebarUserMenu({ email }: UserMenuProps) {
     }
   }
 
-  // When sidebar is collapsed, show dropdown menu
   if (state === "collapsed") {
     return (
       <SidebarMenu>
@@ -70,11 +68,7 @@ export function SidebarUserMenu({ email }: UserMenuProps) {
                 <span className="sr-only">{email}</span>
               </SidebarMenuButton>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              side="right"
-              align="end"
-              className="w-56"
-            >
+            <DropdownMenuContent side="right" align="end" className="w-56">
               <div className="px-2 py-1.5 text-xs text-muted-foreground truncate">{email}</div>
               {userMenuItems.map((item) => (
                 <DropdownMenuItem key={item.title} asChild>
@@ -95,7 +89,6 @@ export function SidebarUserMenu({ email }: UserMenuProps) {
     )
   }
 
-  // When sidebar is expanded, show collapsible menu
   return (
     <SidebarMenu>
       <Collapsible open={isOpen} onOpenChange={setIsOpen} className="group/collapsible">
@@ -122,7 +115,6 @@ export function SidebarUserMenu({ email }: UserMenuProps) {
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
               ))}
-
               <SidebarMenuSubItem>
                 <SidebarMenuSubButton
                   className="text-red-600 cursor-pointer"
@@ -139,4 +131,3 @@ export function SidebarUserMenu({ email }: UserMenuProps) {
     </SidebarMenu>
   )
 }
-

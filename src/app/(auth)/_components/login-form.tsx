@@ -1,12 +1,14 @@
-"use client";
+"use client"
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import * as React from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { Loader2 } from "lucide-react"
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -14,81 +16,141 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { useAuthMutations } from "@/hooks/use-auth-mutations";
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
 import {
-  type OTPRequestForm,
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp"
+
+// Schemas
+import {
   otpRequestSchema,
-  type OTPVerifyForm,
   otpVerifySchema,
-} from "@/lib/schemas/auth";
+  type OTPRequestForm,
+  type OTPVerifyForm
+} from "@/lib/schemas/auth"
 
-type LoginStep = "EMAIL" | "OTP";
+import { authApi } from "@/lib/api/auth"
+import { useAuthStore } from "@/lib/stores/auth-store"
+import { AppError } from "@/lib/errors"
 
-const RESEND_COOLDOWN = 30; // seconds
+type LoginStep = "EMAIL" | "OTP"
 
 export function LoginForm() {
-  const [step, setStep] = useState<LoginStep>("EMAIL");
-  const [resendTimer, setResendTimer] = useState(0);
-  const { requestOTP, isRequestingOTP, verifyOTP, isVerifyingOTP } = useAuthMutations();
+  const [step, setStep] = React.useState<LoginStep>("EMAIL")
+  const [email, setEmail] = React.useState<string>("")
+  const router = useRouter()
+  const { setUser } = useAuthStore()
 
-  // ── Resend cooldown timer ─────────────────────────────────
-  useEffect(() => {
-    if (resendTimer <= 0) return;
-    const id = setInterval(() => setResendTimer((t) => Math.max(0, t - 1)), 1000);
-    return () => clearInterval(id);
-  }, [resendTimer]);
-
-  // ── Email Form (Step 1) ───────────────────────────────────
+  // --- Form 1: Request OTP ---
   const emailForm = useForm<OTPRequestForm>({
     resolver: zodResolver(otpRequestSchema),
-    defaultValues: { email: "", scope: "LOGIN" },
-  });
+    defaultValues: { email: "" },
+  })
 
-  // ── OTP Form (Step 2) ────────────────────────────────────
+  // --- Form 2: Verify OTP ---
+  // Default values use 'otp' (not otp_code)
   const otpForm = useForm<OTPVerifyForm>({
     resolver: zodResolver(otpVerifySchema),
-    defaultValues: { email: "", otp: "", scope: "LOGIN" },
-  });
+    defaultValues: { email: "", otp: "" },
+  })
 
-  // ── Handlers ──────────────────────────────────────────────
-  const handleEmailSubmit = (data: OTPRequestForm) => {
-    requestOTP(data, {
-      onSuccess: () => {
-        otpForm.setValue("email", data.email);
-        setStep("OTP");
-        setResendTimer(RESEND_COOLDOWN);
-      },
-    });
-  };
+  // --- Mutation 1: Request OTP ---
+  const requestOTPMutation = useMutation({
+    mutationFn: authApi.requestOTP,
+    onSuccess: () => {
+      setStep("OTP")
+      toast.success("OTP sent to your email")
+    },
+    // onError handled globally
+  })
 
-  const handleOtpSubmit = (data: OTPVerifyForm) => {
-    verifyOTP(data);
-  };
+  function onEmailSubmit(data: OTPRequestForm) {
+    setEmail(data.email)
+    // Sync email to second form immediately
+    otpForm.setValue("email", data.email)
+    requestOTPMutation.mutate({ ...data, scope: "LOGIN" })
+  }
 
-  const handleResendOTP = useCallback(() => {
-    const email = otpForm.getValues("email");
-    if (!email) {
+  // --- Mutation 2: Verify & Login Chain ---
+  const verifyOTPMutation = useMutation<
+    void,           // Returns nothing (we handle flow manually)
+    AppError,       // Error type
+    OTPVerifyForm   // Input variables
+  >({
+    mutationFn: async (variables) => {
+      // 1. Verify OTP — backend sets HttpOnly auth cookies AND returns user info.
+      const authResponse = await authApi.verifyOTP({ ...variables, scope: 'LOGIN' });
+
+      // 2. Use the user from the verifyOTP response directly (avoids an extra
+      //    cross-origin /users/me round-trip before cookies propagate).
+      //    Fall back to getMe only if the response didn't include the user.
+      const user = authResponse.user ?? await authApi.getMe();
+
+      // 3. Update auth store.
+      setUser(user);
+    },
+    onSuccess: () => {
+      const user = useAuthStore.getState().user;
+      console.log('[LOGIN] User logged in:', user);
+      toast.success("Login successful");
+
+      // 4. Role-based Redirect
+      const roles = user?.roles || [];
+      console.log('[LOGIN] User roles:', roles);
+
+      // Handle both string roles and object roles (if backend changes)
+      const hasRole = (roleName: string) => {
+        return roles.some((r: any) => {
+          const rName = typeof r === 'string' ? r : r.name;
+          return rName.toUpperCase() === roleName.toUpperCase();
+        });
+      };
+
+      let targetRoute = "/portal";
+      if (hasRole('SUPER_ADMIN')) {
+        targetRoute = "/admin";
+      } else if (hasRole('PORTAL_ADMIN')) {
+        targetRoute = "/portal";
+      }
+
+      console.log('[LOGIN] Redirecting to:', targetRoute);
+      console.log('[LOGIN] About to execute redirect...');
+
+      // Small delay to ensure state is saved, then hard redirect
+      setTimeout(() => {
+        console.log('[LOGIN] Executing redirect NOW');
+        window.location.href = targetRoute;
+      }, 100);
+    },
+    onError: (error) => {
+      console.error("Login Failed:", error);
+      otpForm.resetField("otp"); // Clear OTP on failure
+    },
+  })
+
+  function onOtpSubmit(data: OTPVerifyForm) {
+    // Use state email as fallback
+    const finalEmail = email || otpForm.getValues("email");
+
+    if (!finalEmail) {
       toast.error("Session lost. Please reload.");
       return;
     }
-    setResendTimer(RESEND_COOLDOWN);
-    requestOTP({ email, scope: "LOGIN" });
-  }, [requestOTP, otpForm]);
 
-  const handleChangeEmail = useCallback(() => {
-    otpForm.reset();
-    setStep("EMAIL");
-  }, [otpForm]);
+    verifyOTPMutation.mutate({
+      email: finalEmail,
+      otp: data.otp // Correct field name 'otp'
+    })
+  }
 
-  // ── Render ────────────────────────────────────────────────
   return (
     <div className="grid gap-6">
       {step === "EMAIL" ? (
         <Form {...emailForm}>
-          <form onSubmit={emailForm.handleSubmit(handleEmailSubmit)} className="space-y-4">
+          <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
             <FormField
               control={emailForm.control}
               name="email"
@@ -96,24 +158,29 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="admin@example.com" disabled={isRequestingOTP} {...field} />
+                    <Input
+                      placeholder="admin@example.com"
+                      disabled={requestOTPMutation.isPending}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button className="w-full" type="submit" disabled={isRequestingOTP}>
-              {isRequestingOTP && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button className="w-full" type="submit" disabled={requestOTPMutation.isPending}>
+              {requestOTPMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Request OTP
             </Button>
           </form>
         </Form>
       ) : (
         <Form {...otpForm}>
-          <form onSubmit={otpForm.handleSubmit(handleOtpSubmit)} className="space-y-4">
-            <div className="text-muted-foreground mb-4 text-center text-sm">
-              Sent to{" "}
-              <span className="text-foreground font-medium">{otpForm.getValues("email")}</span>
+          <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-4">
+            <div className="mb-4 text-center text-sm text-muted-foreground">
+              Sent to <span className="font-medium text-foreground">{email}</span>
             </div>
 
             <FormField
@@ -123,7 +190,11 @@ export function LoginForm() {
                 <FormItem className="flex flex-col items-center justify-center">
                   <FormLabel className="sr-only">One-Time Password</FormLabel>
                   <FormControl>
-                    <InputOTP maxLength={6} disabled={isVerifyingOTP} {...field}>
+                    <InputOTP
+                      maxLength={6}
+                      disabled={verifyOTPMutation.isPending}
+                      {...field}
+                    >
                       <InputOTPGroup>
                         <InputOTPSlot index={0} />
                         <InputOTPSlot index={1} />
@@ -140,44 +211,25 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-
-            <Button className="w-full" type="submit" disabled={isVerifyingOTP}>
-              {isVerifyingOTP && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button className="w-full" type="submit" disabled={verifyOTPMutation.isPending}>
+              {verifyOTPMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Verify Login
             </Button>
-
-            <div className="mt-4 space-y-2">
-              {resendTimer > 0 ? (
-                <p className="text-muted-foreground text-center text-sm">
-                  Resend OTP in {resendTimer}s
-                </p>
-              ) : (
-                <Button
-                  variant="link"
-                  className="w-full"
-                  size="sm"
-                  type="button"
-                  onClick={handleResendOTP}
-                  disabled={isRequestingOTP}
-                >
-                  {isRequestingOTP && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Resend OTP
-                </Button>
-              )}
-              <Button
-                variant="link"
-                className="w-full"
-                size="sm"
-                type="button"
-                onClick={handleChangeEmail}
-                disabled={isVerifyingOTP}
-              >
-                Change Email
-              </Button>
-            </div>
+            <Button
+              variant="link"
+              className="w-full"
+              size="sm"
+              type="button"
+              onClick={() => setStep("EMAIL")}
+              disabled={verifyOTPMutation.isPending}
+            >
+              Change Email
+            </Button>
           </form>
         </Form>
       )}
     </div>
-  );
+  )
 }

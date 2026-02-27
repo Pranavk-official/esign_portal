@@ -1,10 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-import { authApi } from "@/lib/api/auth";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { authApi } from "@/lib/api/auth";
 
 export type RoleGuardStatus = "loading" | "authorized" | "redirecting";
 
@@ -13,7 +12,7 @@ export type RoleGuardStatus = "loading" | "authorized" | "redirecting";
  * requirement. Returns the current gate status so the caller can show a
  * loading state while the check is in-flight.
  *
- * @param allowedRoles - Role names that may access the route (case-insensitive).
+ * @param allowedRoles - Upper-cased role names that may access the route.
  *                       Pass `null` to allow any authenticated user.
  * @param redirectTo   - Where to send unauthorised users (default: "/").
  */

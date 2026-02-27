@@ -1,12 +1,12 @@
-import { apiClient } from "./client";
-import type { OTPRequestForm, OTPVerifyForm } from "@/lib/schemas/auth";
+import { apiClient } from './client';
+import { OTPRequestForm, OTPVerifyForm } from '@/lib/schemas/auth';
 
-// ─── Request / Response Types (aligned with openapi.json) ────────────────────
+// ─── Request / Response Types (aligned with openapi.json) ─────────────────────
 
 /** POST /admin/auth/request-otp */
 export interface OTPRequestPayload {
   email: string;
-  scope: "LOGIN" | "RESET_PASSWORD";
+  scope: 'LOGIN' | 'RESET_PASSWORD';
 }
 
 /** OTPRequestResponse */
@@ -18,7 +18,7 @@ export interface OTPRequestResponse {
 export interface OTPVerifyPayload {
   email: string;
   otp: string;
-  scope: "LOGIN" | "RESET_PASSWORD";
+  scope: 'LOGIN' | 'RESET_PASSWORD';
 }
 
 /** RoleResponse (from openapi.json #/components/schemas/RoleResponse) */
@@ -63,12 +63,12 @@ export const authApi = {
    * Request OTP for login.
    * POST /admin/auth/request-otp
    */
-  requestOTP: async (data: OTPRequestForm & { scope: "LOGIN" }): Promise<OTPRequestResponse> => {
+  requestOTP: async (data: OTPRequestForm & { scope: 'LOGIN' }): Promise<OTPRequestResponse> => {
     const payload: OTPRequestPayload = {
       email: data.email,
       scope: data.scope,
     };
-    const response = await apiClient.post<OTPRequestResponse>("/admin/auth/request-otp", payload);
+    const response = await apiClient.post<OTPRequestResponse>('/admin/auth/request-otp', payload);
     return response.data;
   },
 
@@ -76,13 +76,13 @@ export const authApi = {
    * Verify OTP and complete login. Backend sets HttpOnly auth cookies in response.
    * POST /admin/auth/verify-otp
    */
-  verifyOTP: async (data: OTPVerifyForm & { scope: "LOGIN" }): Promise<AuthResponse> => {
+  verifyOTP: async (data: OTPVerifyForm & { scope: 'LOGIN' }): Promise<AuthResponse> => {
     const payload: OTPVerifyPayload = {
       email: data.email,
       otp: data.otp,
       scope: data.scope,
     };
-    const response = await apiClient.post<AuthResponse>("/admin/auth/verify-otp", payload);
+    const response = await apiClient.post<AuthResponse>('/admin/auth/verify-otp', payload);
     return response.data;
   },
 
@@ -91,7 +91,7 @@ export const authApi = {
    * GET /users/me
    */
   getMe: async (): Promise<UserDetailResponse> => {
-    const response = await apiClient.get<UserDetailResponse>("/users/me");
+    const response = await apiClient.get<UserDetailResponse>('/users/me');
     return response.data;
   },
 
@@ -101,7 +101,7 @@ export const authApi = {
    */
   logout: async (): Promise<LogoutResponse> => {
     const payload: LogoutRequestPayload = { revoke_all: true };
-    const response = await apiClient.post<LogoutResponse>("/admin/auth/logout", payload);
+    const response = await apiClient.post<LogoutResponse>('/admin/auth/logout', payload);
     return response.data;
   },
 };

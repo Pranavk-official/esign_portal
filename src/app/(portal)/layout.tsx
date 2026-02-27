@@ -3,14 +3,6 @@ import { PortalSidebar } from "./_components/portal-sidebar";
 import { PortalHeader } from "./_components/portal-header";
 import { PortalRoleGuard } from "./_components/portal-role-guard";
 
-/**
- * Portal group layout
- *
- * All routes under /portal are wrapped in PortalRoleGuard which:
- *  - Hydrates the auth store if needed (calls /users/me once)
- *  - Verifies the user holds PORTAL_ADMIN or PORTAL_USER role
- *  - Redirects super admins to /admin
- */
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
     <PortalRoleGuard>

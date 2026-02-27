@@ -1,4 +1,4 @@
-import type { UserDetailResponse } from "@/lib/schemas/auth";
+import type { UserDetailResponse } from "@/lib/api/auth";
 import { UserCreateRequest, UserUpdateRequest } from "@/lib/schemas/user";
 
 import { apiClient } from "./client";

@@ -1,18 +1,21 @@
-"use client";
+'use client';
 
-import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
-import { toast } from "sonner";
-
-import { AppError } from "@/lib/errors";
+import { 
+  QueryClient, 
+  QueryClientProvider, 
+  MutationCache, 
+} from '@tanstack/react-query';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { AppError } from '@/lib/errors';
 
 // Extend React Query's Meta type to include our custom options
-declare module "@tanstack/react-query" {
+declare module '@tanstack/react-query' {
   interface Register {
     defaultError: AppError;
     mutationMeta: {
       suppressErrorToast?: boolean;
-    };
+    }
   }
 }
 
@@ -22,7 +25,7 @@ export default function ReactQueryProvider({ children }: { children: React.React
       onError: (error, _variables, _context, mutation) => {
         // 1. Check if this specific mutation requested to hide the toast
         if (mutation.meta?.suppressErrorToast) {
-          return;
+          return; 
         }
 
         // 2. Otherwise, show the global toast
@@ -33,7 +36,7 @@ export default function ReactQueryProvider({ children }: { children: React.React
 
     defaultOptions: {
       queries: {
-        staleTime: 60 * 1000,
+        staleTime: 60 * 1000, 
         retry: 1,
         refetchOnWindowFocus: false,
       },

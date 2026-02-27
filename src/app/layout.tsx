@@ -1,19 +1,24 @@
-import "./globals.css";
-
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import ReactQueryProvider from "@/providers/query-provider";
 import { Toaster } from "sonner";
 
-import ReactQueryProvider from "@/providers/query-provider";
+// Load debug utilities in development
+if (process.env.NODE_ENV === 'development') {
+  import('@/lib/api/debug').catch(() => {
+    // Silently fail if debug utils can't be loaded
+  });
+}
 
-const outfit = Outfit({
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  variable: "--font-heading",
 });
 
-const inter = Inter({
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
@@ -27,13 +32,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${outfit.variable} ${inter.variable} font-sans antialiased`}>
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ReactQueryProvider>
-          <>
-            {children}
-            <Toaster />
-          </>
+          {children}
+          <Toaster />
         </ReactQueryProvider>
       </body>
     </html>

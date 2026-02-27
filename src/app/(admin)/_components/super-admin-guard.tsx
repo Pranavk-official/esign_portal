@@ -7,10 +7,9 @@ import { useRoleGuard } from "@/lib/hooks/use-role-guard";
  * Client component that enforces SUPER_ADMIN role.
  * Shows a loading spinner while the auth check is in-flight, then either
  * renders children (authorized) or silently redirects (unauthorized).
- *
- * Non-super-admins are redirected to /portal (they may legitimately be portal_admins).
  */
 export function SuperAdminGuard({ children }: { children: React.ReactNode }) {
+  // Redirect non-super-admins to /portal (they may legitimately be portal_admins).
   const status = useRoleGuard(["SUPER_ADMIN"], "/portal");
 
   if (status === "loading" || status === "redirecting") {

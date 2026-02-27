@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -40,19 +40,18 @@ export default function Home() {
         // /users/me failed — refresh token may be expired too.
         // The Axios interceptor will handle the refresh attempt and redirect
         // to /login on failure. We just clear state here as a fallback.
-        router.replace("/login");
+        router.replace('/login');
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function redirectByRole(roles: RoleResponse[]) {
     const hasRole = (name: string) =>
       roles.some((r) => r.name.toUpperCase() === name.toUpperCase());
 
-    if (hasRole("SUPER_ADMIN")) {
-      router.replace("/admin");
+    if (hasRole('SUPER_ADMIN')) {
+      router.replace('/admin');
     } else {
-      router.replace("/portal");
+      router.replace('/portal');
     }
   }
 

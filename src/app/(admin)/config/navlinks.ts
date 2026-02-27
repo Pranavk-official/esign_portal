@@ -1,50 +1,40 @@
-import { Activity, Boxes, FileText, LayoutDashboard, Settings, Users } from "lucide-react";
+import {
+  SquareChartGantt,
+  Building2,
+  UsersRound,
+  ScrollText,
+} from "lucide-react"
 
 export type NavLink = {
-  title: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
+  title: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+}
 
 export type NavGroup = {
-  label: string;
-  items: NavLink[];
-};
+  label: string
+  items: NavLink[]
+}
 
 export const navLinks: NavGroup[] = [
   {
-    label: "Application",
+    label: "Management",
     items: [
       {
         title: "Dashboard",
         href: "/admin",
-        icon: LayoutDashboard,
+        icon: SquareChartGantt,
       },
       {
         title: "Portals",
         href: "/admin/portals",
-        icon: Boxes,
+        icon: Building2,
       },
       {
-        title: "Global Users",
+        title: "Users",
         href: "/admin/users",
-        icon: Users,
-      },
-      {
-        title: "API Usage",
-        href: "/admin/api-usage",
-        icon: Activity,
-      },
-      {
-        title: "Audit Logs",
-        href: "/admin/audit-logs",
-        icon: FileText,
-      },
-      {
-        title: "Settings",
-        href: "/admin/settings",
-        icon: Settings,
+        icon: UsersRound,
       },
     ],
   },
-];
+]

@@ -1,4 +1,4 @@
-import type { UserDetailResponse } from "@/lib/schemas/auth";
+import type { UserDetailResponse, RoleResponse } from "@/lib/api/auth";
 
 export type RoleName = "super_admin" | "portal_admin" | "portal_user";
 
@@ -13,7 +13,7 @@ export const ROLES = {
  */
 export function hasRole(user: UserDetailResponse, requiredRoles: RoleName[]): boolean {
     if (!user.roles) return false;
-    return user.roles.some((userRole) => requiredRoles.includes(userRole.name as RoleName));
+    return user.roles.some((userRole: RoleResponse) => requiredRoles.includes(userRole.name as RoleName));
 }
 
 /**
