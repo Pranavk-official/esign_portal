@@ -4,7 +4,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { usersApi } from "@/lib/api/users";
-import type { UserCreateRequest, UserUpdateRequest } from "@/lib/schemas/user";
+import type {
+  PortalAdminUserCreateRequest,
+  UserCreateRequest,
+  UserUpdateRequest,
+} from "@/lib/schemas/user";
+
+// ── Super Admin mutations ──────────────────────────────────────────────────────
 
 export function useUserMutations() {
   const queryClient = useQueryClient();
@@ -15,9 +21,6 @@ export function useUserMutations() {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("User created successfully");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to create user");
-    },
   });
 
   const updateUser = useMutation({
@@ -27,9 +30,6 @@ export function useUserMutations() {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("User updated successfully");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to update user");
-    },
   });
 
   const activateUser = useMutation({
@@ -38,9 +38,6 @@ export function useUserMutations() {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("User activated successfully");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to activate user");
-    },
   });
 
   const deactivateUser = useMutation({
@@ -48,9 +45,6 @@ export function useUserMutations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("User deactivated successfully");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to deactivate user");
     },
   });
 
@@ -61,9 +55,6 @@ export function useUserMutations() {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Roles assigned successfully");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to assign roles");
-    },
   });
 
   const removeRoles = useMutation({
@@ -73,22 +64,16 @@ export function useUserMutations() {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Roles removed successfully");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to remove roles");
-    },
   });
 
   const bulkCreate = useMutation({
     mutationFn: (users: UserCreateRequest[]) => usersApi.bulkCreate(users),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success(`${data.created.length} users created successfully`);
-      if (data.failed.length > 0) {
-        toast.error(`${data.failed.length} users failed to create`);
+      toast.success(`${data.success_count} users created successfully`);
+      if (data.failure_count > 0) {
+        toast.error(`${data.failure_count} users failed to create`);
       }
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to create users");
     },
   });
 
@@ -99,19 +84,16 @@ export function useUserMutations() {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Roles assigned to selected users");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to assign roles");
-    },
   });
 
   const bulkDeactivate = useMutation({
     mutationFn: (userIds: string[]) => usersApi.bulkDeactivate(userIds),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("Selected users deactivated");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to deactivate users");
+      toast.success(`${data.success_count} users deactivated`);
+      if (data.failure_count > 0) {
+        toast.error(`${data.failure_count} users could not be deactivated`);
+      }
     },
   });
 
@@ -128,30 +110,26 @@ export function useUserMutations() {
   };
 }
 
-// Portal Manager mutations for their portal users
+// ── Portal Admin mutations (v2 routes) ────────────────────────────────────────
+
 export function usePortalUserMutations() {
   const queryClient = useQueryClient();
 
   const createUser = useMutation({
-    mutationFn: (data: Omit<UserCreateRequest, "portal_id">) => usersApi.createInMyPortal(data),
+    mutationFn: (data: PortalAdminUserCreateRequest) => usersApi.createInMyPortal(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portal-users"] });
       toast.success("Team member added successfully");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to add team member");
-    },
   });
 
+  /** Update email or is_active. Role changes use assignRoles (super admin only). */
   const updateUser = useMutation({
     mutationFn: ({ userId, data }: { userId: string; data: UserUpdateRequest }) =>
       usersApi.updateInMyPortal(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portal-users"] });
       toast.success("Team member updated successfully");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to update team member");
     },
   });
 
@@ -161,9 +139,6 @@ export function usePortalUserMutations() {
       queryClient.invalidateQueries({ queryKey: ["portal-users"] });
       toast.success("Team member activated successfully");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to activate team member");
-    },
   });
 
   const deactivateUser = useMutation({
@@ -171,9 +146,6 @@ export function usePortalUserMutations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portal-users"] });
       toast.success("Team member deactivated successfully");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to deactivate team member");
     },
   });
 

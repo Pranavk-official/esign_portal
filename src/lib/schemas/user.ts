@@ -16,27 +16,40 @@ const roleNamesSchema = z
 export const userCreateSchema = z.object({
   email: emailSchema,
 
-  portal_id: z.string().uuid("Invalid portal ID").optional().nullable(),
+  portal_id: z.string().min(1, "Portal ID is required").optional().nullable(),
 
   role_names: roleNamesSchema,
 
   send_otp: z.boolean().optional(),
 });
 
+/**
+ * Narrowed schema for Portal Admins creating users in their own portal.
+ * portal_id is omitted — the backend derives it from the authenticated user's context.
+ * send_otp is always true server-side, so it's not exposed.
+ */
+export const portalAdminUserCreateSchema = z.object({
+  email: emailSchema,
+  role_names: roleNamesSchema,
+});
+
+/**
+ * Super Admin and Portal Admin update schema.
+ * role_names is intentionally absent — use the dedicated role-assignment
+ * endpoints (POST/DELETE /admin/users/{id}/roles) for role changes.
+ */
 export const userUpdateSchema = z
   .object({
     email: emailSchema.optional(),
-
-    role_names: roleNamesSchema.optional(),
-
     is_active: z.boolean().optional(),
   })
-  .refine((data) => data.email || data.role_names || data.is_active !== undefined, {
+  .refine((data) => data.email !== undefined || data.is_active !== undefined, {
     message: "At least one field must be provided for update",
   });
 
 // Type exports - Request types
 export type UserCreateRequest = z.infer<typeof userCreateSchema>;
+export type PortalAdminUserCreateRequest = z.infer<typeof portalAdminUserCreateSchema>;
 export type UserUpdateRequest = z.infer<typeof userUpdateSchema>;
 
 // Response Validation Schemas

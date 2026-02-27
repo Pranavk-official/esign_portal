@@ -43,14 +43,14 @@ export function KeyLimitModal({ open, onOpenChange, portal }: KeyLimitModalProps
   const form = useForm<PortalKeyLimitFormData>({
     resolver: zodResolver(portalKeyLimitFormSchema),
     defaultValues: {
-      max_keys: (portal?.max_keys || portal?.live_key_limit)?.toString() || "",
+      live_key_limit: portal?.live_key_limit?.toString() || "",
     },
   });
 
   useEffect(() => {
     if (portal) {
       form.reset({
-        max_keys: (portal.max_keys || portal.live_key_limit)?.toString() || "",
+        live_key_limit: portal.live_key_limit?.toString() || "",
       });
     }
   }, [portal, form]);
@@ -59,7 +59,7 @@ export function KeyLimitModal({ open, onOpenChange, portal }: KeyLimitModalProps
     if (!portal) return;
 
     const transformedData = {
-      max_keys: data.max_keys ? parseInt(data.max_keys, 10) : null,
+      live_key_limit: data.live_key_limit ? parseInt(data.live_key_limit, 10) : null,
     };
 
     await updateKeyLimits.mutateAsync({
@@ -86,7 +86,7 @@ export function KeyLimitModal({ open, onOpenChange, portal }: KeyLimitModalProps
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="max_keys"
+              name="live_key_limit"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Maximum LIVE API Keys</FormLabel>
@@ -103,7 +103,7 @@ export function KeyLimitModal({ open, onOpenChange, portal }: KeyLimitModalProps
                     />
                   </FormControl>
                   <FormDescription>
-                    Current: {portal?.max_keys || portal?.live_key_limit || "Unlimited"}
+                    Current: {portal?.live_key_limit ?? "Unlimited"}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

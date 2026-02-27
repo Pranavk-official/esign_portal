@@ -9,7 +9,7 @@ import { UserFormDialog } from "@/components/shared/user-form-dialog";
 import { Button } from "@/components/ui/button";
 import { usePortalUserMutations } from "@/hooks/use-user-mutations";
 import { useMyPortalUsers } from "@/hooks/use-users";
-import type { UserCreateRequest, UserDetailResponse } from "@/lib/schemas/user";
+import type { UserCreateRequest } from "@/lib/schemas/user";
 
 // Available roles for portal users
 const PORTAL_ROLES = [
@@ -29,29 +29,22 @@ export default function PortalUsersPage() {
   });
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserDetailResponse | null>(null);
   const [confirmAction, setConfirmAction] = useState<{
     type: "activate" | "deactivate";
     userId: string;
   } | null>(null);
 
   const { data, isLoading } = useMyPortalUsers(params);
-  const { createUser, updateUser, activateUser, deactivateUser } = usePortalUserMutations();
+  const { createUser, activateUser, deactivateUser } = usePortalUserMutations();
 
-  const handleCreateUser = async (formData: Omit<UserCreateRequest, "portal_id">) => {
-    await createUser.mutateAsync(formData);
-    setIsCreateDialogOpen(false);
-  };
-
-  const handleUpdateUser = async (formData: any) => {
-    if (!editingUser) return;
-    await updateUser.mutateAsync({
-      userId: editingUser.id,
-      data: {
-        role_names: formData.role_names,
-      },
+  const handleCreateUser = async (formData: UserCreateRequest) => {
+    // Pass only the fields the portal-admin create endpoint accepts (v2).
+    // portal_id is derived server-side from the authenticated user's context.
+    await createUser.mutateAsync({
+      email: formData.email,
+      role_names: formData.role_names,
     });
-    setEditingUser(null);
+    setIsCreateDialogOpen(false);
   };
 
   const handleConfirmAction = async () => {
@@ -84,7 +77,6 @@ export default function PortalUsersPage() {
         isLoading={isLoading}
         params={params}
         onParamsChange={setParams}
-        onEdit={(user) => setEditingUser(user)}
         onToggleStatus={(user) => {
           setConfirmAction({
             type: user.is_active ? "deactivate" : "activate",
@@ -99,17 +91,6 @@ export default function PortalUsersPage() {
         mode="create"
         onSubmit={handleCreateUser}
         isLoading={createUser.isPending}
-        availableRoles={PORTAL_ROLES}
-        showPortalField={false}
-      />
-
-      <UserFormDialog
-        open={!!editingUser}
-        onOpenChange={(open) => !open && setEditingUser(null)}
-        mode="edit"
-        user={editingUser}
-        onSubmit={handleUpdateUser}
-        isLoading={updateUser.isPending}
         availableRoles={PORTAL_ROLES}
         showPortalField={false}
       />

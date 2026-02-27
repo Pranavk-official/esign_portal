@@ -83,6 +83,7 @@ export interface PortalListResponse extends PortalResponse {
 export interface PortalOnboardingRequest {
   portal_name: string;
   admin_email: string;
+  live_key_limit?: number | null;
 }
 
 // API Keys

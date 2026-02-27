@@ -23,6 +23,13 @@ const emailSchema = z
 export const portalOnboardingSchema = z.object({
   portal_name: portalNameSchema,
   admin_email: emailSchema,
+  // v2: optional live key limit set at onboarding time
+  live_key_limit: z
+    .number()
+    .int()
+    .positive("Limit must be a positive number")
+    .optional()
+    .nullable(),
 });
 
 export const portalRevokeSchema = z.object({
@@ -40,7 +47,7 @@ export const portalKeyLimitSchema = z.object({
 });
 
 export const portalKeyLimitFormSchema = z.object({
-  max_keys: z.string().optional(),
+  live_key_limit: z.string().optional(),
 });
 
 // Type exports - Request types
@@ -48,6 +55,14 @@ export type PortalOnboardingRequest = z.infer<typeof portalOnboardingSchema>;
 export type PortalRevokeRequest = z.infer<typeof portalRevokeSchema>;
 export type PortalKeyLimitRequest = z.infer<typeof portalKeyLimitSchema>;
 export type PortalKeyLimitFormData = z.infer<typeof portalKeyLimitFormSchema>;
+
+// V2 onboarding response type
+export interface PortalOnboardingResponseV2 {
+  portal: PortalResponse;
+  admin_user_id: string;
+  admin_email: string;
+  otp_sent: boolean;
+}
 
 // Response schemas
 export const portalResponseSchema = z.object({

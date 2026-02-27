@@ -18,6 +18,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,12 +26,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useOnboardPortal } from "@/hooks/use-portals";
+import type { PortalOnboardingResponseV2 } from "@/lib/schemas/portal";
 import type { PortalOnboardingRequest } from "@/lib/schemas/portal";
 import { portalOnboardingSchema } from "@/lib/schemas/portal";
 
 interface OnboardPortalDialogProps {
   children: React.ReactNode;
-  onSuccess?: (data: PortalOnboardingRequest) => void;
+  onSuccess?: (data: PortalOnboardingResponseV2) => void;
 }
 
 export function OnboardPortalDialog({ children, onSuccess }: OnboardPortalDialogProps) {
@@ -44,14 +46,19 @@ export function OnboardPortalDialog({ children, onSuccess }: OnboardPortalDialog
     defaultValues: {
       portal_name: "",
       admin_email: "",
+      live_key_limit: null,
     },
   });
 
   const onSubmit = (values: PortalOnboardingRequest) => {
-    onboardPortal(values, {
+    // Strip null live_key_limit if not set
+    const payload = {
+      ...values,
+      live_key_limit: values.live_key_limit ?? undefined,
+    };
+    onboardPortal(payload, {
       onSuccess: (data) => {
-        // Cast response to expected type if necessary, or update prop type
-        onSuccess?.(data as unknown as PortalOnboardingRequest);
+        onSuccess?.(data);
         setOpen(false);
         form.reset();
       },
@@ -100,6 +107,31 @@ export function OnboardPortalDialog({ children, onSuccess }: OnboardPortalDialog
                   <FormControl>
                     <Input placeholder="admin@example.com" {...field} disabled={isPending} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="live_key_limit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>LIVE Key Limit (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Leave blank for unlimited"
+                      disabled={isPending}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        field.onChange(val === "" ? null : parseInt(val, 10));
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Maximum number of active LIVE API keys for this portal.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

@@ -1,5 +1,5 @@
 import type { UserDetailResponse } from "@/lib/api/auth";
-import { UserCreateRequest, UserUpdateRequest } from "@/lib/schemas/user";
+import { PortalAdminUserCreateRequest, UserCreateRequest, UserUpdateRequest } from "@/lib/schemas/user";
 
 import { apiClient } from "./client";
 import { PaginatedResponse, UserListResponse, UserQueryParams } from "./types";
@@ -8,9 +8,11 @@ export interface BulkCreateUsersRequest {
   users: UserCreateRequest[];
 }
 
-export interface BulkCreateUsersResponse {
-  created: UserDetailResponse[];
-  failed: Array<{ email: string; error: string }>;
+/** Matches backend BulkOperationResult schema */
+export interface BulkOperationResponse {
+  success_count: number;
+  failure_count: number;
+  errors: Array<{ index?: number; email?: string; user_id?: string; error: string }>;
 }
 
 export interface BulkAssignRolesRequest {
@@ -31,18 +33,19 @@ export const usersApi = {
     return response.data;
   },
 
+  // Super Admin: List users for a specific portal (v2)
   listByPortal: async (portalId: string, params?: UserQueryParams) => {
     const response = await apiClient.get<PaginatedResponse<UserListResponse>>(
-      `/admin/portals/${portalId}/users`,
+      `/admin/v2/super/portals/${portalId}/users`,
       { params }
     );
     return response.data;
   },
 
-  // Portal Manager: List users in their portal
+  // Portal Admin: List users in their own portal (v2)
   listMyUsers: async (params?: UserQueryParams) => {
     const response = await apiClient.get<PaginatedResponse<UserListResponse>>(
-      "/admin/portals/me/users",
+      "/admin/v2/portal/me/users",
       { params }
     );
     return response.data;
@@ -92,14 +95,14 @@ export const usersApi = {
 
   // Bulk operations - Admin
   bulkCreate: async (users: UserCreateRequest[]) => {
-    const response = await apiClient.post<BulkCreateUsersResponse>("/admin/users/bulk-create", {
+    const response = await apiClient.post<BulkOperationResponse>("/admin/users/bulk-create", {
       users,
     });
     return response.data;
   },
 
   bulkAssignRoles: async (userIds: string[], roleNames: string[]) => {
-    const response = await apiClient.post("/admin/users/bulk-assign-roles", {
+    const response = await apiClient.post<BulkOperationResponse>("/admin/users/bulk-assign-roles", {
       user_ids: userIds,
       role_names: roleNames,
     });
@@ -107,24 +110,24 @@ export const usersApi = {
   },
 
   bulkDeactivate: async (userIds: string[]) => {
-    const response = await apiClient.post("/admin/users/bulk-deactivate", { user_ids: userIds });
+    const response = await apiClient.post<BulkOperationResponse>("/admin/users/bulk-deactivate", { user_ids: userIds });
     return response.data;
   },
 
-  // Portal Manager: CRUD operations for their portal
-  createInMyPortal: async (data: Omit<UserCreateRequest, "portal_id">) => {
-    const response = await apiClient.post<UserDetailResponse>("/admin/portals/me/users", data);
+  // Portal Admin: CRUD operations scoped to their own portal (v2)
+  createInMyPortal: async (data: PortalAdminUserCreateRequest) => {
+    const response = await apiClient.post<UserDetailResponse>("/admin/v2/portal/me/users", data);
     return response.data;
   },
 
   getFromMyPortal: async (userId: string) => {
-    const response = await apiClient.get<UserDetailResponse>(`/admin/portals/me/users/${userId}`);
+    const response = await apiClient.get<UserDetailResponse>(`/admin/v2/portal/me/users/${userId}`);
     return response.data;
   },
 
   updateInMyPortal: async (userId: string, data: UserUpdateRequest) => {
     const response = await apiClient.patch<UserDetailResponse>(
-      `/admin/portals/me/users/${userId}`,
+      `/admin/v2/portal/me/users/${userId}`,
       data
     );
     return response.data;
@@ -132,14 +135,14 @@ export const usersApi = {
 
   activateInMyPortal: async (userId: string) => {
     const response = await apiClient.post<UserDetailResponse>(
-      `/admin/portals/me/users/${userId}/activate`
+      `/admin/v2/portal/me/users/${userId}/activate`
     );
     return response.data;
   },
 
   deactivateInMyPortal: async (userId: string) => {
     const response = await apiClient.post<UserDetailResponse>(
-      `/admin/portals/me/users/${userId}/deactivate`
+      `/admin/v2/portal/me/users/${userId}/deactivate`
     );
     return response.data;
   },

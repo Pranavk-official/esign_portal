@@ -35,7 +35,7 @@ export default function GlobalUsersPage() {
   } | null>(null);
 
   const { data, isLoading } = useUsers(params);
-  const { createUser, updateUser, activateUser, deactivateUser, bulkCreate, bulkDeactivate } =
+  const { createUser, assignRoles, activateUser, deactivateUser, bulkCreate, bulkDeactivate } =
     useUserMutations();
 
   const handleCreateUser = async (formData: UserCreateRequest) => {
@@ -43,14 +43,15 @@ export default function GlobalUsersPage() {
     setIsCreateDialogOpen(false);
   };
 
+  /** Role editing uses the dedicated POST /admin/users/{id}/roles endpoint. */
   const handleUpdateUser = async (formData: any) => {
     if (!editingUser) return;
-    await updateUser.mutateAsync({
-      userId: editingUser.id,
-      data: {
-        role_names: formData.role_names,
-      },
-    });
+    if (formData.role_names?.length) {
+      await assignRoles.mutateAsync({
+        userId: editingUser.id,
+        roleNames: formData.role_names,
+      });
+    }
     setEditingUser(null);
   };
 
@@ -149,7 +150,7 @@ export default function GlobalUsersPage() {
           mode="edit"
           user={editingUser}
           onSubmit={handleUpdateUser}
-          isLoading={updateUser.isPending}
+          isLoading={assignRoles.isPending}
           showPortalField={false}
         />
 

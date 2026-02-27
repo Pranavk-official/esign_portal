@@ -12,19 +12,19 @@ import type { SystemOverviewMetrics } from "./types";
 export const metricsApi = {
   /**
    * Get metrics for the current portal (department manager view)
-   * GET /admin/portals/me/metrics
+   * v2: GET /admin/v2/portal/me/metrics
    */
   getMyMetrics: async (): Promise<MetricsResponse> => {
-    const response = await apiClient.get<MetricsResponse>("/admin/portals/me/metrics");
+    const response = await apiClient.get<MetricsResponse>("/admin/v2/portal/me/metrics");
     return response.data;
   },
 
   /**
    * Get system-wide overview metrics (Super Admin only)
-   * GET /admin/system/overview
+   * v2: GET /admin/v2/super/system/overview
    */
   getSystemOverview: async (): Promise<SystemOverviewMetrics> => {
-    const response = await apiClient.get<SystemOverviewMetrics>("/admin/system/overview");
+    const response = await apiClient.get<SystemOverviewMetrics>("/admin/v2/super/system/overview");
     return response.data;
   },
 };

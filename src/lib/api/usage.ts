@@ -4,35 +4,38 @@ import { ApiUsageQueryParams, ApiUsageRecord, ApiUsageSummary, PaginatedResponse
 export { type ApiUsageRecord };
 
 export const usageApi = {
-  // Admin: Get all API usage across system
+  // Super Admin: Get all API usage across system (v2)
   listAll: async (params?: ApiUsageQueryParams) => {
-    const response = await apiClient.get<PaginatedResponse<ApiUsageRecord>>("/admin/api-usage", {
-      params,
-    });
-    return response.data;
-  },
-
-  // Admin: Get usage summary
-  getSummary: async (
-    params?: Omit<ApiUsageQueryParams, "page" | "page_size" | "sort_by" | "sort_order" | "search">
-  ) => {
-    const response = await apiClient.get<ApiUsageSummary>("/admin/api-usage/summary", { params });
-    return response.data;
-  },
-
-  // Admin: Get usage for specific portal
-  listByPortal: async (portalId: string, params?: ApiUsageQueryParams) => {
     const response = await apiClient.get<PaginatedResponse<ApiUsageRecord>>(
-      `/admin/portals/${portalId}/usage`,
+      "/admin/v2/super/usage",
       { params }
     );
     return response.data;
   },
 
-  // Admin: Get usage for specific API key
+  // Super Admin: Get usage summary (v2)
+  getSummary: async (
+    params?: Omit<ApiUsageQueryParams, "page" | "page_size" | "sort_by" | "sort_order" | "search">
+  ) => {
+    const response = await apiClient.get<ApiUsageSummary>("/admin/v2/super/usage/summary", {
+      params,
+    });
+    return response.data;
+  },
+
+  // Super Admin: Get usage for a specific portal (v2)
+  listByPortal: async (portalId: string, params?: ApiUsageQueryParams) => {
+    const response = await apiClient.get<PaginatedResponse<ApiUsageRecord>>(
+      `/admin/v2/super/portals/${portalId}/usage`,
+      { params }
+    );
+    return response.data;
+  },
+
+  // Super Admin: Get usage for a specific API key (v2)
   listByApiKey: async (portalId: string, keyId: string, params?: ApiUsageQueryParams) => {
     const response = await apiClient.get<PaginatedResponse<ApiUsageRecord>>(
-      `/admin/portals/${portalId}/keys/${keyId}/usage`,
+      `/admin/v2/super/portals/${portalId}/keys/${keyId}/usage`,
       { params }
     );
     return response.data;
