@@ -32,11 +32,14 @@ async function handleProxy(request: NextRequest, { params }: { params: Promise<{
             duplex: "half",
         };
 
-        // Forward body if present
+        // Forward body if present.
+        // NOTE: Do NOT pass a raw ArrayBuffer to fetch — Node's undici transfers
+        // (detaches) it, causing "Cannot perform ArrayBuffer.prototype.slice on a
+        // detached ArrayBuffer". Wrapping in Buffer copies the data safely.
         if (request.method !== "GET" && request.method !== "HEAD") {
             const body = await request.arrayBuffer();
             if (body.byteLength > 0) {
-                requestInit.body = body;
+                requestInit.body = Buffer.from(body);
             }
         }
 
