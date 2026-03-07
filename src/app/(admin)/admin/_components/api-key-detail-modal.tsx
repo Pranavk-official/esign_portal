@@ -80,7 +80,6 @@ export function ApiKeyDetailModal({
       data: transformedData,
     });
     setEditingTxnLimits(false);
-    toast.success("Transaction limits updated successfully");
   };
 
   const handleCallbackSubmit = async (data: CallbackUrlUpdateRequest) => {
@@ -92,7 +91,6 @@ export function ApiKeyDetailModal({
       callbackUrl: data.callback_url || null,
     });
     setEditingCallback(false);
-    toast.success("Callback URL updated successfully");
   };
 
   const copyToClipboard = (text: string, label: string) => {

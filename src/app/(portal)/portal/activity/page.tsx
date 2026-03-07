@@ -1,10 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { RecentActivityTable } from "@/components/tables/recent-activity-table";
-import { auditLogsApi } from "@/lib/api/audit-logs";
+import { useAuditLogs } from "@/hooks/use-audit-logs";
 
 export default function RecentActivityPage() {
   const [params, setParams] = useState({
@@ -14,17 +13,15 @@ export default function RecentActivityPage() {
     event_type: "all" as string,
   });
 
-  // Fetch real data from API
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["audit-logs", params],
-    queryFn: () =>
-      auditLogsApi.list({
-        page: params.page,
-        page_size: params.page_size,
-        search: params.search || undefined,
-        event_type: params.event_type !== "all" ? params.event_type : undefined,
-      }),
-  });
+  // Derive API params — convert 'all' sentinel to undefined for the API call
+  const apiParams = {
+    page: params.page,
+    page_size: params.page_size,
+    search: params.search || undefined,
+    event_type: params.event_type !== "all" ? params.event_type : undefined,
+  };
+
+  const { data, isLoading, error } = useAuditLogs(apiParams);
 
   const activities = data?.data || [];
   const _totalPages = data?.total_pages || 0;

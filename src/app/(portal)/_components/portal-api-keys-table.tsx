@@ -30,7 +30,10 @@ export function PortalApiKeysTable({
   params,
   onParamsChange,
 }: PortalApiKeysTableProps) {
-  const [selectedKey, setSelectedKey] = useState<ApiKeyResponse | null>(null);
+  // Store only the ID so the modal always receives the latest data from the
+  // React Query cache rather than a stale snapshot captured at click time.
+  const [selectedKeyId, setSelectedKeyId] = useState<string | null>(null);
+  const selectedKey = selectedKeyId ? (keys.find((k) => k.id === selectedKeyId) ?? null) : null;
 
   const columns = useMemo<Column<ApiKeyResponse>[]>(
     () => [
@@ -39,7 +42,7 @@ export function PortalApiKeysTable({
         header: "Name",
         cell: (row) => (
           <button
-            onClick={() => setSelectedKey(row)}
+            onClick={() => setSelectedKeyId(row.id)}
             className="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline"
           >
             {row.key_name || "Unnamed Key"}
@@ -187,11 +190,11 @@ export function PortalApiKeysTable({
         />
       </div>
 
-      {selectedKey && (
+      {selectedKeyId && (
         <ApiKeyDetailModal
           apiKey={selectedKey}
-          open={!!selectedKey}
-          onClose={() => setSelectedKey(null)}
+          open={!!selectedKeyId}
+          onClose={() => setSelectedKeyId(null)}
         />
       )}
     </>

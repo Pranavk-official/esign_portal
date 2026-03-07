@@ -1,8 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 import { portalsApi } from "@/lib/api/portals";
-import { ApiUsageQueryParams, PortalOnboardingRequest, PortalQueryParams } from "@/lib/api/types";
+import { ApiUsageQueryParams, PortalQueryParams } from "@/lib/api/types";
 
 export function usePortals(params?: PortalQueryParams) {
   return useQuery({
@@ -53,17 +52,5 @@ export function usePortalSpecificUsageSummary(portalId: string, params?: ApiUsag
     queryKey: ["portal-usage-summary", portalId, params],
     queryFn: () => portalsApi.getPortalUsageSummary(portalId, params),
     enabled: !!portalId,
-  });
-}
-
-export function useOnboardPortal() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: PortalOnboardingRequest) => portalsApi.onboard(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["portals"] });
-      toast.success("Portal onboarded successfully");
-    },
   });
 }

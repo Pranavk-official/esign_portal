@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { useState } from "react";
 
@@ -16,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { auditLogsApi } from "@/lib/api/audit-logs";
+import { useAuditLogs } from "@/hooks/use-audit-logs";
 
 export default function AuditLogsPage() {
   const [params, setParams] = useState({
@@ -31,10 +30,7 @@ export default function AuditLogsPage() {
     end_date: undefined as string | undefined,
   });
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["audit-logs", params],
-    queryFn: () => auditLogsApi.list(params),
-  });
+  const { data, isLoading } = useAuditLogs(params);
 
   return (
     <div className="space-y-6">

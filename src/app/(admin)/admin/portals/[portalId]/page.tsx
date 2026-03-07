@@ -31,7 +31,9 @@ export default function PortalDetailsPage() {
   } | null>(null);
 
   // Modal states
-  const [selectedApiKey, setSelectedApiKey] = useState<ApiKeyResponse | null>(null);
+  // Store only the ID so the modal always receives the latest data from the
+  // React Query cache rather than a stale snapshot captured at click time.
+  const [selectedApiKeyId, setSelectedApiKeyId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showKeyLimitModal, setShowKeyLimitModal] = useState(false);
 
@@ -56,6 +58,11 @@ export default function PortalDetailsPage() {
   const { data: usersData, isLoading: isLoadingUsers } = usePortalUsers(portalId, usersParams);
   const { data: usageData } = usePortalSpecificUsageSummary(portalId);
   const { updatePortalStatus } = usePortalMutations();
+
+  // Derive the selected key from fresh query data — never stale.
+  const selectedApiKey = selectedApiKeyId
+    ? (keysData?.items.find((k) => k.id === selectedApiKeyId) ?? null)
+    : null;
 
   // Cast portal to PortalListResponse for optional fields
   const portalData = portal as PortalListResponse | undefined;
@@ -150,7 +157,7 @@ export default function PortalDetailsPage() {
                 isLoading={isLoadingKeys}
                 params={keysParams}
                 onParamsChange={setKeysParams}
-                onViewKey={(key) => setSelectedApiKey(key)}
+                onViewKey={(key) => setSelectedApiKeyId(key.id)}
               />
             </CardContent>
           </Card>
@@ -179,8 +186,8 @@ export default function PortalDetailsPage() {
 
       {/* Modals */}
       <ApiKeyDetailModal
-        open={!!selectedApiKey}
-        onOpenChange={(open) => !open && setSelectedApiKey(null)}
+        open={!!selectedApiKeyId}
+        onOpenChange={(open) => !open && setSelectedApiKeyId(null)}
         apiKey={selectedApiKey}
         portalId={portalId}
       />

@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Copy, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -60,9 +59,10 @@ export function GenerateKeyDialog({ children }: { children: React.ReactNode }) {
         max_txn_count: values.max_txn_count,
       },
       {
+        // The useGenerateApiKey hook's onSuccess already calls toast.success(data.message)
+        // and invalidates ["api-keys"]. Only handle local state here.
         onSuccess: (data) => {
           setGeneratedKey(data.api_key);
-          toast.success("API Key generated successfully");
         },
       }
     );

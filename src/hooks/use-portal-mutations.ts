@@ -10,6 +10,7 @@ import {
   portalsApi,
   type PortalStatusUpdateRequest,
 } from "@/lib/api/portals";
+import { PortalOnboardingRequest } from "@/lib/api/types";
 
 export function usePortalMutations() {
   const queryClient = useQueryClient();
@@ -23,9 +24,6 @@ export function usePortalMutations() {
       const action = variables.data.is_active ? "activated" : "deactivated";
       toast.success(`Portal ${action} successfully`);
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to update portal status");
-    },
   });
 
   const updateKeyLimits = useMutation({
@@ -35,9 +33,6 @@ export function usePortalMutations() {
       queryClient.invalidateQueries({ queryKey: ["portals"] });
       queryClient.invalidateQueries({ queryKey: ["portals", variables.portalId] });
       toast.success("Portal key limits updated successfully");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to update key limits");
     },
   });
 
@@ -57,9 +52,6 @@ export function usePortalMutations() {
       const action = variables.data.is_active ? "activated" : "revoked";
       toast.success(`API key ${action} successfully`);
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to update API key status");
-    },
   });
 
   const updateKeyTxnCount = useMutation({
@@ -75,9 +67,7 @@ export function usePortalMutations() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["portal-keys", variables.portalId] });
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to update transaction limits");
+      toast.success("Transaction limits updated successfully");
     },
   });
 
@@ -94,9 +84,7 @@ export function usePortalMutations() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["portal-keys", variables.portalId] });
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to update callback URL");
+      toast.success("Callback URL updated successfully");
     },
   });
 
@@ -107,4 +95,16 @@ export function usePortalMutations() {
     updateKeyTxnCount,
     updateKeyCallback,
   };
+}
+
+export function useOnboardPortal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: PortalOnboardingRequest) => portalsApi.onboard(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["portals"] });
+      toast.success("Portal onboarded successfully");
+    },
+  });
 }

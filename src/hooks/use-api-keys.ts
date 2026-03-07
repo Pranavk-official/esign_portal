@@ -21,9 +21,6 @@ export function useGenerateApiKey() {
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
       toast.success(data.message);
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to generate API key");
-    },
   });
 }
 
@@ -36,9 +33,6 @@ export function useRevokeApiKey() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
       toast.success("API key revoked");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.detail || "Failed to revoke API key");
     },
   });
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
   MdBusiness,
@@ -21,18 +20,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuditLogs } from "@/hooks/use-audit-logs";
 import { useSystemOverview } from "@/hooks/use-metrics";
-import { type AuditLogRecord, auditLogsApi } from "@/lib/api/audit-logs";
+import { type AuditLogRecord } from "@/lib/api/audit-logs";
 
 export default function AdminDashboardPage() {
   // Fetch system overview metrics for Super Admin
   const { data: overview, isLoading: overviewLoading } = useSystemOverview();
 
   // Fetch recent activity (last 10 items)
-  const { data: activityData, isLoading: activityLoading } = useQuery({
-    queryKey: ["audit-logs", { page: 1, page_size: 10, sort_by: "timestamp", sort_order: "desc" }],
-    queryFn: () =>
-      auditLogsApi.list({ page: 1, page_size: 10, sort_by: "timestamp", sort_order: "desc" }),
+  const { data: activityData, isLoading: activityLoading } = useAuditLogs({
+    page: 1,
+    page_size: 10,
+    sort_by: "timestamp",
+    sort_order: "desc",
   });
 
   const recentActivities = activityData?.data || [];

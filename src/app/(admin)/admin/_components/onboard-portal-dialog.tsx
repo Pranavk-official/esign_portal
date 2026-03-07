@@ -25,7 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useOnboardPortal } from "@/hooks/use-portals";
+import { useOnboardPortal } from "@/hooks/use-portal-mutations";
 import type { PortalOnboardingResponseV2 } from "@/lib/schemas/portal";
 import type { PortalOnboardingRequest } from "@/lib/schemas/portal";
 import { portalOnboardingSchema } from "@/lib/schemas/portal";
