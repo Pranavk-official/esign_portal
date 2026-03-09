@@ -1,0 +1,48 @@
+# .dockerignore — ASP eSign Gateway Frontend
+# Excludes files that are not needed inside the Docker build context.
+# This speeds up `docker build` and prevents secrets from leaking.
+
+# ── Version control ──────────────────────────────────────────────
+.git
+.gitignore
+.gitattributes
+
+# ── Node / Bun caches ────────────────────────────────────────────
+node_modules
+.npm
+
+# ── Next.js build output (rebuilt inside container) ──────────────
+.next
+out
+
+# ── Environment files — NEVER copy secrets into the image ────────
+.env
+.env.*
+!.env.example
+
+# ── Dev / editor artefacts ───────────────────────────────────────
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Documentation (not needed at runtime) ────────────────────────
+docs
+README.md
+CHANGELOG.md
+
+# ── CI / deployment scripts (not needed inside image) ────────────
+scripts
+.github
+
+# ── Docker files themselves (no recursive COPY needed) ───────────
+Dockerfile
+docker-compose*.yml
+nginx
+
+# ── Test / lint artefacts ─────────────────────────────────────────
+coverage
+.eslintcache
+*.log

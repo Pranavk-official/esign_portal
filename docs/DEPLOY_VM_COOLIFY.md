@@ -2,7 +2,37 @@
 
 Self-hosting guide for the **ASP eSign Gateway Frontend** using [Coolify](https://coolify.io) — an open-source PaaS that manages Docker deployments, automatic TLS, reverse proxying, and rolling updates on any private server.
 
+This guide covers both:
+- **Coolify-managed** deployment (recommended — zero-downtime rolling updates via Coolify UI)
+- **Direct Docker Compose** deployment (manual — for environments where Coolify is not available, e.g. locked-down KSDC VMs)
+
 > **Source references:** [Coolify Installation](https://coolify.io/docs/get-started/installation) (updated Apr 2, 2026) · [Coolify Environment Variables](https://coolify.io/docs/knowledge-base/environment-variables) · [Coolify Rolling Updates](https://coolify.io/docs/knowledge-base/rolling-updates) · [Coolify Health Checks](https://coolify.io/docs/knowledge-base/health-checks) · [Bun Docker Guide](https://bun.sh/guides/ecosystem/docker)
+
+---
+
+## Kerala State Data Center (KSDC) — Deployment Notes
+
+These notes apply specifically to deployments on KSDC-managed VMs procured through KSITM / NIC Kerala.
+
+### Infrastructure characteristics
+
+| Item | Typical KSDC setup |
+|---|---|
+| **OS** | RHEL 8/9, AlmaLinux 9, or Rocky Linux 9 (NIC-hardened image) |
+| **Firewall manager** | `firewalld` (SELinux enforcing by default) |
+| **Network** | Private LAN; internet access may be proxied through NIC/KSDC proxy |
+| **TLS certificates** | Issued by KSDC internal CA or NIC CA — **not** Let's Encrypt (no ACME) |
+| **Docker** | Installed as part of Coolify setup or manually via NIC-approved repo mirror |
+| **DNS** | Internal DNS (`*.kerala.gov.in` or custom zone configured by NIC) |
+| **SSH** | Key-based only; password auth disabled by NIC hardening profile |
+
+### Specific adjustments for KSDC
+
+1. **TLS certificates** — Obtain from the KSDC/KSITM PKI team or NIC. Place them at `./nginx/certs/esign.crt` and `./nginx/certs/esign.key` before starting the Docker stack. Do **not** configure Let's Encrypt ACME if the VM has no public internet access.
+2. **Docker / Bun image pull** — If the VM is behind a proxy or air-gapped, configure Docker's proxy settings ([docs](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy)) or pre-pull `oven/bun:1-alpine` and `nginx:1.27-alpine` from an internal Harbor/Nexus registry and update `docker-compose.yml` accordingly.
+3. **SELinux** — If SELinux is in enforcing mode, bind-mounted volumes (nginx config, certs) require the `svirt_sandbox_file_t` or `container_file_t` label. Run: `sudo chcon -Rt container_file_t ./nginx/`
+4. **Coolify admin port (8000)** — Restrict to the KSDC management subnet only. Never expose it to `0.0.0.0` — it provides full root-level server control.
+5. **Domain** — Coordinate with NIC Kerala to create a DNS A-record pointing your FQDN (e.g. `esign.kerala.gov.in`) to the VM's LAN IP before deploying.
 
 ---
 
@@ -43,6 +73,177 @@ Self-hosting guide for the **ASP eSign Gateway Frontend** using [Coolify](https:
 | **Domain** | A private DNS record or public domain pointing to the VM's IP (required for TLS) |
 
 ---
+
+## Firewall Configuration (KSDC VM)
+
+> **TL;DR:** Run `sudo ./scripts/firewall-setup.sh` on the VM. It auto-detects `firewalld` (RHEL/AlmaLinux) or `ufw` (Ubuntu) and applies all rules below. Edit `ADMIN_SUBNET` and `MGMT_SUBNET` at the top of the script first.
+
+### Port requirements
+
+| Port | Protocol | Direction | Source | Purpose |
+|------|----------|-----------|--------|---------|
+| 22 | TCP | Inbound | KSDC admin subnet | SSH management |
+| 80 | TCP | Inbound | Any | HTTP → HTTPS redirect; Let's Encrypt ACME (if internet-facing) |
+| 443 | TCP | Inbound | Any | HTTPS — main application ingress via Nginx |
+| 8000 | TCP | Inbound | KSDC management subnet only | Coolify admin UI |
+| 3000 | TCP | Internal only | Docker bridge | Next.js app — **never expose to host** |
+| 53 | UDP/TCP | Outbound | Any | DNS resolution |
+| 443 | TCP | Outbound | Any | Docker image pulls, OS updates (may need HTTP proxy at KSDC) |
+| `BACKEND_PORT` | TCP | Outbound (internal) | VM LAN | FastAPI backend (e.g. port 8000 on a separate VM) |
+
+### firewalld (RHEL / AlmaLinux / Rocky Linux — standard at KSDC)
+
+```bash
+# ── Edit subnets to match your KSDC allocation ─────────────────────────────
+ADMIN_SUBNET="10.x.x.x/24"   # KSDC admin / jump-box range
+MGMT_SUBNET="10.x.x.x/24"    # KSDC monitoring / management range
+
+# ── Set default zone to drop ───────────────────────────────────────────────
+firewall-cmd --set-default-zone=drop
+
+# ── SSH — admin subnet only ────────────────────────────────────────────────
+firewall-cmd --permanent --zone=drop \
+  --add-rich-rule="rule family='ipv4' source address='$ADMIN_SUBNET' port port='22' protocol='tcp' accept"
+
+# ── HTTP + HTTPS ───────────────────────────────────────────────────────────
+firewall-cmd --permanent --zone=drop --add-service=http
+firewall-cmd --permanent --zone=drop --add-service=https
+
+# ── Coolify admin UI — management subnet only ─────────────────────────────
+firewall-cmd --permanent --zone=drop \
+  --add-rich-rule="rule family='ipv4' source address='$MGMT_SUBNET' port port='8000' protocol='tcp' accept"
+
+# ── Docker bridge networks — allow container communication ─────────────────
+firewall-cmd --permanent --zone=trusted --add-interface=docker0
+firewall-cmd --permanent --zone=trusted --add-interface=br-+
+
+# ── Explicitly block direct access to internal Next.js port ───────────────
+firewall-cmd --permanent --zone=drop \
+  --add-rich-rule="rule family='ipv4' port port='3000' protocol='tcp' reject"
+
+# ── ICMP (ping) ────────────────────────────────────────────────────────────
+firewall-cmd --permanent --zone=drop --add-protocol=icmp
+
+firewall-cmd --reload
+firewall-cmd --list-all
+```
+
+### ufw (Ubuntu)
+
+```bash
+ufw default deny incoming
+ufw default allow outgoing
+
+ufw allow from $ADMIN_SUBNET to any port 22 proto tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw allow from $MGMT_SUBNET to any port 8000 proto tcp
+ufw deny 3000/tcp
+
+ufw --force enable
+ufw status verbose
+
+# Docker bypasses ufw by default — install ufw-docker to fix this:
+sudo apt-get install ufw-docker && sudo ufw-docker install
+```
+
+### SELinux (RHEL — enforcing mode)
+
+If SELinux is in enforcing mode, Docker bind mounts require a relabel:
+
+```bash
+# Label nginx config and cert directories so containers can read them
+sudo chcon -Rt container_file_t ./nginx/conf.d/
+sudo chcon -Rt container_file_t ./nginx/certs/
+sudo chcon -Rt container_file_t ./nginx/html/
+
+# Verify
+ls -lZ ./nginx/
+```
+
+### Outbound proxy (air-gapped KSDC VMs)
+
+If the VM routes outbound traffic through a KSDC/NIC HTTP proxy:
+
+```bash
+# /etc/docker/daemon.json — configure Docker pull proxy
+{
+  "proxies": {
+    "http-proxy":  "http://proxy.ksdc.kerala.gov.in:3128",
+    "https-proxy": "http://proxy.ksdc.kerala.gov.in:3128",
+    "no-proxy":    "localhost,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+  }
+}
+```
+
+```bash
+systemctl restart docker
+```
+
+---
+
+## Direct Docker Compose Deployment (without Coolify)
+
+Use this approach when Coolify cannot be installed (e.g. restricted KSDC VMs where only Docker is approved).
+
+### Files created by this repo
+
+| File | Purpose |
+|---|---|
+| `Dockerfile` | Multi-stage Bun/Alpine build, non-root user, health check |
+| `docker-compose.yml` | Next.js + Nginx stack for direct VM deployment |
+| `nginx/conf.d/esign.conf` | Nginx reverse proxy with TLS, security headers, rate limiting |
+| `.env.production` | Environment variable template — copy to `.env` and fill in secrets |
+| `scripts/deploy.sh` | Zero-downtime deployment script |
+| `scripts/firewall-setup.sh` | Firewall auto-configuration for KSDC VMs |
+
+### Quick start
+
+```bash
+# 1. Clone the repository on the VM
+git clone <repo-url> /opt/esign_portal
+cd /opt/esign_portal
+
+# 2. Set up environment
+cp .env.production .env
+nano .env                      # fill in BACKEND_URL and secrets
+
+# 3. Generate the server actions encryption key (run once)
+openssl rand -base64 32        # paste into NEXT_SERVER_ACTIONS_ENCRYPTION_KEY in .env
+
+# 4. Install TLS certificate from KSDC CA
+sudo mkdir -p nginx/certs
+sudo cp /path/to/ksdc-issued.crt nginx/certs/esign.crt
+sudo cp /path/to/ksdc-issued.key nginx/certs/esign.key
+sudo chcon -Rt container_file_t nginx/certs/   # if SELinux is enforcing
+
+# 5. Configure firewall
+chmod +x scripts/firewall-setup.sh
+sudo ./scripts/firewall-setup.sh              # edit ADMIN_SUBNET first
+
+# 6. Deploy
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh
+```
+
+### Updating the deployment
+
+```bash
+# Pull latest code and rebuild (zero-downtime rolling replace)
+./scripts/deploy.sh
+
+# Roll back to previous version if something goes wrong
+./scripts/deploy.sh --rollback
+
+# Deploy a specific git tag
+./scripts/deploy.sh --tag v1.2.0 --skip-pull
+```
+
+---
+
+## Coolify-Managed Deployment
+
+> Use this approach when Coolify is available on the KSDC VM. It provides a web UI for deployments, rolling updates, and secret management. If Coolify cannot be installed, use the [Direct Docker Compose](#direct-docker-compose-deployment-without-coolify) approach above.
 
 ## Part 1 — Install Coolify on the Private VM
 
@@ -345,6 +546,11 @@ Coolify supports automatic rolling updates when the following conditions are met
 | `"Failed to find Server Action"` | Missing encryption key | Add `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` to environment variables |
 | `BACKEND_URL` not injecting | Variable not saved | Verify the var is saved under the correct environment in Coolify |
 | Build cache not invalidating | Stale layer | Enable "Include Source Commit in Build" in General settings and add `SOURCE_COMMIT` env var |
+| Nginx `permission denied` on cert files | SELinux label mismatch | Run `sudo chcon -Rt container_file_t ./nginx/certs/` |
+| Docker can't pull `oven/bun:1-alpine` | No internet / proxy not set | Configure Docker proxy in `/etc/docker/daemon.json` or pre-pull from internal registry |
+| Port 8000 reachable from outside | Firewall misconfiguration | Run `scripts/firewall-setup.sh`; verify `firewall-cmd --list-all` |
+| Cookies not set after login | `Secure` flag without HTTPS | Ensure the domain resolves over HTTPS; check Nginx TLS config |
+| `deploy.sh` health check times out | App crashes on start | Run `docker compose logs esign-portal` to inspect startup errors |
 
 ### View live logs
 
@@ -386,3 +592,16 @@ coolify logs <resource-uuid>
 - [System Architecture](./architecture.md)
 - [Cookie Auth Setup & Debugging](./COOKIE_AUTH_SETUP.md)
 - [Development Guidelines](./DEVELOPMENT.md)
+
+## Files Added by This Guide
+
+| File | Description |
+|---|---|
+| [`Dockerfile`](../Dockerfile) | Multi-stage Bun/Alpine build, non-root user, HEALTHCHECK |
+| [`docker-compose.yml`](../docker-compose.yml) | Next.js + Nginx for direct VM deployment |
+| [`nginx/conf.d/esign.conf`](../nginx/conf.d/esign.conf) | Nginx TLS reverse proxy with security headers and rate limiting |
+| [`.dockerignore`](../.dockerignore) | Prevents secrets and build artefacts from entering the image |
+| [`.env.production`](../.env.production) | Environment variable template for production |
+| [`src/app/api/health/route.ts`](../src/app/api/health/route.ts) | Health check endpoint required by Dockerfile HEALTHCHECK |
+| [`scripts/deploy.sh`](../scripts/deploy.sh) | Zero-downtime deployment script with rollback |
+| [`scripts/firewall-setup.sh`](../scripts/firewall-setup.sh) | KSDC VM firewall configuration (firewalld / ufw / iptables) |
