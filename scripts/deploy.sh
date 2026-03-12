@@ -38,7 +38,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 COMPOSE_FILE="$PROJECT_DIR/docker-compose.yml"
-HEALTH_URL="http://localhost/api/health"
+HEALTH_URL="https://localhost/api/health"
 HEALTH_TIMEOUT=120   # seconds to wait for health check
 HEALTH_INTERVAL=5    # seconds between health polls
 PREVIOUS_TAG_FILE="$PROJECT_DIR/.previous_image_tag"
@@ -226,14 +226,21 @@ elapsed=0
 healthy=false
 
 while [[ $elapsed -lt $HEALTH_TIMEOUT ]]; do
-  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" 2>/dev/null || echo "000")
+  # Check Docker's own health status first (works before nginx is up)
+  DOCKER_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' esign-portal 2>/dev/null || echo "unknown")
+  if [[ "$DOCKER_HEALTH" == "healthy" ]]; then
+    healthy=true
+    break
+  fi
+  # Also verify nginx is routing correctly (HTTPS; -k accepts self-signed cert)
+  STATUS=$(curl -sk -o /dev/null -w "%{http_code}" "$HEALTH_URL" 2>/dev/null || echo "000")
   if [[ "$STATUS" == "200" ]]; then
     healthy=true
     break
   fi
   sleep $HEALTH_INTERVAL
   elapsed=$((elapsed + HEALTH_INTERVAL))
-  log "  Health check: HTTP $STATUS — ${elapsed}s elapsed…"
+  log "  Health check: Docker=$DOCKER_HEALTH HTTP=$STATUS — ${elapsed}s elapsed…"
 done
 
 if $healthy; then
