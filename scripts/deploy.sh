@@ -209,8 +209,9 @@ fi
 # ── Zero-downtime deployment ───────────────────────────────────────────────────
 log "Starting deployment (zero-downtime rolling update)"
 
-# Bring up nginx first (or ensure it's running); it will 502 during app restart
-# but recovers as soon as esign-portal is healthy.
+# Attempt to ensure nginx is running (safe no-op if it's already up).
+# nginx depends on service_healthy for esign-portal, so this may fail
+# silently here — it is started explicitly after the health check passes.
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d nginx 2>/dev/null || true
 
 # Pull and recreate only the app container — nginx stays up throughout
@@ -232,23 +233,25 @@ while [[ $elapsed -lt $HEALTH_TIMEOUT ]]; do
     healthy=true
     break
   fi
-  # Also verify nginx is routing correctly (HTTPS; -k accepts self-signed cert)
-  STATUS=$(curl -sk -o /dev/null -w "%{http_code}" "$HEALTH_URL" 2>/dev/null || echo "000")
-  if [[ "$STATUS" == "200" ]]; then
-    healthy=true
+  # Bail out immediately once Docker declares unhealthy — it won't self-heal
+  if [[ "$DOCKER_HEALTH" == "unhealthy" ]]; then
+    log "  Health check: Docker=$DOCKER_HEALTH — container is unhealthy, aborting"
     break
   fi
   sleep $HEALTH_INTERVAL
   elapsed=$((elapsed + HEALTH_INTERVAL))
-  log "  Health check: Docker=$DOCKER_HEALTH HTTP=$STATUS — ${elapsed}s elapsed…"
+  log "  Health check: Docker=$DOCKER_HEALTH — ${elapsed}s elapsed…"
 done
 
 if $healthy; then
-  success "Deployment successful — service is healthy at $HEALTH_URL"
+  # App container is healthy — nginx was blocked on service_healthy, start it now
+  log "App container healthy — starting nginx…"
+  docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d nginx
+  success "Deployment successful — service is live at $HEALTH_URL"
   log "Running containers:"
   docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" ps
 else
-  error "Health check timed out after ${HEALTH_TIMEOUT}s"
+  error "Health check failed (Docker status=$DOCKER_HEALTH) after ${elapsed}s"
   error "Container logs:"
   docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" logs --tail=50 esign-portal
   die "Deployment FAILED. Run './scripts/deploy.sh --rollback' to restore the previous version."

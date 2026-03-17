@@ -58,6 +58,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 # in the root group, so group-write permission is required.
 RUN chmod -R g=u /app
 
+# Install curl for the health check (wget is not reliably present in all
+# oven/bun:1-alpine variants; curl is explicit and has the -f flag).
+RUN apk add --no-cache curl
+
 USER 1001
 
 EXPOSE 3000
@@ -67,9 +71,14 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# ── Startup command ────────────────────────────────────────────────────────────
+# node is a symlink to bun in oven/bun images, so this runs the standalone
+# Next.js server via bun's Node.js-compatibility layer.
+CMD ["node", "server.js"]
+
 # ── Health check ───────────────────────────────────────────────────────────────
 # Coolify polls this to determine when the container is healthy before
-# cutting over traffic (rolling update). wget is pre-installed in bun:alpine.
+# cutting over traffic (rolling update). curl is explicitly installed above.
 #
 # Tune timing for KSDC VM performance:
 #   --start-period=40s  — give Next.js time to initialise on first boot
@@ -77,6 +86,4 @@ ENV HOSTNAME="0.0.0.0"
 #   --timeout=5s        — per-attempt deadline
 #   --retries=3         — mark unhealthy after 3 consecutive failures
 HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=3 \
-  CMD wget -qO- http://localhost:3000/api/health || exit 1
-
-CMD ["bun", "server.js"]
+  CMD curl -f http://localhost:3000/api/health || exit 1
