@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # ──────────────────────────────────────────────────────────────────────────────
 #  deploy.sh — ASP eSign Gateway Frontend
 #  Zero-downtime deployment script for KSDC private VM
@@ -37,7 +37,20 @@ set -euo pipefail
 # ── Constants ──────────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-COMPOSE_FILE="$PROJECT_DIR/docker-compose.yml"
+COMPOSE_FILE="$PROJECT_DIR/docke./scripts/restore.sh --full
+[14:06:40] ASP eSign Gateway — Restore Script
+[14:06:40] Project dir : /home/lad/Documents/Projects/KSITM/eSign/esign_portal
+[14:06:40] Env file    : /home/lad/Documents/Projects/KSITM/eSign/esign_portal/.env
+
+Actions to perform:
+  • Stop and remove all containers (docker compose down)
+  • Remove all 'esign-portal' Docker images
+  • Remove generated TLS certificates (nginx/certs/esign.{crt,key})
+  • Reset git working tree to ORIG_HEAD (before last pull)
+  • Remove .previous_image_tag state file (if present)
+
+[14:06:40] ? Proceed with restore? [y/N] y^[[13u
+r-compose.yml"
 HEALTH_URL="https://localhost/api/health"
 HEALTH_TIMEOUT=120   # seconds to wait for health check
 HEALTH_INTERVAL=5    # seconds between health polls

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # ──────────────────────────────────────────────────────────────────────────────
 #  restore.sh — ASP eSign Gateway Frontend
 #  Reverses the actions performed by deploy.sh
