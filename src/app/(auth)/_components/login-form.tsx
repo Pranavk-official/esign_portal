@@ -25,11 +25,11 @@ import {
 } from "@/components/ui/input-otp"
 
 // Schemas
-import { 
-  otpRequestSchema, 
-  otpVerifySchema, 
-  type OTPRequestForm, 
-  type OTPVerifyForm 
+import {
+  otpRequestSchema,
+  otpVerifySchema,
+  type OTPRequestForm,
+  type OTPVerifyForm
 } from "@/lib/schemas/auth"
 
 import { authApi } from "@/lib/api/auth"
@@ -70,7 +70,7 @@ export function LoginForm() {
   function onEmailSubmit(data: OTPRequestForm) {
     setEmail(data.email)
     // Sync email to second form immediately
-    otpForm.setValue("email", data.email) 
+    otpForm.setValue("email", data.email)
     requestOTPMutation.mutate({ ...data, scope: "LOGIN" })
   }
 
@@ -81,32 +81,31 @@ export function LoginForm() {
     OTPVerifyForm   // Input variables
   >({
     mutationFn: async (variables) => {
-        // 1. Verify OTP
-        // Backend sets the HttpOnly cookie here. 
-        // We pass scope: 'LOGIN' to match the schema.
-        await authApi.verifyOTP({ ...variables, scope: 'LOGIN' } as any);
-        
-        // 2. Fetch User Profile
-        // Essential step: The verification response doesn't have the user role.
-        const userResponse = await authApi.getMe();
-        
-        // 3. Update Store
-        setUser(userResponse.data);
+      // 1. Verify OTP — backend sets HttpOnly auth cookies AND returns user info.
+      const authResponse = await authApi.verifyOTP({ ...variables, scope: 'LOGIN' });
+
+      // 2. Use the user from the verifyOTP response directly (avoids an extra
+      //    cross-origin /users/me round-trip before cookies propagate).
+      //    Fall back to getMe only if the response didn't include the user.
+      const user = authResponse.user ?? await authApi.getMe();
+
+      // 3. Update auth store.
+      setUser(user);
     },
     onSuccess: () => {
       const user = useAuthStore.getState().user;
       console.log('[LOGIN] User logged in:', user);
       toast.success("Login successful");
-      
+
       // 4. Role-based Redirect
       const roles = user?.roles || [];
       console.log('[LOGIN] User roles:', roles);
-      
+
       // Handle both string roles and object roles (if backend changes)
       const hasRole = (roleName: string) => {
         return roles.some((r: any) => {
-            const rName = typeof r === 'string' ? r : r.name;
-            return rName.toUpperCase() === roleName.toUpperCase();
+          const rName = typeof r === 'string' ? r : r.name;
+          return rName.toUpperCase() === roleName.toUpperCase();
         });
       };
 
@@ -116,10 +115,10 @@ export function LoginForm() {
       } else if (hasRole('PORTAL_ADMIN')) {
         targetRoute = "/portal";
       }
-      
+
       console.log('[LOGIN] Redirecting to:', targetRoute);
       console.log('[LOGIN] About to execute redirect...');
-      
+
       // Small delay to ensure state is saved, then hard redirect
       setTimeout(() => {
         console.log('[LOGIN] Executing redirect NOW');
@@ -135,15 +134,15 @@ export function LoginForm() {
   function onOtpSubmit(data: OTPVerifyForm) {
     // Use state email as fallback
     const finalEmail = email || otpForm.getValues("email");
-    
+
     if (!finalEmail) {
-        toast.error("Session lost. Please reload.");
-        return;
+      toast.error("Session lost. Please reload.");
+      return;
     }
 
-    verifyOTPMutation.mutate({ 
-        email: finalEmail, 
-        otp: data.otp // Correct field name 'otp'
+    verifyOTPMutation.mutate({
+      email: finalEmail,
+      otp: data.otp // Correct field name 'otp'
     })
   }
 
@@ -159,10 +158,10 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
-                    <Input 
-                        placeholder="admin@example.com" 
-                        disabled={requestOTPMutation.isPending} 
-                        {...field} 
+                    <Input
+                      placeholder="admin@example.com"
+                      disabled={requestOTPMutation.isPending}
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -183,7 +182,7 @@ export function LoginForm() {
             <div className="mb-4 text-center text-sm text-muted-foreground">
               Sent to <span className="font-medium text-foreground">{email}</span>
             </div>
-            
+
             <FormField
               control={otpForm.control}
               name="otp"
@@ -191,10 +190,10 @@ export function LoginForm() {
                 <FormItem className="flex flex-col items-center justify-center">
                   <FormLabel className="sr-only">One-Time Password</FormLabel>
                   <FormControl>
-                    <InputOTP 
-                        maxLength={6} 
-                        disabled={verifyOTPMutation.isPending}
-                        {...field}
+                    <InputOTP
+                      maxLength={6}
+                      disabled={verifyOTPMutation.isPending}
+                      {...field}
                     >
                       <InputOTPGroup>
                         <InputOTPSlot index={0} />
@@ -218,15 +217,15 @@ export function LoginForm() {
               )}
               Verify Login
             </Button>
-            <Button 
-                variant="link" 
-                className="w-full" 
-                size="sm"
-                type="button"
-                onClick={() => setStep("EMAIL")}
-                disabled={verifyOTPMutation.isPending}
+            <Button
+              variant="link"
+              className="w-full"
+              size="sm"
+              type="button"
+              onClick={() => setStep("EMAIL")}
+              disabled={verifyOTPMutation.isPending}
             >
-                Change Email
+              Change Email
             </Button>
           </form>
         </Form>

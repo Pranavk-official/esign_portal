@@ -4,53 +4,75 @@ A modern, type-safe, multi-tenant frontend for the ASP eSign Gateway Service. Bu
 
 ---
 
+## 📚 Documentation
+
+- [**System Architecture**](./docs/architecture.md) - Detailed breakdown of the system's design, auth flow, and state management.
+- [**Development Guidelines**](./docs/DEVELOPMENT.md) - Coding standards and best practices.
+- [**Cookie Auth Setup**](./docs/COOKIE_AUTH_SETUP.md) - Deep dive into the HttpOnly cookie authentication.
+
+---
+
 ## 🚀 Dev Quickstart
 
 ### Prerequisites
+
 - **Bun** (v1.0+) - Fast JavaScript runtime and package manager
 - Access to a running instance of the **eSign API** (FastAPI Backend)
 
 ### Setup
 
 1.  **Install Dependencies**
+
     ```bash
     bun install
     ```
 
 2.  **Environment Setup**
-    Copy the example environment file and configure the backend API URL:
+    Copy the example environment file and configure the backend URL:
+
     ```bash
     cp .env.example .env.local
     ```
-    
+
     **Configuration:**
+
     ```env
     # .env.local
-    NEXT_PUBLIC_API_BASE_URL="https://mdrr740x-8000.inc1.devtunnels.ms"
-    NEXT_PUBLIC_USE_COOKIES=true
+
+    # URL of the FastAPI backend — server-side ONLY (no NEXT_PUBLIC_ prefix).
+    # The browser never talks to this URL directly; all requests go through
+    # the Next.js API proxy at /api/* which forwards them here.
+    BACKEND_URL="http://localhost:8000"
     ```
-    
-    > **Important:** 
-    > - Update `NEXT_PUBLIC_API_BASE_URL` when your dev tunnel URL changes
-    > - No trailing slash in the URL
-    > - Cookie-based authentication is enabled by default for cross-origin requests
-    > - See [COOKIE_AUTH_SETUP.md](./COOKIE_AUTH_SETUP.md) for detailed authentication configuration
+
+    > **Important:**
+    >
+    > - `BACKEND_URL` is the **only** required environment variable.
+    > - It is **never** embedded in the client bundle — the real backend IP stays server-side.
+    > - No trailing slash in the URL.
+    > - When using a dev tunnel set this to the tunnel HTTPS URL (e.g. `https://mdrr740x-8000.inc1.devtunnels.ms`).
 
 3.  **Run Development Server**
+
     ```bash
     bun dev
     ```
+
     Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-4.  **Linting**
+4.  **Linting & Formatting**
     To ensure your code meets the project's strict standards:
     ```bash
-    bun run lint      # Check for issues and auto-fix formatting
+    bun run lint        # Check for lint errors
+    bun run lint:fix    # Check and auto-fix lint errors + import sorting
+    bun run format      # Format all files with Prettier
     ```
 
 ---
 
 ## 📂 Project Structure
+
+For a detailed explanation of the directory structure and architectural decisions, see [**System Architecture**](./docs/architecture.md).
 
 We use **Next.js 16 App Router** with **Route Groups** to strictly separate authentication contexts and organize features.
 
@@ -131,39 +153,50 @@ src/
 └── providers/
     └── query-provider.tsx      # React Query + Global Error Handler
 ```
+
 ### Core
-- **Next.js 16** - React framework with App Router
-- **React 19** - UI library
-- **TypeScript 5** - Type safety
-- **Bun** - Runtime & package manager
-### Core
-- **Next.js 15** - React framework with App Router
+
+- **Next.js 16.1** - React framework with App Router
 - **React 19** - UI library
 - **TypeScript 5** - Type safety
 - **Bun** - Runtime & package manager
 
 ### State & Data
+
 - **React Query (TanStack Query v5)** - Server state management
-- **Zustand** - Client state management
-- **Zod** - Schema validation
-- **React Hook Form** - Form management
+- **Zustand v5** - Client state management
+- **Zod v4** - Schema validation
+- **React Hook Form v7** - Form management
 
 ### UI & Styling
-- **Shadcn UI** - Component primitives (Radix UI + Tailwind)
+
+- **Shadcn UI** (`new-york` style) - Component primitives (Radix UI + Tailwind)
 - **Tailwind CSS 4** - Utility-first CSS
-- **Lucide React** - Icon library
+- **Lucide React** - Primary icon library
+- **React Icons** - Supplementary icon sets
 - **Sonner** - Toast notifications
-- **next-themes** - Dark mode support
+- **next-themes** - Dark/light mode support
+
+### Utilities
+
+- **date-fns** - Date formatting/manipulation
+- **xlsx** - Excel export for data tables
+- **clsx + tailwind-merge** - Conditional class merging
 
 ### HTTP & API
-- **Axios** - HTTP client with interceptors
-- **HttpOnly Cookies** - Secure authentication
+
+- **Axios** - HTTP client with interceptors (401 auto-refresh)
+- **Next.js API Route Proxy** - `src/app/api/[...path]/route.ts` forwards browser requests to `BACKEND_URL` server-side
+- **HttpOnly Cookies** - Secure authentication (no tokens in JS)
 
 ### Dev Tools
+
 - **ESLint 9** - Linting (with Prettier integration)
+- **Prettier** - Code formatting
 - **TypeScript Strict Mode** - Maximum type safety
 - **simple-import-sort** - Auto-sort imports
-- **unused-imports** - Remove unused code
+- **unused-imports** - Remove unused imports
+- **lint-staged** - Pre-commit lint hook
 
 ---
 
@@ -176,15 +209,15 @@ sequenceDiagram
     participant User
     participant Frontend
     participant Backend
-    
+
     User->>Frontend: Enter email
     Frontend->>Backend: POST /admin/auth/request-otp
     Backend-->>User: Email with 6-digit OTP
-    
+
     User->>Frontend: Enter OTP
     Frontend->>Backend: POST /admin/auth/verify-otp
     Backend-->>Frontend: Set HttpOnly cookies (access_token, refresh_token)
-    
+
     Frontend->>Backend: GET /users/me
     Backend-->>Frontend: User profile (roles, portal_id, etc.)
     Frontend->>Frontend: Store profile in Zustand
@@ -194,13 +227,14 @@ sequenceDiagram
 ### Token Refresh (Automatic)
 
 When any API request returns `401 Unauthorized`:
+
 1. Axios interceptor catches the error
 2. Calls `POST /admin/auth/refresh` (sends `refresh_token` cookie)
 3. Backend validates & sets new `access_token` cookie
 4. Retries original request automatically
 5. If refresh fails, clears auth state and redirects to `/login`
 
-> **Note:** All of this is handled automatically by the API client. See [COOKIE_AUTH_SETUP.md](./COOKIE_AUTH_SETUP.md) for details.
+> **Note:** All of this is handled automatically by the API client. See [COOKIE_AUTH_SETUP.md](./docs/COOKIE_AUTH_SETUP.md) for details.
 
 ---
 
@@ -210,42 +244,45 @@ In development mode, authentication debug utilities are automatically loaded. Op
 
 ```javascript
 // Check API configuration
-authDebug.checkConfig()
+authDebug.checkConfig();
 
 // Test if cookies are being sent
-await authDebug.testCookies()
+await authDebug.testCookies();
 
 // Check current authentication status
-await authDebug.checkAuth()
+await authDebug.checkAuth();
 
 // Test token refresh
-await authDebug.testRefresh()
+await authDebug.testRefresh();
 
 // Run full diagnostic
-await authDebug.diagnose()
+await authDebug.diagnose();
 ```
 
 ### Common Issues
 
 **Cookies not being sent?**
+
 - Check if third-party cookies are blocked in browser settings
 - Verify backend URL is using HTTPS (required for `secure` cookies)
 - Confirm `withCredentials: true` is set (already configured)
 
 **401 errors after login?**
+
 - Check Network tab → Response Headers for `Set-Cookie`
 - Verify backend CORS includes your frontend URL
 - Run `authDebug.diagnose()` for detailed analysis
 
 **Token refresh failing?**
+
 - `refresh_token` cookie may be expired (7 days default)
 - Check backend logs for refresh endpoint errors
 - User may need to login again
 
-See [COOKIE_AUTH_SETUP.md](./COOKIE_AUTH_SETUP.md) for comprehensive troubleshooting guide.
-5. If refresh fails → Clear Zustand state → Redirect to login
+See [COOKIE_AUTH_SETUP.md](./docs/COOKIE_AUTH_SETUP.md) for comprehensive troubleshooting guide.
 
 **Key Points:**
+
 - Frontend **never** handles raw tokens
 - All API requests use `withCredentials: true`
 - Refresh logic is transparent to components
@@ -255,28 +292,32 @@ See [COOKIE_AUTH_SETUP.md](./COOKIE_AUTH_SETUP.md) for comprehensive troubleshoo
 ## ⚠️ Key Development Constraints
 
 ### 1. Authentication Strategy
-* **Mechanism:** HttpOnly Cookies (Not localStorage).
-* **Storage:** Tokens are stored as HttpOnly cookies by the backend. The frontend **never** handles raw tokens.
-* **Flow:** 
+
+- **Mechanism:** HttpOnly Cookies (Not localStorage).
+- **Storage:** Tokens are stored as HttpOnly cookies by the backend. The frontend **never** handles raw tokens.
+- **Flow:**
   1. User enters email → Backend sends OTP
   2. User enters OTP → Backend validates and sets `access_token` + `refresh_token` cookies
+
 ### 2. State Management Rules
-* **Server State (API Data):** Use **React Query** (`useQuery`, `useMutation`). Never manually store API responses in global stores.
-* **Client State (Auth/UI):** Use **Zustand** (`auth-store.ts`). 
+
+- **Server State (API Data):** Use **React Query** (`useQuery`, `useMutation`). Never manually store API responses in global stores.
+- **Client State (Auth/UI):** Use **Zustand** (`auth-store.ts`).
   - Stores user profile from `/users/me` (persisted in localStorage for UI state only)
   - Provides `isAuthenticated` boolean for route guards
   - Does **NOT** store tokens (handled by cookies)
-* **Form State:** Use **React Hook Form** + **Zod** validation schemas.
+- **Form State:** Use **React Hook Form** + **Zod** validation schemas.
 
 ### 3. Error Handling Architecture ("Fail Fast, Fail Loud")
+
 We do **NOT** use `try/catch` blocks in UI components. Errors flow through a centralized pipeline:
 
 **Flow:**
-1. **API Client (`src/lib/api/client.ts`):** 
+
+1. **API Client (`src/lib/api/client.ts`):**
    - Axios interceptor catches all HTTP errors
    - Translates status codes (400, 401, 404, etc.) into custom `AppError` subclasses
    - Throws typed errors that React Query can handle
-   
 2. **React Query (`src/providers/query-provider.tsx`):**
    - **Mutations (Writes):** `MutationCache` catches errors globally → Shows toast notification
    - **Queries (Reads):** Errors bubble to component-level error states or Error Boundaries
@@ -288,7 +329,8 @@ We do **NOT** use `try/catch` blocks in UI components. Errors flow through a cen
    - **Critical Failures:** Fall back to `error.tsx` Error Boundary
 
 **Error Classes (`src/lib/errors.ts`):**
-```typescript
+
+````typescript
 AppError (Base)
 ├── BadRequestError (400)
 ├── UnauthorizedError (401)
@@ -336,11 +378,11 @@ AppError (Base)
 * **API Inputs:** Validated with **Zod schemas** before sending requests
   - Located in `src/lib/schemas/`
   - Integrated with React Hook Form via `@hookform/resolvers/zod`
-  
+
 * **API Outputs:** Typed via **TypeScript interfaces**
   - Located in `src/lib/api/types.ts`
   - Applied to Axios responses: `apiClient.get<UserInfo>('/users/me')`
-  
+
 * **No `any` types:** `tsconfig.json` has `strict: true`
   - Fix types properly, never bypass with `any` or `@ts-ignore`
   - Use `unknown` for truly dynamic data, then validate
@@ -356,15 +398,17 @@ AppError (Base)
 
 **Run before committing:**
 ```bash
-bun run lint  # Auto-fixes formatting, imports, and catches errors
-```
+bun run lint:fix  # Auto-fixes import order, removes unused imports, catches errors
+bun run format    # Applies Prettier formatting
+````
 
 ### 3. Developer Experience (DX) Priorities
-* **Fast Feedback:** ESLint + TypeScript catch errors immediately
-* **No Manual Formatting:** ESLint handles formatting (configured with Prettier rules)
-* **Clean Imports:** Automatically sorted and deduplicated
-* **Toast Notifications:** Global error handling via React Query shows user-friendly messages
-* **Type-Safe Forms:** Zod + React Hook Form provide runtime validation and TypeScript inference
+
+- **Fast Feedback:** ESLint + TypeScript catch errors immediately
+- **No Manual Formatting:** ESLint handles formatting (configured with Prettier rules)
+- **Clean Imports:** Automatically sorted and deduplicated
+- **Toast Notifications:** Global error handling via React Query shows user-friendly messages
+- **Type-Safe Forms:** Zod + React Hook Form provide runtime validation and TypeScript inference
 
 ---
 
@@ -373,8 +417,9 @@ bun run lint  # Auto-fixes formatting, imports, and catches errors
 ### 1. Creating a New API Endpoint
 
 **Step 1: Define the API function** (`src/lib/api/[feature].ts`)
+
 ```typescript
-import { apiClient } from './client';
+import { apiClient } from "./client";
 
 export interface Portal {
   id: string;
@@ -384,18 +429,19 @@ export interface Portal {
 
 export const portalApi = {
   getAll: async () => {
-    const response = await apiClient.get<Portal[]>('/admin/portals');
+    const response = await apiClient.get<Portal[]>("/admin/portals");
     return response.data;
   },
-  
+
   create: async (data: { name: string }) => {
-    const response = await apiClient.post<Portal>('/admin/portals', data);
+    const response = await apiClient.post<Portal>("/admin/portals", data);
     return response.data;
   },
 };
 ```
 
 **Step 2: Use in Component with React Query**
+
 ```typescript
 'use client';
 
@@ -405,13 +451,13 @@ import { toast } from 'sonner';
 
 export function PortalList() {
   const queryClient = useQueryClient();
-  
+
   // Fetch data
   const { data: portals, isLoading } = useQuery({
     queryKey: ['portals'],
     queryFn: portalApi.getAll,
   });
-  
+
   // Mutate data
   const createPortal = useMutation({
     mutationFn: portalApi.create,
@@ -421,9 +467,9 @@ export function PortalList() {
     },
     // onError is handled globally by QueryProvider
   });
-  
+
   if (isLoading) return <div>Loading...</div>;
-  
+
   return (
     <div>
       {portals?.map(portal => <div key={portal.id}>{portal.name}</div>)}
@@ -438,13 +484,15 @@ export function PortalList() {
 ### 2. Creating a Form with Validation
 
 **Step 1: Define Zod Schema** (`src/lib/schemas/[feature].ts`)
+
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 export const createPortalSchema = z.object({
-  name: z.string()
-    .min(3, 'Name must be at least 3 characters')
-    .max(50, 'Name must be less than 50 characters'),
+  name: z
+    .string()
+    .min(3, "Name must be at least 3 characters")
+    .max(50, "Name must be less than 50 characters"),
   description: z.string().optional(),
 });
 
@@ -452,6 +500,7 @@ export type CreatePortalForm = z.infer<typeof createPortalSchema>;
 ```
 
 **Step 2: Use in Component**
+
 ```typescript
 'use client';
 
@@ -467,12 +516,12 @@ export function CreatePortalForm() {
       description: '',
     },
   });
-  
+
   const onSubmit = (data: CreatePortalForm) => {
     // Data is validated, TypeScript knows the shape
     console.log(data);
   };
-  
+
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
       {/* Use Shadcn Form components */}
@@ -487,21 +536,23 @@ export function CreatePortalForm() {
 'use client';
 
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { ROLES } from '@/lib/auth/roles';
 
 export function UserProfile() {
-  const { user, isAuthenticated } = useAuthStore();
-  
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
   if (!isAuthenticated) {
     return <div>Please log in</div>;
   }
-  
-  const isAdmin = user?.roles.includes('ADMIN');
-  const isPortalAdmin = user?.roles.includes('PORTAL_ADMIN');
-  
+
+  // Use ROLES constants — never hardcode raw strings
+  const isAdmin = user?.roles.some((r) => r.name === ROLES.SUPER_ADMIN);
+  const isPortalAdmin = user?.roles.some((r) => r.name === ROLES.PORTAL_ADMIN);
+
   return (
     <div>
       <p>Email: {user.email}</p>
-      <p>Roles: {user.roles.join(', ')}</p>
       {isAdmin && <AdminPanel />}
     </div>
   );
@@ -514,11 +565,11 @@ export function UserProfile() {
 const mutation = useMutation({
   mutationFn: someApi.create,
   meta: {
-    suppressErrorToast: true,  // Won't show global toast
+    suppressErrorToast: true, // Won't show global toast
   },
   onError: (error) => {
     // Handle error manually in component
-    console.error('Custom error handling:', error);
+    console.error("Custom error handling:", error);
   },
 });
 ```
@@ -528,6 +579,7 @@ const mutation = useMutation({
 ## 🚨 Common Pitfalls & Solutions
 
 ### ❌ DON'T: Store API data in Zustand
+
 ```typescript
 // BAD - Don't do this
 const useDataStore = create((set) => ({
@@ -540,10 +592,11 @@ const useDataStore = create((set) => ({
 ```
 
 ### ✅ DO: Use React Query
+
 ```typescript
 // GOOD - Use React Query
 const { data: portals } = useQuery({
-  queryKey: ['portals'],
+  queryKey: ["portals"],
   queryFn: portalApi.getAll,
 });
 ```
@@ -551,24 +604,26 @@ const { data: portals } = useQuery({
 ---
 
 ### ❌ DON'T: Use try/catch in components
+
 ```typescript
 // BAD - Error handling is done globally
 const handleSubmit = async () => {
   try {
     await createPortal(data);
-    toast.success('Success!');
+    toast.success("Success!");
   } catch (error) {
-    toast.error('Failed!');
+    toast.error("Failed!");
   }
 };
 ```
 
 ### ✅ DO: Let React Query handle errors
+
 ```typescript
 // GOOD - Errors show toast automatically
 const mutation = useMutation({
   mutationFn: portalApi.create,
-  onSuccess: () => toast.success('Success!'),
+  onSuccess: () => toast.success("Success!"),
   // onError handled by QueryProvider
 });
 ```
@@ -576,15 +631,17 @@ const mutation = useMutation({
 ---
 
 ### ❌ DON'T: Access tokens directly
+
 ```typescript
 // BAD - Never do this
-localStorage.getItem('access_token');
+localStorage.getItem("access_token");
 ```
 
 ### ✅ DO: Trust the cookie system
+
 ```typescript
 // GOOD - Cookies are sent automatically
-const response = await apiClient.get('/protected-route');
+const response = await apiClient.get("/protected-route");
 // withCredentials: true handles everything
 ```
 
@@ -593,7 +650,9 @@ const response = await apiClient.get('/protected-route');
 ## 🛠️ Troubleshooting
 
 ### Issue: "401 Unauthorized" on every request
+
 **Solution:** Ensure backend CORS allows credentials:
+
 ```python
 # Backend (FastAPI)
 app.add_middleware(
@@ -606,11 +665,15 @@ app.add_middleware(
 ```
 
 ### Issue: Types not updating after schema change
+
 **Solution:** Restart TypeScript server
+
 - VS Code: `Cmd/Ctrl + Shift + P` → "TypeScript: Restart TS Server"
 
 ### Issue: ESLint not auto-fixing
+
 **Solution:** Run lint command manually
+
 ```bash
 bun run lint
 ```
@@ -620,11 +683,13 @@ bun run lint
 ## 📚 Project Conventions
 
 ### File Naming
-- **Components:** PascalCase (e.g., `UserTable.tsx`)
-- **Utils/API:** kebab-case (e.g., `auth-store.ts`, `api-client.ts`)
-- **Routes:** kebab-case (e.g., `api-keys/page.tsx`)
+
+- **All files:** `kebab-case.tsx` / `kebab-case.ts` (e.g., `user-table.tsx`, `auth-store.ts`)
+- **Routes:** kebab-case directories (e.g., `api-keys/page.tsx`, `team-members/page.tsx`)
+- **Components export:** named function declaration — `export function MyComponent()`, not `const`
 
 ### Component Organization
+
 ```
 _components/           # Private to parent route
   ├── feature-dialog.tsx
@@ -636,6 +701,7 @@ components/ui/         # Shared Shadcn components
 ```
 
 ### Import Order (Auto-sorted by ESLint)
+
 1. React/Next imports
 2. External libraries
 3. Internal aliases (`@/`)

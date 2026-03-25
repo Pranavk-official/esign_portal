@@ -9,7 +9,7 @@ body:
       value: |
         **Internal Task Assignment**
         Use this template to assign specific work items to team members.
-  
+
   - type: input
     id: task-id
     attributes:

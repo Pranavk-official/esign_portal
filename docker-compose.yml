@@ -1,0 +1,111 @@
+# ──────────────────────────────────────────────────────────────────────────────
+#  ASP eSign Gateway Frontend — Production Docker Compose
+#
+#  Stack:
+#    esign-portal  — Next.js 16 / Bun standalone (port 3000, internal only)
+#    nginx         — TLS termination + reverse proxy (ports 80 / 443)
+#
+#  Usage (direct VM deployment, WITHOUT Coolify):
+#    1. Copy .env.example to .env and fill in secrets
+#    2. Place TLS cert/key at ./nginx/certs/esign.crt and ./nginx/certs/esign.key
+#    3. docker compose up -d
+#
+#  For Coolify-managed deployments, Coolify builds from the Dockerfile directly
+#  and injects environment variables via its UI. This compose file is for
+#  manual / CI-managed deployments on the KSDC VM.
+#
+#  Internal networking:
+#    - nginx and esign-portal communicate over the private `esign_net` bridge.
+#    - The FastAPI backend is addressed by BACKEND_URL (server-side only).
+#    - No application port is mapped directly to the host; nginx is the only
+#      ingress point.
+# ──────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Next.js Frontend ─────────────────────────────────────────────────────────
+  esign-portal:
+    image: ${IMAGE_NAME:-esign-portal}:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Pass build-time args if you have them; BACKEND_URL must NOT be here
+    container_name: esign-portal
+    restart: unless-stopped
+
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      # ── Runtime secrets — loaded from .env at compose up time ────────────
+      BACKEND_URL: ${BACKEND_URL}
+      NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
+      DEPLOYMENT_VERSION: ${DEPLOYMENT_VERSION:-}
+
+    # Port 3000 is exposed only to the internal network (nginx).
+    # Never map it to the host directly; nginx is the sole public entry point.
+    expose:
+      - "3000"
+
+    networks:
+      - esign_net
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+
+    # Prevent the container from gaining extra privileges
+    security_opt:
+      - no-new-privileges:true
+
+    # Read-only root filesystem — secrets are env vars, not files
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.next/cache   # Next.js writes cache here at runtime
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # ── Nginx Reverse Proxy / TLS Terminator ─────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: esign-nginx
+    restart: unless-stopped
+    depends_on:
+      esign-portal:
+        condition: service_healthy
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      # Nginx site config
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      # TLS certificates (KSDC internal CA or Let's Encrypt)
+      # Place them at: ./nginx/certs/esign.crt  ./nginx/certs/esign.key
+      - ./nginx/certs:/etc/nginx/certs:ro
+      # Static error pages (optional)
+      - ./nginx/html:/usr/share/nginx/html:ro
+
+    networks:
+      - esign_net
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+networks:
+  esign_net:
+    driver: bridge
+    # Restricts the subnet to a private range — no accidental exposure
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

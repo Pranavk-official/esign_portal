@@ -27,20 +27,31 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ChevronUp, LogOut } from "lucide-react"
 import { userMenuItems } from "@/app/(portal)/config/user-menu-items"
+import { authApi } from "@/lib/api/auth"
+import { useAuthStore } from "@/lib/stores/auth-store"
 
 type UserMenuProps = {
-  name: string
+  email: string
 }
 
-export function SidebarUserMenu({ name }: UserMenuProps) {
+export function SidebarUserMenu({ email }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const { state } = useSidebar()
+  const clearAuth = useAuthStore((s) => s.clearAuth)
 
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
+  // Derive initials from the email local part (before @)
+  const initials = (email.split("@")[0]?.[0] ?? "U").toUpperCase()
+
+  async function handleLogout() {
+    try {
+      await authApi.logout()
+    } catch {
+      // Ignore — backend may already have invalidated the session
+    } finally {
+      clearAuth()
+      window.location.href = "/login"
+    }
+  }
 
   // When sidebar is collapsed, show dropdown menu
   if (state === "collapsed") {
@@ -56,7 +67,7 @@ export function SidebarUserMenu({ name }: UserMenuProps) {
                 <Avatar className="h-8 w-8">
                   <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
-                <span className="sr-only">{name}</span>
+                <span className="sr-only">{email}</span>
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -64,6 +75,7 @@ export function SidebarUserMenu({ name }: UserMenuProps) {
               align="end"
               className="w-56"
             >
+              <div className="px-2 py-1.5 text-xs text-muted-foreground truncate">{email}</div>
               {userMenuItems.map((item) => (
                 <DropdownMenuItem key={item.title} asChild>
                   <a href={item.href}>
@@ -72,7 +84,7 @@ export function SidebarUserMenu({ name }: UserMenuProps) {
                   </a>
                 </DropdownMenuItem>
               ))}
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sign out</span>
               </DropdownMenuItem>
@@ -89,12 +101,12 @@ export function SidebarUserMenu({ name }: UserMenuProps) {
       <Collapsible open={isOpen} onOpenChange={setIsOpen} className="group/collapsible">
         <SidebarMenuItem>
           <CollapsibleTrigger asChild>
-            <SidebarMenuButton tooltip={name}>
+            <SidebarMenuButton tooltip={email}>
               <Avatar className="h-6 w-6">
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
-              <span>{name}</span>
-              <ChevronUp className={`ml-auto transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+              <span className="truncate text-sm">{email}</span>
+              <ChevronUp className={`ml-auto shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
             </SidebarMenuButton>
           </CollapsibleTrigger>
 
@@ -112,11 +124,12 @@ export function SidebarUserMenu({ name }: UserMenuProps) {
               ))}
 
               <SidebarMenuSubItem>
-                <SidebarMenuSubButton asChild className="text-red-600">
-                  <a href="#">
-                    <LogOut className="h-4 w-4" />
-                    <span>Sign out</span>
-                  </a>
+                <SidebarMenuSubButton
+                  className="text-red-600 cursor-pointer"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign out</span>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
             </SidebarMenuSub>

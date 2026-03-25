@@ -1,56 +1,42 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import prettier from "eslint-config-prettier/flat";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
+import unusedImports from "eslint-plugin-unused-imports";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  // 1. Extend Next.js Core & TypeScript Defaults
-  ...compat.extends("next/core-web-vitals", "next/typescript", "prettier"),
-
-  // 2. Custom Rules & Plugins
+const eslintConfig = defineConfig([
+  ...nextVitals,
   {
     plugins: {
-      "simple-import-sort": await import("eslint-plugin-simple-import-sort"),
-      "unused-imports": await import("eslint-plugin-unused-imports"),
+      "simple-import-sort": simpleImportSort,
+      "unused-imports": unusedImports,
     },
     rules: {
-      // --- Formatting & Imports ---
-      // Auto-sort imports
+      // Import sorting rules
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
-      
-      // Auto-remove unused imports
+      // Unused imports rules
       "unused-imports/no-unused-imports": "error",
       "unused-imports/no-unused-vars": [
         "warn",
         {
-          "vars": "all",
-          "varsIgnorePattern": "^_",
-          "args": "after-used",
-          "argsIgnorePattern": "^_",
+          vars: "all",
+          varsIgnorePattern: "^_",
+          args: "after-used",
+          argsIgnorePattern: "^_",
         },
       ],
-
-      // --- Developer Experience ---
-      // Allow using console.log/error (often blocked in strict configs, but annoying in dev)
-      "no-console": ["warn", { allow: ["warn", "error"] }],
-      
-      // Allow '_variable' to be unused (Standard TS pattern)
-      "@typescript-eslint/no-unused-vars": "off", // Handled by unused-imports plugin above
-      
-      // Enforce consistent type imports (Optional, but good for perf)
-      "@typescript-eslint/consistent-type-imports": [
-        "warn",
-        { "prefer": "type-imports", "fixStyle": "inline-type-imports" }
-      ]
     },
   },
-];
+  prettier,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
 
 export default eslintConfig;

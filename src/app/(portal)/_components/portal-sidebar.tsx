@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { navLinks } from "@/app/(portal)/config/navlinks";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 import {
   Sidebar,
@@ -22,12 +22,8 @@ import { SidebarUserMenu } from "./user-menu";
 
 export function PortalSidebar() {
   const pathname = usePathname();
-
-  // frontend-only username
-  const username = "John Doe";
-
-  // local dropdown toggle
-  const [open, setOpen] = useState(false);
+  // PortalRoleGuard guarantees the store is hydrated before this renders.
+  const user = useAuthStore((s) => s.user);
 
   return (
     <Sidebar collapsible="icon" variant="floating" className="py-2 group-data-[variant=floating]:border-zinc-300">
@@ -67,7 +63,7 @@ export function PortalSidebar() {
 
       {/* ---------- USER DROPDOWN ---------- */}
       <SidebarFooter>
-        <SidebarUserMenu name="John Doe" />
+        <SidebarUserMenu email={user?.email ?? ""} />
       </SidebarFooter>
     </Sidebar>
   );

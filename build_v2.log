@@ -1,0 +1,26 @@
+
+> esign_portal@0.1.0 build
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+▲ Next.js 16.1.4 (Turbopack)
+- Environments: .env.local, .env
+
+  Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+✓ Compiled successfully in 8.1s
+  Running TypeScript ...
+Failed to compile.
+
+./src/app/(portal)/config/navlinks.ts:23:27
+Type error: Argument of type '{ id: string; email: string; portal_id: string | null; is_active: boolean; created_at: string; roles: { id: string; name: string; description: string | null; }[]; } | null' is not assignable to parameter of type '{ id: string; email: string; portal_id: string | null; is_active: boolean; created_at: string; roles: { id: string; name: string; description: string | null; }[]; }'.
+  Type 'null' is not assignable to type '{ id: string; email: string; portal_id: string | null; is_active: boolean; created_at: string; roles: { id: string; name: string; description: string | null; }[]; }'.
+
+[0m [90m 21 |[39m [90m */[39m
+ [90m 22 |[39m [36mexport[39m [36mfunction[39m getNavLinks(user[33m:[39m [33mUserDetailResponse[39m [33m|[39m [36mnull[39m)[33m:[39m [33mNavGroup[39m[] {
+[31m[1m>[22m[39m[90m 23 |[39m   [36mconst[39m isAdmin [33m=[39m hasRole(user[33m,[39m [[33mROLES[39m[33m.[39m[33mPORTAL_ADMIN[39m])[33m;[39m
+ [90m    |[39m                           [31m[1m^[22m[39m
+ [90m 24 |[39m
+ [90m 25 |[39m   [36mreturn[39m [
+ [90m 26 |[39m     {[0m
+Next.js build worker exited with code: 1 and signal: null

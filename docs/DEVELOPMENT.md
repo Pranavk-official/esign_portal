@@ -6,23 +6,25 @@ This document outlines the coding standards, architectural patterns, and best pr
 
 ## 🏗️ Architecture Overview
 
-We use a **Domain-Driven Design (DDD)** approach adapted for Next.js App Router.
+We use a **Domain-Driven Design (DDD)** approach adapted for Next.js App Router. For a high-level view of the system components, see [**System Architecture**](./architecture.md).
 
 ### 1. Folder Structure
+
 We strictly separate contexts using Route Groups.
 
-- **`(admin)`**: Gateway Operator context. *Only* components used by Super Admins go here.
-- **`(portal)`**: Department Manager context. *Only* components used by Portal Admins go here.
+- **`(admin)`**: Gateway Operator context. _Only_ components used by Super Admins go here.
+- **`(portal)`**: Department Manager context. _Only_ components used by Portal Admins go here.
 - **`components/`**: Truly shared UI primitives (Button, Input, Table) that are context-agnostic.
 
 **Rule:** If a component fetches data specific to "Portals", it belongs in `app/(admin)/_components`, NOT `src/components`.
 
 ### 2. Authentication & Security
+
 - **Mechanism:** HttpOnly Cookies (managed by backend).
-- **Client State:** `useAuthStore` (Zustand) tracks *who* is logged in, but not the *token* itself.
+- **Client State:** `useAuthStore` (Zustand) tracks _who_ is logged in, but not the _token_ itself.
 - **Protection:**
-    - **Middleware:** Checks for cookie presence on server-side.
-    - **Layouts:** Checks for `user` object in Zustand on client-side.
+  - **Middleware:** Checks for cookie presence on server-side.
+  - **Layouts:** Checks for `user` object in Zustand on client-side.
 
 **Rule:** Never try to read `localStorage` for tokens. Always rely on `authApi.getMe()` to verify session validity.
 
@@ -33,17 +35,22 @@ We strictly separate contexts using Route Groups.
 We use a 3-layer state strategy. Do not mix them up.
 
 ### 1. Server State (Data) -> React Query
+
 Use `useQuery` for fetching and `useMutation` for changing data.
+
 - **Stale Time:** Default is 1 minute.
 - **Keys:** Use factory pattern if possible, or consistent strings: `['portals', 'list', { page: 1 }]`.
 
 ### 2. Client State (Global) -> Zustand
+
 Use `useAuthStore` only for:
+
 - User Profile
 - Theme / UI Preferences
 - Global Modals
 
 ### 3. Form State (Local) -> React Hook Form
+
 - **Validation:** Zod Schemas (`src/lib/schemas`).
 - **Submission:** `handleSubmit` calls a mutation.
 
@@ -56,13 +63,16 @@ Use `useAuthStore` only for:
 We practice **"Centralized Error Handling"**. UI components should focus on the "Happy Path".
 
 ### How it works:
+
 1.  **Interceptor:** `src/lib/api/client.ts` catches Axios errors and throws typed `AppError` (e.g., `BadRequestError`).
 2.  **Global Listener:** `QueryProvider` listens for these errors.
     - **Mutations (Writes):** Automatically shows a `toast.error()` with the message.
     - **Queries (Reads):** Renders the nearest `error.tsx` boundary.
 
 ### Developer Workflow:
+
 **❌ Bad:**
+
 ```tsx
 try {
   await login(data);
@@ -72,6 +82,7 @@ try {
 ```
 
 **✅ Good:**
+
 ```tsx
 const mutation = useMutation({
   mutationFn: login,
@@ -81,16 +92,18 @@ const mutation = useMutation({
 ```
 
 **Opt-Out:**
-If you *need* custom error handling (e.g., set a form error field), disable the global toast:
+If you _need_ custom error handling (e.g., set a form error field), disable the global toast:
+
 ```tsx
 useMutation({
   meta: { suppressErrorToast: true }, // 👈 Magic switch
-  onError: (err) => form.setError("email", { message: err.message })
-})
+  onError: (err) => form.setError("email", { message: err.message }),
+});
 ```
 
 **Throwing Custom Errors:**
 If you need to throw an error manually in a utility or API function:
+
 ```tsx
 import { BadRequestError } from "@/lib/errors";
 
@@ -106,34 +119,38 @@ if (!data) {
 We use Zustand for client-side state that needs to persist across pages (e.g., Auth User).
 
 ### Consuming State
+
 ```tsx
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 export function UserBadge() {
   // Selector pattern prevents unnecessary re-renders
   const user = useAuthStore((state) => state.user);
-  
+
   if (!user) return null;
   return <span>{user.email}</span>;
 }
 ```
 
 ### Updating State
+
 ```tsx
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 export function LogoutButton() {
   const clearAuth = useAuthStore((state) => state.clearAuth);
-  
+
   return <button onClick={clearAuth}>Logout</button>;
 }
 ```
 
 ### Creating a New Store
+
 Only create a new store if you have complex global UI state (e.g., a multi-step wizard).
+
 ```tsx
 // src/lib/stores/ui-store.ts
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface UIState {
   isSidebarOpen: boolean;
@@ -168,7 +185,7 @@ interface UserCardProps {
 // 2. Export named function
 export function UserCard({ user, onEdit }: UserCardProps) {
   return (
-    <div className="border p-4 rounded">
+    <div className="rounded border p-4">
       <h3>{user.email}</h3>
       <Button onClick={() => onEdit(user.id)}>Edit</Button>
     </div>
@@ -183,6 +200,7 @@ export function UserCard({ user, onEdit }: UserCardProps) {
 We use `zod` for validation and `react-hook-form` for state.
 
 **1. Define Schema (`src/lib/schemas/auth.ts`)**
+
 ```tsx
 import { z } from "zod";
 
@@ -195,13 +213,21 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 ```
 
 **2. Create Form Component**
+
 ```tsx
 "use client";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormValues } from "@/lib/schemas/auth";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
 export function LoginForm() {
@@ -247,8 +273,10 @@ export function LoginForm() {
 ## 📝 Coding Standards
 
 ### 1. Imports
+
 We use `simple-import-sort`. Run `bun run format` to fix them.
 Order:
+
 1. React / Next.js
 2. Third-party (TanStack, Lucide)
 3. Shared Components (`@/components`)
@@ -256,11 +284,13 @@ Order:
 5. Local Imports (`./`)
 
 ### 2. Types
+
 - **No `any`:** Strictly forbidden. If the API response is dynamic, use `unknown` and validate it with Zod.
 - **Interfaces:** Prefix with `I` is **not** required. Use descriptive names: `PortalResponse`, `UserCreateForm`.
 - **API Types:** distinct from Domain Types. Define them in `src/lib/api/types.ts` or co-located files.
 
 ### 3. Components
+
 - **Function Components:** Use `export function Name() {}` (not const arrow functions).
 - **Props:** Define `interface Props` just above the component.
 - **Filenames:** `kebab-case.tsx` (e.g., `user-profile-card.tsx`).
@@ -284,8 +314,8 @@ Order:
 
 ## 🧪 Testing Strategy
 
-* **Unit Tests:** For isolated logic (utils, form validation).
-* **Integration Tests:** For critical flows (Login, Onboarding).
-* **E2E:** (Future) Playwright for full browser testing.
+- **Unit Tests:** For isolated logic (utils, form validation).
+- **Integration Tests:** For critical flows (Login, Onboarding).
+- **E2E:** (Future) Playwright for full browser testing.
 
 **Rule:** If you fix a bug, write a test case that reproduces it first.
