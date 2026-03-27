@@ -17,7 +17,7 @@
 'use client' // Required for Next.js App Router
 
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import {persist } from 'zustand/middleware'
 
 interface User {
   id: string

@@ -11,6 +11,7 @@ import {
   type PortalStatusUpdateRequest,
 } from "@/lib/api/portals";
 import { PortalOnboardingRequest } from "@/lib/api/types";
+import { queryKeys } from "@/lib/auth/query-keys";
 
 export function usePortalMutations() {
   const queryClient = useQueryClient();
@@ -19,8 +20,8 @@ export function usePortalMutations() {
     mutationFn: ({ portalId, data }: { portalId: string; data: PortalStatusUpdateRequest }) =>
       portalsApi.updateStatus(portalId, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["portals"] });
-      queryClient.invalidateQueries({ queryKey: ["portals", variables.portalId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.portals.detail(variables.portalId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.portals.lists() });
       const action = variables.data.is_active ? "activated" : "deactivated";
       toast.success(`Portal ${action} successfully`);
     },
@@ -30,8 +31,8 @@ export function usePortalMutations() {
     mutationFn: ({ portalId, data }: { portalId: string; data: PortalKeyLimitUpdate }) =>
       portalsApi.updateKeyLimits(portalId, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["portals"] });
-      queryClient.invalidateQueries({ queryKey: ["portals", variables.portalId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.portals.detail(variables.portalId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.portals.lists() });
       toast.success("Portal key limits updated successfully");
     },
   });
@@ -47,8 +48,8 @@ export function usePortalMutations() {
       data: ApiKeyStatusUpdateRequest;
     }) => portalsApi.updateKeyStatus(portalId, keyId, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["portal-keys", variables.portalId] });
-      queryClient.invalidateQueries({ queryKey: ["api-keys"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.portals.keys(variables.portalId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.apiKeys.all });
       const action = variables.data.is_active ? "activated" : "revoked";
       toast.success(`API key ${action} successfully`);
     },
@@ -65,8 +66,8 @@ export function usePortalMutations() {
       data: ApiKeyTxnCountUpdateRequest;
     }) => portalsApi.updateKeyTxnCount(portalId, keyId, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["portal-keys", variables.portalId] });
-      queryClient.invalidateQueries({ queryKey: ["api-keys"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.portals.keys(variables.portalId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.apiKeys.all });
       toast.success("Transaction limits updated successfully");
     },
   });
@@ -82,8 +83,8 @@ export function usePortalMutations() {
       callbackUrl: string | null;
     }) => portalsApi.updateKeyCallback(portalId, keyId, callbackUrl),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["portal-keys", variables.portalId] });
-      queryClient.invalidateQueries({ queryKey: ["api-keys"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.portals.keys(variables.portalId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.apiKeys.all });
       toast.success("Callback URL updated successfully");
     },
   });
@@ -103,7 +104,7 @@ export function useOnboardPortal() {
   return useMutation({
     mutationFn: (data: PortalOnboardingRequest) => portalsApi.onboard(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["portals"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.portals.all });
       toast.success("Portal onboarded successfully");
     },
   });

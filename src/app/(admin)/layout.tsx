@@ -1,7 +1,8 @@
-import { SuperAdminGuard } from "./_components/super-admin-guard";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AdminSidebar } from "./_components/admin-sidebar";
+
 import { AdminHeader } from "./_components/admin-header";
+import { AdminSidebar } from "./_components/admin-sidebar";
+import { SuperAdminGuard } from "./_components/super-admin-guard";
 
 /**
  * Admin group layout

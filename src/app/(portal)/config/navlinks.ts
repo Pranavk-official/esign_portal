@@ -1,7 +1,7 @@
 import { FileKey, MousePointerClick, SquareChartGantt, UsersRound } from "lucide-react";
 
-import { hasRole, ROLES } from "@/lib/auth/roles";
 import type { UserDetailResponse } from "@/lib/api/auth";
+import { hasRole, ROLES } from "@/lib/auth/roles";
 
 export type NavLink = {
   title: string;

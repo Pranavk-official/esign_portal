@@ -1,5 +1,6 @@
-import { apiClient } from './client';
 import { OTPRequestForm, OTPVerifyForm } from '@/lib/schemas/auth';
+
+import { apiClient } from './client';
 
 // ─── Request / Response Types (aligned with openapi.json) ─────────────────────
 

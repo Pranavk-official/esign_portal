@@ -1,32 +1,30 @@
 "use client"
 
+import { ChevronUp, LogOut } from "lucide-react"
 import { useState } from "react"
+
+import { userMenuItems } from "@/app/(admin)/config/user-menu-items"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
 import {
   SidebarMenu,
-  SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuItem,
   SidebarMenuSub,
-  SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ChevronUp, LogOut } from "lucide-react"
-import { userMenuItems } from "@/app/(admin)/config/user-menu-items"
 import { authApi } from "@/lib/api/auth"
 import { useAuthStore } from "@/lib/stores/auth-store"
 

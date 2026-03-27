@@ -1,12 +1,11 @@
 "use client"
 
-import * as React from "react"
-import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import * as React from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -23,25 +22,21 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp"
-
+import { authApi } from "@/lib/api/auth"
+import { AppError } from "@/lib/errors"
 // Schemas
 import {
-  otpRequestSchema,
-  otpVerifySchema,
   type OTPRequestForm,
-  type OTPVerifyForm
-} from "@/lib/schemas/auth"
-
-import { authApi } from "@/lib/api/auth"
+  otpRequestSchema,
+  type OTPVerifyForm,
+  otpVerifySchema} from "@/lib/schemas/auth"
 import { useAuthStore } from "@/lib/stores/auth-store"
-import { AppError } from "@/lib/errors"
 
 type LoginStep = "EMAIL" | "OTP"
 
 export function LoginForm() {
   const [step, setStep] = React.useState<LoginStep>("EMAIL")
   const [email, setEmail] = React.useState<string>("")
-  const router = useRouter()
   const { setUser } = useAuthStore()
 
   // --- Form 1: Request OTP ---

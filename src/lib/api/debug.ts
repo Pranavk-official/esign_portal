@@ -98,14 +98,14 @@ export const authDebug = {
     console.log('\n2️⃣  Testing cookie support...');
     try {
       await this.testCookies();
-    } catch (error) {
+    } catch {
       console.log('Backend debug endpoint not available or auth failed');
     }
-    
+
     console.log('\n3️⃣  Checking authentication...');
     try {
       await this.checkAuth();
-    } catch (error) {
+    } catch {
       console.log('Not currently authenticated');
     }
     

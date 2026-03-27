@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navLinks } from "@/app/(portal)/config/navlinks";
-import { useAuthStore } from "@/lib/stores/auth-store";
 
+import { navLinks } from "@/app/(portal)/config/navlinks";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -15,8 +15,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarFooter,
 } from "@/components/ui/sidebar";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 import { SidebarUserMenu } from "./user-menu";
 

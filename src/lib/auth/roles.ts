@@ -1,4 +1,4 @@
-import type { UserDetailResponse, RoleResponse } from "@/lib/api/auth";
+import type { RoleResponse,UserDetailResponse } from "@/lib/api/auth";
 
 export type RoleName = "super_admin" | "portal_admin" | "portal_user";
 

@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { apiKeysApi } from "@/lib/api/api-keys";
+import { queryKeys } from "@/lib/auth/query-keys";
 
 export function useApiKeyMutations() {
   const queryClient = useQueryClient();
@@ -12,7 +13,7 @@ export function useApiKeyMutations() {
     mutationFn: ({ keyId, callbackUrl }: { keyId: string; callbackUrl: string | null }) =>
       apiKeysApi.updateCallback(keyId, callbackUrl),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["api-keys"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.apiKeys.all });
       toast.success("Callback URL updated successfully");
     },
     onError: (error: any) => {

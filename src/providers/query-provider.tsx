@@ -1,12 +1,13 @@
 'use client';
 
 import { 
+  MutationCache, 
   QueryClient, 
   QueryClientProvider, 
-  MutationCache, 
 } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
+
 import { AppError } from '@/lib/errors';
 
 // Extend React Query's Meta type to include our custom options

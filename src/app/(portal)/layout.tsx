@@ -1,7 +1,8 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { PortalSidebar } from "./_components/portal-sidebar";
+
 import { PortalHeader } from "./_components/portal-header";
 import { PortalRoleGuard } from "./_components/portal-role-guard";
+import { PortalSidebar } from "./_components/portal-sidebar";
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (

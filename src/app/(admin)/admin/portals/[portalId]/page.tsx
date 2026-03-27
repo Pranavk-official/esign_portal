@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePortalMutations } from "@/hooks/use-portal-mutations";
 import { usePortal, usePortalKeys, usePortalSpecificUsageSummary } from "@/hooks/use-portals";
 import { usePortalUsers } from "@/hooks/use-users";
-import type { ApiKeyResponse, PortalListResponse } from "@/lib/api/types";
+import type { PortalListResponse } from "@/lib/api/types";
 
 export default function PortalDetailsPage() {
   const params = useParams();

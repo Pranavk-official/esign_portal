@@ -5,6 +5,7 @@ import simpleImportSort from "eslint-plugin-simple-import-sort";
 import unusedImports from "eslint-plugin-unused-imports";
 
 const eslintConfig = defineConfig([
+  globalIgnores([".agents/"]),
   ...nextVitals,
   {
     plugins: {

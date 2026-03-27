@@ -26,17 +26,17 @@
  */
 
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { useAuthStore } from '@/lib/stores/auth-store';
+
 import {
+  AppError,
   BadRequestError,
-  UnauthorizedError,
-  ForbiddenError,
-  NotFoundError,
   ConflictError,
-  TooManyRequestsError,
+  ForbiddenError,
   InternalServerError,
-  AppError
-} from '@/lib/errors';
+  NotFoundError,
+  TooManyRequestsError,
+  UnauthorizedError} from '@/lib/errors';
+import { useAuthStore } from '@/lib/stores/auth-store';
 
 // Extend Axios config for retry flag
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -88,7 +88,7 @@ apiClient.interceptors.response.use(
 
         // Retry the original request — browser will send the new access_token cookie.
         return apiClient(originalRequest);
-      } catch (refreshError) {
+      } catch {
         // Refresh failed — clear auth state and send user back to login.
         useAuthStore.getState().clearAuth();
 

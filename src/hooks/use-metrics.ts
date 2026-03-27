@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { metricsApi } from "@/lib/api/metrics";
+import { queryKeys } from "@/lib/auth/query-keys";
 
 /**
  * Hook for fetching system overview metrics (Super Admin only)
@@ -11,7 +12,7 @@ import { metricsApi } from "@/lib/api/metrics";
  */
 export function useSystemOverview() {
   return useQuery({
-    queryKey: ["system-overview"],
+    queryKey: queryKeys.metrics.overview(),
     queryFn: () => metricsApi.getSystemOverview(),
     staleTime: 60 * 1000, // 1 minute
   });

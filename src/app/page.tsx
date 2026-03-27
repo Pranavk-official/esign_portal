@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+import type { RoleResponse } from "@/lib/api/auth";
 import { authApi } from "@/lib/api/auth";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import type { RoleResponse } from "@/lib/api/auth";
 
 /**
  * Root page — resolves role-based routing for authenticated users.
@@ -24,6 +25,17 @@ export default function Home() {
   const { setUser, user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
+    function redirectByRole(roles: RoleResponse[]) {
+      const hasRole = (name: string) =>
+        roles.some((r) => r.name.toUpperCase() === name.toUpperCase());
+
+      if (hasRole('SUPER_ADMIN')) {
+        router.replace('/admin');
+      } else {
+        router.replace('/portal');
+      }
+    }
+
     // If already hydrated in-memory, do role-based redirect immediately
     if (isAuthenticated && user) {
       redirectByRole(user.roles);
@@ -43,17 +55,6 @@ export default function Home() {
         router.replace('/login');
       });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function redirectByRole(roles: RoleResponse[]) {
-    const hasRole = (name: string) =>
-      roles.some((r) => r.name.toUpperCase() === name.toUpperCase());
-
-    if (hasRole('SUPER_ADMIN')) {
-      router.replace('/admin');
-    } else {
-      router.replace('/portal');
-    }
-  }
 
   return (
     <div className="flex h-screen w-full items-center justify-center">

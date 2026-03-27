@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { portalsApi } from "@/lib/api/portals";
 import type { ApiKeyDetailResponse, PortalListResponse } from "@/lib/api/types";
+import { queryKeys } from "@/lib/auth/query-keys";
 
 interface PortalStatisticsModalProps {
   portal: PortalListResponse | null;
@@ -103,13 +104,13 @@ const ApiKeyCard = ({ apiKey }: ApiKeyCardProps) => (
 
 export function PortalStatisticsModal({ portal, open, onOpenChange }: PortalStatisticsModalProps) {
   const { data: keysData, isLoading: keysLoading } = useQuery({
-    queryKey: ["portal-keys", portal?.portal_id],
+    queryKey: queryKeys.portals.keys(portal?.portal_id ?? ""),
     queryFn: () => portalsApi.listPortalKeys(portal!.portal_id, { page_size: 100 }),
     enabled: !!portal && open,
   });
 
   const { data: _usageData, isLoading: usageLoading } = useQuery({
-    queryKey: ["portal-usage", portal?.portal_id],
+    queryKey: queryKeys.usage.portal(portal?.portal_id ?? ""),
     queryFn: () => portalsApi.getPortalUsage(portal!.portal_id, { page: 1, page_size: 1 }),
     enabled: !!portal && open,
   });

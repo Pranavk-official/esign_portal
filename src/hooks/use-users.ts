@@ -2,17 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 
 import type { UserQueryParams } from "@/lib/api/types";
 import { usersApi } from "@/lib/api/users";
+import { queryKeys } from "@/lib/auth/query-keys";
 
 export function useUsers(params?: UserQueryParams) {
   return useQuery({
-    queryKey: ["users", params],
+    queryKey: queryKeys.users.list(params),
     queryFn: () => usersApi.listAll(params),
   });
 }
 
 export function useUser(userId: string) {
   return useQuery({
-    queryKey: ["users", userId],
+    queryKey: queryKeys.users.detail(userId),
     queryFn: () => usersApi.get(userId),
     enabled: !!userId,
   });
@@ -20,7 +21,7 @@ export function useUser(userId: string) {
 
 export function usePortalUsers(portalId: string, params?: UserQueryParams) {
   return useQuery({
-    queryKey: ["portal-users", portalId, params],
+    queryKey: queryKeys.portalUsers.list(portalId, params),
     queryFn: () => usersApi.listByPortal(portalId, params),
     enabled: !!portalId,
   });
@@ -28,14 +29,14 @@ export function usePortalUsers(portalId: string, params?: UserQueryParams) {
 
 export function useMyPortalUsers(params?: UserQueryParams) {
   return useQuery({
-    queryKey: ["portal-users", "me", params],
+    queryKey: queryKeys.portalUsers.my(params),
     queryFn: () => usersApi.listMyUsers(params),
   });
 }
 
 export function useMyPortalUser(userId: string) {
   return useQuery({
-    queryKey: ["portal-users", "me", userId],
+    queryKey: queryKeys.portalUsers.myDetail(userId),
     queryFn: () => usersApi.getFromMyPortal(userId),
     enabled: !!userId,
   });

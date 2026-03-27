@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+
 import type { UserDetailResponse } from '@/lib/api/auth';
 
 // Re-export for convenience — the authoritative shape comes from the OpenAPI spec.
