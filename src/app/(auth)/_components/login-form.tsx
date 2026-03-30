@@ -39,6 +39,21 @@ export function LoginForm() {
   const [email, setEmail] = React.useState<string>("")
   const { setUser } = useAuthStore()
 
+  // Auto-focus OTP input after email submission
+  React.useEffect(() => {
+    if (step === "OTP") {
+      // Small delay to ensure DOM is rendered
+      const timer = setTimeout(() => {
+        // Find the actual input element inside the OTP component
+        const otpInput = document.querySelector('[data-slot="input-otp"] input')
+        if (otpInput instanceof HTMLInputElement) {
+          otpInput.focus()
+        }
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [step])
+
   // --- Form 1: Request OTP ---
   const emailForm = useForm<OTPRequestForm>({
     resolver: zodResolver(otpRequestSchema),

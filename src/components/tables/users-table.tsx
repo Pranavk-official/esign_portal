@@ -100,10 +100,10 @@ export function UsersTable({
         header: "User",
         cell: (row) => (
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-xs font-bold text-white shadow-sm sm:h-10 sm:w-10">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-indigo-700 text-xs font-bold text-white shadow-sm sm:h-10 sm:w-10 transition-all group-hover:shadow-indigo-400/30">
               {getInitials(row.email)}
             </div>
-            <span className="truncate text-sm text-gray-900 sm:text-base">{row.email}</span>
+            <span className="truncate text-sm text-foreground sm:text-base font-medium">{row.email}</span>
           </div>
         ),
       },
@@ -151,25 +151,29 @@ export function UsersTable({
               <Button 
                 variant="ghost" 
                 size="icon"
-                className="h-9 w-9 touch-manipulation transition-all hover:bg-gray-100 active:scale-95 sm:h-10 sm:w-10"
+                className="h-9 w-9 touch-manipulation transition-all hover:bg-indigo-100 hover:text-indigo-600 active:scale-95 sm:h-10 sm:w-10"
               >
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-52 backdrop-blur-sm bg-background/95 border-border">
               {onEdit && (
-                <DropdownMenuItem onClick={() => onEdit(row)}>
+                <DropdownMenuItem onClick={() => onEdit(row)} className="cursor-pointer hover:bg-indigo-100 hover:text-indigo-600 transition-colors">
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Roles
                 </DropdownMenuItem>
               )}
               {onToggleStatus && (
                 <>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-border" />
                   <DropdownMenuItem
                     onClick={() => onToggleStatus(row)}
-                    className={row.is_active ? "text-destructive" : "text-green-600"}
+                    className={`cursor-pointer transition-colors ${
+                      row.is_active
+                        ? "hover:bg-red-100 hover:text-red-600"
+                        : "hover:bg-indigo-100 hover:text-indigo-600"
+                    }`}
                   >
                     {row.is_active ? (
                       <>
@@ -196,31 +200,31 @@ export function UsersTable({
   return (
     <div className="space-y-3 sm:space-y-4">
       {/* Filters - Mobile Optimized */}
-      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50/80 to-gray-50/40 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+      <div className="rounded-lg border border-indigo-200 bg-gradient-to-br from-card/60 to-card/30 p-3 shadow-sm backdrop-blur-sm sm:p-4 transition-all hover:border-indigo-300">
         {/* Search - Full Width on Mobile */}
         <div className="mb-3 sm:mb-4">
           <Input
             placeholder="Search by email..."
             value={params.search || ""}
             onChange={(e) => onParamsChange({ ...params, search: e.target.value, page: 1 })}
-            className="h-10 w-full bg-white text-sm shadow-sm transition-shadow focus:shadow-md sm:h-11 sm:max-w-md sm:text-base"
+            className="h-10 w-full bg-background/80 text-sm shadow-sm transition-all focus:shadow-lg focus:ring-2 focus:ring-indigo-400/50 sm:h-11 sm:max-w-md sm:text-base border-indigo-200 hover:border-indigo-300"
           />
         </div>
 
         {/* Filters - Stack on Mobile, Row on Desktop */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <div className="flex-1">
-            <label className="mb-1.5 block text-xs font-medium text-gray-600 sm:hidden">Role</label>
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground sm:hidden">Role</label>
             <Select
               value={params.role_name || "all"}
               onValueChange={(value) =>
                 onParamsChange({ ...params, role_name: value === "all" ? undefined : value, page: 1 })
               }
             >
-              <SelectTrigger className="h-10 w-full bg-white text-sm shadow-sm transition-all focus:ring-2 focus:ring-blue-500 sm:h-11 sm:w-[160px] sm:text-base">
+              <SelectTrigger className="h-10 w-full bg-background/80 text-sm shadow-sm transition-all focus:ring-2 focus:ring-indigo-400/50 sm:h-11 sm:w-[160px] sm:text-base border-indigo-200 hover:border-indigo-300">
                 <SelectValue placeholder="All Roles" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="border-border bg-background/95 backdrop-blur-sm">
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="super_admin">Super Admin</SelectItem>
                 <SelectItem value="portal_admin">Portal Admin</SelectItem>
@@ -230,7 +234,7 @@ export function UsersTable({
           </div>
 
           <div className="flex-1">
-            <label className="mb-1.5 block text-xs font-medium text-gray-600 sm:hidden">Status</label>
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground sm:hidden">Status</label>
             <Select
               value={
                 params.is_active === undefined ? "all" : params.is_active ? "active" : "inactive"
@@ -243,10 +247,10 @@ export function UsersTable({
                 })
               }
             >
-              <SelectTrigger className="h-10 w-full bg-white text-sm shadow-sm transition-all focus:ring-2 focus:ring-blue-500 sm:h-11 sm:w-[160px] sm:text-base">
+              <SelectTrigger className="h-10 w-full bg-background/80 text-sm shadow-sm transition-all focus:ring-2 focus:ring-indigo-400/50 sm:h-11 sm:w-[160px] sm:text-base border-indigo-200 hover:border-indigo-300">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="border-border bg-background/95 backdrop-blur-sm">
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>

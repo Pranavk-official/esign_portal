@@ -19,11 +19,11 @@ export function AdminHeader() {
   const pageTitle = currentItem?.title ?? "Dashboard"
 
   return (
-    <header className="flex h-14 items-center gap-4 border border-zinc-300 bg-background m-2 p-2 rounded-md">
+    <header className="flex h-14 items-center gap-4 border border-indigo-200 bg-background/80 backdrop-blur-sm m-2 p-2 rounded-md animate-slide-in-down transition-all duration-300 hover:border-indigo-400">
       <SidebarTrigger />
 
       <div className="flex flex-1 items-center justify-between">
-        <h1 className="text-lg font-semibold">{pageTitle}</h1>
+        <h1 className="text-lg font-semibold text-foreground">{pageTitle}</h1>
       </div>
     </header>
   )

@@ -17,6 +17,7 @@ type MetricCardProps = {
     isPositive?: boolean;
   };
   isLoading?: boolean;
+  animationDelay?: number;
 };
 
 export function MetricCard({
@@ -28,10 +29,11 @@ export function MetricCard({
   iconBgColor = "bg-primary/10",
   trend,
   isLoading = false,
+  animationDelay = 0,
 }: MetricCardProps) {
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-card animate-scale-in" style={{ animationDelay: `${animationDelay}ms` }}>
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div className="flex-1 space-y-2">
@@ -46,7 +48,7 @@ export function MetricCard({
   }
 
   return (
-    <Card className="glass-card">
+    <Card className="glass-card animate-scale-in transition-all duration-300 hover:shadow-lg hover:shadow-indigo-400/10 hover:border-indigo-200" style={{ animationDelay: `${animationDelay}ms` }}>
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -55,7 +57,7 @@ export function MetricCard({
               <h3 className="text-3xl font-bold">{value}</h3>
               {trend && (
                 <span
-                  className={`text-sm font-medium ${trend.isPositive ? "text-emerald-500" : "text-rose-500"
+                  className={`text-sm font-medium ${trend.isPositive ? "text-indigo-600" : "text-rose-500"
                     }`}
                 >
                   {trend.value}
@@ -64,8 +66,8 @@ export function MetricCard({
             </div>
             {subtitle && <p className="text-muted-foreground mt-1 text-sm">{subtitle}</p>}
           </div>
-          <div className={`rounded-full p-3 ${iconBgColor}`}>
-            <Icon className={`h-5 w-5 ${iconClassName}`} />
+          <div className={`rounded-full p-3 transition-all duration-200 ${iconBgColor} group-hover:bg-primary/20`}>
+            <Icon className={`h-5 w-5 transition-colors ${iconClassName}`} />
           </div>
         </div>
       </CardContent>

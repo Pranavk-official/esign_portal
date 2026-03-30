@@ -1,19 +1,13 @@
 "use client";
 
 import { format } from "date-fns";
-import { Calendar, ChevronDown, ChevronUp, Filter, MoreHorizontal, X } from "lucide-react";
+import { Calendar, ChevronDown, ChevronUp, Filter, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { Column, DataTable } from "@/components/shared/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -192,28 +186,6 @@ export function ApiUsageTable({
                 : ""}
             </span>
           </div>
-        ),
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: (_row) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-11 w-11 sm:h-9 sm:w-9 touch-manipulation active:scale-95 transition-transform"
-              >
-                <MoreHorizontal className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 touch-manipulation">
-              <DropdownMenuItem className="h-11 sm:h-9 text-sm">View Details</DropdownMenuItem>
-              <DropdownMenuItem className="h-11 sm:h-9 text-sm">Download</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         ),
       },
     ],

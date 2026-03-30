@@ -152,6 +152,11 @@ export default function GlobalUsersPage() {
           onSubmit={handleUpdateUser}
           isLoading={assignRoles.isPending}
           showPortalField={false}
+          availableRoles={[
+            { id: "super_admin", name: "super_admin", description: null },
+            { id: "portal_admin", name: "portal_admin", description: null },
+            { id: "portal_user", name: "portal_user", description: null },
+          ]}
         />
 
         <ConfirmDialog

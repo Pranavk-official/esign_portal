@@ -28,7 +28,7 @@ export default function AdminGroupLayout({
           <AdminSidebar />
           <div className="flex min-h-screen w-full flex-col">
             <AdminHeader />
-            <main className="m-2 mt-0 flex-1 rounded-md border border-zinc-300 p-4">
+            <main className="m-2 mt-0 flex-1 rounded-md border border-indigo-200 bg-card/40 backdrop-blur-sm p-4 transition-all duration-300 hover:border-indigo-300">
               {children}
             </main>
           </div>
